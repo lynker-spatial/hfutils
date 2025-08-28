@@ -1,0 +1,95 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  warning = FALSE
+)
+gpkg = '/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'
+```
+
+<!-- badges: start -->
+[![License: GPL (>= 3)](https://img.shields.io/badge/License-GPL%20%28%3E%3D%203%29-blue.svg)](https://choosealicense.com/licenses/gpl-3.0/)
+[![LifeCycle](https://img.shields.io/badge/lifecycle-experimental-orange)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Dependencies](https://img.shields.io/badge/dependencies-7/32-orange?style=flat)](#)
+[![Website](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml)
+<!-- badges: end -->
+
+# Hydrofabric Utilities
+
+`hfutils` provides the base utilities needed for hydrofabric creation and manipulation.
+
+## Installation
+
+You can install the development version of `hfutils` from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("lynker-spatial/hfutils")
+```
+
+```{r}
+library(hfutils)
+library(dplyr)
+```
+
+## Basic Use
+
+### I/O
+
+#### Basic connection: Dataset
+
+```{r, eval = TRUE}
+hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg')
+```
+
+#### Basic connection: Layer
+
+```{r, eval = TRUE}
+hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides") 
+```
+
+#### Lazy Eval
+
+```{r, eval = TRUE}
+hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides") |> 
+  select(divide_id, areasqkm) 
+```
+
+#### sf extraction
+
+```{r, eval = TRUE}
+hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides")  |> 
+  filter(vpuid == "01") |> 
+  st_as_sf()
+```
+
+#### Remote Access
+
+```{r}
+hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
+```
+
+### Network Properties
+
+```{r}
+system.time({
+  da <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
+                         'flowpaths')  |> 
+  filter(vpuid == "01") |> 
+  st_as_sf() |> 
+  accumulate_downstream(attr = "areasqkm")})
+
+head(da)
+```
+
+### Questions?
+
+Please reach out via an issue or PR if you have comments, concerns, or questions!

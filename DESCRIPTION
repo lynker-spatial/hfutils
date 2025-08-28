@@ -1,0 +1,45 @@
+Package: hfutils
+Type: Package
+Title: hfutils
+Description: Core hydrofabric manipulation utilities.
+Version: 0.3.3
+Authors@R: 
+    c(person(given = "Mike", 
+             family = "Johnson", 
+             role = c("aut", "cre"),
+             email = "mjohnson@lynker.com"),
+             person(given = "Justin", family = "Singh-Mohudpur", 
+             role = c("aut")))
+Maintainer: Mike Johnson <mjohnson@lynker.com>
+BugReports: https://github.com/lynker-spatial/hfutils
+URL: https://github.com/lynker-spatial/hfutils  
+Depends: 
+    R (>= 4.2)
+Imports: 
+    DBI,
+    dbplyr,
+    dplyr,
+    glue,
+    httr,
+    igraph,
+    methods,
+    sf,
+    stats,
+    utils
+Suggests: 
+    testthat
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Config/testthat/edition: 3
+Config/testthat/parallel: true
+Collate: 
+    'OGRSQL.R'
+    'OGRSQLConnection.R'
+    'OGRSQLDriver.R'
+    'OGRSQLResult.R'
+    'hfutils-package.R'
+    'network_properties.R'
+    'sf_ogr.R'
+    'zzz.R'
