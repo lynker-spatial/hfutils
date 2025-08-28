@@ -92,3 +92,58 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
   # Return totals aligned to input rows
   as.numeric(total[idx])
 }
+
+
+#' Compute and add the hydrosequence to a directed acyclic network.
+#'
+#' @param topology A data frame (or tibble) containing at least the identifier column
+#'   given by `id` and the downstream pointer column given by `toid`.
+#' @param id Character scalar. Column name in `topology` with unique node identifiers.
+#'   Defaults to `"flowpath_id"`.
+#' @param toid Character scalar. Column name in `topology` with the *downstream* node
+#'   identifier for each row. Use `NA` or `0` for outlets/terminals.
+#'   Defaults to `"flowpath_toid"`.
+#' @param colname Character scalar. Column name to use in result.
+#'   Defaults to `"hydroseq"`
+#' 
+#' @returns The data frame `topology` with an additional column, named `colname`, representing the hydrosequence.
+add_hydroseq <- function(topology, id = "flowpath_id", toid = "flowpath_toid", colname = "hydroseq") {
+  # Create a _transposed_ network, where traversing the network
+  # is equivalent to traversing the hydrological network upstream.
+  #
+  # This assumes the outlets of this network all connect to an
+  # ephemeral "0" node (forming a rooted tree network).
+  edgelist <- topology[, c(toid, id)]
+  names(edgelist) <- c("id", "toid")
+  edgelist$id[is.na(edgelist$id)] <- "0"
+
+  # TODO: Check if multiple components exist. If they do, then
+  # we need to add "0" edges for each component not rooted on "0".
+  
+  # Perform DFS from each terminal upstream to get a
+  # distinct topological sort for the hydrosequence.
+  sorted <- data.frame(
+    node = as.integer(
+      names(
+        igraph::dfs(
+          igraph::graph_from_data_frame(edgelist),
+          root = "0",
+          mode = "out"
+        )$order
+      )
+    )
+  )
+
+  sorted$hydroseq <- c(0, seq_len(nrow(sorted) - 1))
+
+  # Merge the initial hydrosequence to the edgelist and handle ties in the hydrosequence.
+  result <- merge(edgelist, sorted, by.x = "id", by.y = "node", all.x = TRUE)
+  result <- result[!is.na(result$hydroseq), ]
+  result <- result[order(result$hydroseq, result$id, result$toid), c("toid", "id")]
+  result$hydroseq <- seq_len(nrow(result))
+  names(result) <- c(id, toid, "hydroseq")
+
+  # Arrange into input order
+  topology[[colname]] <- result$hydroseq[match(topology[[id]], result[[id]])]
+  topology
+}
