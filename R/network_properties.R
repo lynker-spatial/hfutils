@@ -107,6 +107,7 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #'   Defaults to `"hydroseq"`
 #' 
 #' @returns The data frame `topology` with an additional column, named `colname`, representing the hydrosequence.
+#' @importFrom igraph dfs graph_from_data_frame
 #' @export
 add_hydroseq <- function(topology, id = "flowpath_id", toid = "flowpath_toid", colname = "hydroseq") {
   # Create a _transposed_ network, where traversing the network
