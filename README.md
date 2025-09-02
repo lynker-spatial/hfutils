@@ -28,14 +28,6 @@ remotes::install_github("lynker-spatial/hfutils")
 ``` r
 library(hfutils)
 library(dplyr)
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 ```
 
 ## Basic Use
@@ -45,7 +37,8 @@ library(dplyr)
 #### Basic connection: Dataset
 
 ``` r
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg')
+gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
+hfutils::as_ogr(gpkg)
 #> [1] "divides"        "flowpaths"      "hydrolocations" "pois"          
 #> [5] "network"
 #> <OGRSQLConnection>
@@ -56,7 +49,7 @@ hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg')
 #### Basic connection: Layer
 
 ``` r
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides") 
+hfutils::as_ogr(gpkg, "divides") 
 #> # Source:   table<"divides"> [?? x 6]
 #> # Database: OGRSQLConnection
 #>    divide_id vpuid areasqkm has_flowpath flowpath_id                        geom
@@ -77,7 +70,7 @@ hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "di
 #### Lazy Eval
 
 ``` r
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides") |> 
+hfutils::as_ogr(gpkg, "divides") |> 
   select(divide_id, areasqkm) 
 #> # Source:   SQL [?? x 2]
 #> # Database: OGRSQLConnection
@@ -99,7 +92,7 @@ hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "di
 #### sf extraction
 
 ``` r
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides")  |> 
+hfutils::as_ogr(gpkg, "divides")  |> 
   filter(vpuid == "01") |> 
   st_as_sf()
 #> Simple feature collection with 67880 features and 5 fields
@@ -141,29 +134,29 @@ hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg
 ``` r
 ## Accumulate Downstream
 system.time({
-  da <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
+  da <-  hfutils::as_ogr(gpkg, 
                          'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
   accumulate_downstream(attr = "areasqkm")})
 #>    user  system elapsed 
-#>   0.836   0.506   1.368
+#>   0.821   0.464   1.285
 
 head(da)
 #> [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145
 
 ## Hydrosequence
 system.time({
-  hs <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
+  hs <-  hfutils::as_ogr(gpkg, 
                          'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
-  add_hydroseq()
+  get_hydroseq()
 })
 #>    user  system elapsed 
-#>   1.004   0.462   1.468
+#>   1.008   0.460   1.470
 
-head(hs$hydroseq)
+head(hs)
 #> [1]   804 22722 22724 22723 22725 28137
 ```
 

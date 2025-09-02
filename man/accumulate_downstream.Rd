@@ -7,7 +7,7 @@
 accumulate_downstream(x, id = "flowpath_id", toid = "flowpath_toid", attr)
 }
 \arguments{
-\item{x}{A data frame (or tibble) containing at least the identifier column
+\item{x}{A data frame, tibble, or sf object containing at least the identifier column
 given by `id`, the downstream pointer column given by `toid`, and the
 attribute column named in `attr`.}
 

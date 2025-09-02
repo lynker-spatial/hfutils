@@ -35,7 +35,7 @@ You can install the development version of `hfutils` from [GitHub](https://githu
 remotes::install_github("lynker-spatial/hfutils")
 ```
 
-```{r}
+```{r,message=FALSE}
 library(hfutils)
 library(dplyr)
 ```
@@ -47,26 +47,27 @@ library(dplyr)
 #### Basic connection: Dataset
 
 ```{r, eval = TRUE}
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg')
+gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
+hfutils::as_ogr(gpkg)
 ```
 
 #### Basic connection: Layer
 
 ```{r, eval = TRUE}
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides") 
+hfutils::as_ogr(gpkg, "divides") 
 ```
 
 #### Lazy Eval
 
 ```{r, eval = TRUE}
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides") |> 
+hfutils::as_ogr(gpkg, "divides") |> 
   select(divide_id, areasqkm) 
 ```
 
 #### sf extraction
 
 ```{r, eval = TRUE}
-hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', "divides")  |> 
+hfutils::as_ogr(gpkg, "divides")  |> 
   filter(vpuid == "01") |> 
   st_as_sf()
 ```
@@ -82,7 +83,7 @@ hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg
 ```{r}
 ## Accumulate Downstream
 system.time({
-  da <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
+  da <-  hfutils::as_ogr(gpkg, 
                          'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
@@ -92,14 +93,14 @@ head(da)
 
 ## Hydrosequence
 system.time({
-  hs <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
+  hs <-  hfutils::as_ogr(gpkg, 
                          'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
-  add_hydroseq()
+  get_hydroseq()
 })
 
-head(hs$hydroseq)
+head(hs)
 ```
 
 ### Questions?
