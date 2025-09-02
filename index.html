@@ -182,17 +182,32 @@
 <h3 id="network-properties">Network Properties<a class="anchor" aria-label="anchor" href="#network-properties"></a>
 </h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="co">## Accumulate Downstream</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, </span>
 <span>                         <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/accumulate_downstream.html">accumulate_downstream</a></span><span class="op">(</span>attr <span class="op">=</span> <span class="st">"areasqkm"</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.845   0.479   1.327</span></span>
+<span><span class="co">#&gt;   0.836   0.506   1.368</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">da</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145</span></span>
+<span></span>
+<span><span class="co">## Hydrosequence</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>  <span class="va">hs</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, </span>
+<span>                         <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="reference/add_hydroseq.html">add_hydroseq</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt;   1.004   0.462   1.468</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hs</span><span class="op">$</span><span class="va">hydroseq</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1]   804 22722 22724 22723 22725 28137</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="questions">Questions?<a class="anchor" aria-label="anchor" href="#questions"></a>
