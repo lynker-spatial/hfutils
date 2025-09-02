@@ -5,7 +5,7 @@
 #' input row. The network must be a DAG (no cycles). This is an O(E) pass after
 #' a single topological sort and is fast on large hydro networks.
 #'
-#' @param x A data frame (or tibble) containing at least the identifier column
+#' @param x A data frame, tibble, or sf object containing at least the identifier column
 #'   given by `id`, the downstream pointer column given by `toid`, and the
 #'   attribute column named in `attr`.
 #' @param id Character scalar. Column name in `x` with unique node identifiers.
@@ -95,7 +95,7 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 
 #' Compute and add the hydrosequence to a directed acyclic network.
 #'
-#' @param topology A data frame (or tibble) containing at least the identifier column
+#' @param x A data frame (or tibble) containing at least the identifier column
 #'   given by `id` and the downstream pointer column given by `toid`.
 #' @param id Character scalar. Column name in `topology` with unique node identifiers.
 #'   Defaults to `"flowpath_id"`.
@@ -109,14 +109,14 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #' @importFrom igraph dfs graph_from_data_frame
 #' @export
 
-add_hydroseq <- function(topology, id = "flowpath_id", toid = "flowpath_toid", colname = "hydroseq") {
+get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   # Create a _transposed_ network, where traversing the network
   # is equivalent to traversing the hydrological network upstream.
   #
   # This assumes the outlets of this network all connect to an
   # ephemeral "0" node (forming a rooted tree network).
 
-  edgelist <- as.data.frame(topology)[, c(toid, id)]
+  edgelist <- as.data.frame(x)[, c(toid, id)]
   names(edgelist) <- c("id", "toid")
   edgelist$id[is.na(edgelist$id)] <- "0"
 
@@ -147,8 +147,7 @@ add_hydroseq <- function(topology, id = "flowpath_id", toid = "flowpath_toid", c
   names(result) <- c(id, toid, "hydroseq")
 
   # Arrange into input order
-  topology[[colname]] <- result$hydroseq[match(topology[[id]], result[[id]])]
-  topology
+  result$hydroseq[match(x[[id]], result[[id]])]
 }
 
 
