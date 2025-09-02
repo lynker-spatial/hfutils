@@ -67,15 +67,7 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"lynker-spatial/hfutils"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lynker-spatial/hfutils" class="external-link">hfutils</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     filter, lag</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="basic-use">Basic Use<a class="anchor" aria-label="anchor" href="#basic-use"></a>
@@ -87,7 +79,8 @@
 <h4 id="basic-connection-dataset">Basic connection: Dataset<a class="anchor" aria-label="anchor" href="#basic-connection-dataset"></a>
 </h4>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span></span>
+<span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "divides"        "flowpaths"      "hydrolocations" "pois"          </span></span>
 <span><span class="co">#&gt; [5] "network"</span></span>
 <span><span class="co">#&gt; &lt;OGRSQLConnection&gt;</span></span>
@@ -98,7 +91,7 @@
 <h4 id="basic-connection-layer">Basic connection: Layer<a class="anchor" aria-label="anchor" href="#basic-connection-layer"></a>
 </h4>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, <span class="st">"divides"</span><span class="op">)</span> </span>
+<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> </span>
 <span><span class="co">#&gt; # Source:   table&lt;"divides"&gt; [?? x 6]</span></span>
 <span><span class="co">#&gt; # Database: OGRSQLConnection</span></span>
 <span><span class="co">#&gt;    divide_id vpuid areasqkm has_flowpath flowpath_id                        geom</span></span>
@@ -119,7 +112,7 @@
 <h4 id="lazy-eval">Lazy Eval<a class="anchor" aria-label="anchor" href="#lazy-eval"></a>
 </h4>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, <span class="st">"divides"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">divide_id</span>, <span class="va">areasqkm</span><span class="op">)</span> </span>
 <span><span class="co">#&gt; # Source:   SQL [?? x 2]</span></span>
 <span><span class="co">#&gt; # Database: OGRSQLConnection</span></span>
@@ -141,7 +134,7 @@
 <h4 id="sf-extraction">sf extraction<a class="anchor" aria-label="anchor" href="#sf-extraction"></a>
 </h4>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, <span class="st">"divides"</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Simple feature collection with 67880 features and 5 fields</span></span>
@@ -184,29 +177,29 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Accumulate Downstream</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, </span>
+<span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, </span>
 <span>                         <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/accumulate_downstream.html">accumulate_downstream</a></span><span class="op">(</span>attr <span class="op">=</span> <span class="st">"areasqkm"</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.836   0.506   1.368</span></span>
+<span><span class="co">#&gt;   0.821   0.464   1.285</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">da</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145</span></span>
 <span></span>
 <span><span class="co">## Hydrosequence</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="va">hs</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span>, </span>
+<span>  <span class="va">hs</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, </span>
 <span>                         <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/add_hydroseq.html">add_hydroseq</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="reference/get_hydroseq.html">get_hydroseq</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.004   0.462   1.468</span></span>
+<span><span class="co">#&gt;   1.008   0.460   1.470</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hs</span><span class="op">$</span><span class="va">hydroseq</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]   804 22722 22724 22723 22725 28137</span></span></code></pre></div>
 </div>
 <div class="section level3">
