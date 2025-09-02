@@ -139,6 +139,7 @@ hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg
 ### Network Properties
 
 ``` r
+## Accumulate Downstream
 system.time({
   da <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
                          'flowpaths')  |> 
@@ -146,10 +147,24 @@ system.time({
   st_as_sf() |> 
   accumulate_downstream(attr = "areasqkm")})
 #>    user  system elapsed 
-#>   0.845   0.479   1.327
+#>   0.836   0.506   1.368
 
 head(da)
 #> [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145
+
+## Hydrosequence
+system.time({
+  hs <-  hfutils::as_ogr('/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg', 
+                         'flowpaths')  |> 
+  filter(vpuid == "01") |> 
+  st_as_sf() |> 
+  add_hydroseq()
+})
+#>    user  system elapsed 
+#>   1.004   0.462   1.468
+
+head(hs$hydroseq)
+#> [1]   804 22722 22724 22723 22725 28137
 ```
 
 ### Questions?

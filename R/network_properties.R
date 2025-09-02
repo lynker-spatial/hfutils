@@ -93,7 +93,6 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
   as.numeric(total[idx])
 }
 
-
 #' Compute and add the hydrosequence to a directed acyclic network.
 #'
 #' @param topology A data frame (or tibble) containing at least the identifier column
@@ -105,23 +104,25 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #'   Defaults to `"flowpath_toid"`.
 #' @param colname Character scalar. Column name to use in result.
 #'   Defaults to `"hydroseq"`
-#' 
+#'
 #' @returns The data frame `topology` with an additional column, named `colname`, representing the hydrosequence.
 #' @importFrom igraph dfs graph_from_data_frame
 #' @export
+
 add_hydroseq <- function(topology, id = "flowpath_id", toid = "flowpath_toid", colname = "hydroseq") {
   # Create a _transposed_ network, where traversing the network
   # is equivalent to traversing the hydrological network upstream.
   #
   # This assumes the outlets of this network all connect to an
   # ephemeral "0" node (forming a rooted tree network).
-  edgelist <- topology[, c(toid, id)]
+
+  edgelist <- as.data.frame(topology)[, c(toid, id)]
   names(edgelist) <- c("id", "toid")
   edgelist$id[is.na(edgelist$id)] <- "0"
 
   # TODO: Check if multiple components exist. If they do, then
   # we need to add "0" edges for each component not rooted on "0".
-  
+
   # Perform DFS from each terminal upstream to get a
   # distinct topological sort for the hydrosequence.
   sorted <- data.frame(
@@ -149,3 +150,5 @@ add_hydroseq <- function(topology, id = "flowpath_id", toid = "flowpath_toid", c
   topology[[colname]] <- result$hydroseq[match(topology[[id]], result[[id]])]
   topology
 }
+
+
