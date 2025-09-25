@@ -118,10 +118,15 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 
   edgelist <- as.data.frame(x)[, c(toid, id)]
   names(edgelist) <- c("id", "toid")
-  edgelist$id[is.na(edgelist$id)] <- "0"
 
-  # TODO: Check if multiple components exist. If they do, then
-  # we need to add "0" edges for each component not rooted on "0".
+  edgelist$id[is.na(edgelist$id)] <- 0
+
+  if(sum(edgelist$toid == 0) == 0) {
+    ind  <- which(!edgelist$id %in% edgelist$toid)
+    root <- edgelist$toid[ind]
+  } else {
+    root = 0
+  }
 
   # Perform DFS from each terminal upstream to get a
   # distinct topological sort for the hydrosequence.
@@ -130,7 +135,7 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
       names(
         igraph::dfs(
           igraph::graph_from_data_frame(edgelist),
-          root = "0",
+          root = as.character(root),
           mode = "out"
         )$order
       )
@@ -149,5 +154,4 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   # Arrange into input order
   result$hydroseq[match(x[[id]], result[[id]])]
 }
-
 

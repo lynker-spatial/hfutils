@@ -16,18 +16,24 @@ URL: https://github.com/lynker-spatial/hfutils
 Depends: 
     R (>= 4.2)
 Imports: 
+    cli,
     DBI,
     dbplyr,
     dplyr,
     glue,
     httr,
     igraph,
+    jsonlite,
+    lwgeom,
     methods,
+    rlang,
+    rmapshaper,
+    RSQLite,
     sf,
-    stats,
-    utils
-Suggests: 
-    testthat
+    terra,
+    units,
+    utils,
+    yyjsonr
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -39,7 +45,10 @@ Collate:
     'OGRSQLConnection.R'
     'OGRSQLDriver.R'
     'OGRSQLResult.R'
+    'geom.R'
+    'hfio.R'
     'hfutils-package.R'
     'network_properties.R'
     'sf_ogr.R'
+    'utils.R'
     'zzz.R'
