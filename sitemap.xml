@@ -8,11 +8,26 @@
 <url><loc>/reference/OGRSQLDriver-class.html</loc></url>
 <url><loc>/reference/OGRSQLResult-class.html</loc></url>
 <url><loc>/reference/accumulate_downstream.html</loc></url>
+<url><loc>/reference/add_areasqkm.html</loc></url>
+<url><loc>/reference/add_lengthkm.html</loc></url>
+<url><loc>/reference/add_measures.html</loc></url>
 <url><loc>/reference/as_ogr.html</loc></url>
+<url><loc>/reference/clean_geometry.html</loc></url>
 <url><loc>/reference/dbConnect-OGRSQLDriver-method.html</loc></url>
+<url><loc>/reference/flowpaths_to_linestrings.html</loc></url>
 <url><loc>/reference/get_hydroseq.html</loc></url>
+<url><loc>/reference/get_node.html</loc></url>
 <url><loc>/reference/hfutils-package.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/layer_exists.html</loc></url>
+<url><loc>/reference/network_is_dag.html</loc></url>
+<url><loc>/reference/node_geometry.html</loc></url>
+<url><loc>/reference/read_hydrofabric.html</loc></url>
+<url><loc>/reference/rename_geometry.html</loc></url>
+<url><loc>/reference/simplify_process.html</loc></url>
 <url><loc>/reference/st_as_sf.html</loc></url>
+<url><loc>/reference/union_linestrings.html</loc></url>
+<url><loc>/reference/union_polygons.html</loc></url>
+<url><loc>/reference/write_hydrofabric.html</loc></url>
 </urlset>
 
