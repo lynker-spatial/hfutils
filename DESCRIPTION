@@ -21,7 +21,7 @@ Imports:
     dbplyr,
     dplyr,
     glue,
-    httr,
+    httr2,
     igraph,
     jsonlite,
     lwgeom,
@@ -45,6 +45,7 @@ Collate:
     'OGRSQLConnection.R'
     'OGRSQLDriver.R'
     'OGRSQLResult.R'
+    'auth.R'
     'geom.R'
     'hfio.R'
     'hfutils-package.R'
