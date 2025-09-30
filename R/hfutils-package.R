@@ -10,6 +10,4 @@
 #' @importFrom sf st_layers sf_extSoftVersion
 #' @importFrom glue glue
 #' @importFrom dplyr tbl select mutate rename if_any filter everything distinct collect any_of `%>%` pull
-#' @importFrom httr GET progress write_disk
-
 NULL
