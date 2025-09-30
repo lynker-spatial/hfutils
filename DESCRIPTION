@@ -50,6 +50,7 @@ Collate:
     'hfio.R'
     'hfutils-package.R'
     'network_properties.R'
+    'sf_arrow.R'
     'sf_ogr.R'
     'utils.R'
     'zzz.R'
