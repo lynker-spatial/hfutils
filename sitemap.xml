@@ -20,6 +20,10 @@
 <url><loc>/reference/hfutils-package.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/layer_exists.html</loc></url>
+<url><loc>/reference/lynker_spatial_auth.html</loc></url>
+<url><loc>/reference/lynker_spatial_client.html</loc></url>
+<url><loc>/reference/lynker_spatial_refresh.html</loc></url>
+<url><loc>/reference/lynker_spatial_token.html</loc></url>
 <url><loc>/reference/network_is_dag.html</loc></url>
 <url><loc>/reference/node_geometry.html</loc></url>
 <url><loc>/reference/read_hydrofabric.html</loc></url>
