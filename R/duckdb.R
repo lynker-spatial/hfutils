@@ -1,9 +1,10 @@
 #' Create a new DuckDB connection.
 #' @param ... Arguments passed to [DBI::dbConnect()].
 #' @param extensions Character vector of extensions to install and load on connect.
+#' @param add_auth Include Lynker Spatial authentication.
 #' @returns A DBI connection to a DuckDB instance.
 #' @export
-duckdb_connection <- function(..., extensions = character(0)) {
+duckdb_connection <- function(..., extensions = character(0), add_auth = TRUE) {
   conn <- DBI::dbConnect(duckdb::duckdb(), ...)
 
   if (length(extensions) > 0) {
@@ -11,6 +12,10 @@ duckdb_connection <- function(..., extensions = character(0)) {
       DBI::dbExecute(conn, paste("INSTALL", ext))
       DBI::dbExecute(conn, paste("LOAD", ext))
     }
+  }
+
+  if (add_auth) {
+    lynker_spatial_auth(libs = c("gdal", "duckdb"), duckdb_con = conn)
   }
 
   conn
