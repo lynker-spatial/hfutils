@@ -5,7 +5,7 @@
 \title{Authenticate with Lynker Spatial}
 \usage{
 lynker_spatial_auth(
-  token = NULL,
+  token = getOption("lynker_spatial.token"),
   ...,
   libs = c("gdal", "duckdb"),
   duckdb_con = NULL
@@ -26,4 +26,7 @@ The `token` argument, or a newly provisioned token
 }
 \description{
 Authenticate with Lynker Spatial
+}
+\details{
+lynker_spatial.auth.token
 }

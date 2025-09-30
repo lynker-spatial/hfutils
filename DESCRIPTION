@@ -20,6 +20,7 @@ Imports:
     DBI,
     dbplyr,
     dplyr,
+    duckdb,
     glue,
     httr2,
     igraph,
@@ -46,6 +47,7 @@ Collate:
     'OGRSQLDriver.R'
     'OGRSQLResult.R'
     'auth.R'
+    'duckdb.R'
     'geom.R'
     'hfio.R'
     'hfutils-package.R'

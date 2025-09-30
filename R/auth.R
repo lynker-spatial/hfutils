@@ -5,9 +5,13 @@
 #' @param libs Supported libraries to configure auth for.
 #' @param duckdb_con A DuckDB DBI connection to add a bearer token secret to.
 #' @returns The `token` argument, or a newly provisioned token
+#'
+#' @details
+#' lynker_spatial.auth.token
+#' 
 #' @export
 lynker_spatial_auth <- function(
-  token = NULL,
+  token = getOption("lynker_spatial.token"),
   ...,
   libs = c("gdal", "duckdb"),
   duckdb_con = NULL
@@ -79,21 +83,39 @@ lynker_spatial_client <- function() {
 #' @keywords internal
 lynker_spatial_token <- function(..., client = lynker_spatial_client()) {  
   # Get the token using the OIDC client
-  httr2::oauth_flow_auth_code(
+  token <- httr2::oauth_flow_auth_code(
     client,
     auth_url = client$provider$authorization_endpoint,
     scope = "openid profile email phone",
     redirect_uri = client$redirect_uri,
     pkce = TRUE
   )
+
+  options("lynker_spatial.token" = token)
+  token
 }
 
 #' Refresh an existing Lynker Spatial token
 #' @keywords internal
-lynker_spatial_refresh <- function(token, ..., client = lynker_spatial_client()) {
-  if (!inherits(token, "httr2_token")) {
+lynker_spatial_refresh <- function(token = getOption("lynker_spatial.token"), ..., client = lynker_spatial_client()) {
+  if (inherits(token, "httr2_token")) {
+    refresh_token <- token$refresh_token
+  } else if (is.character(token)) {
+    refresh_token <- token
+  } else {
     stop("token is malformed", call. = FALSE)
   }
 
-  httr2::oauth_flow_refresh(client, token$refresh_token, scope = "openid profile email phone")
+  new_token <- httr2::oauth_flow_refresh(client, token$refresh_token, scope = "openid profile email phone")
+  options("lynker_spatial.token" = new_token)
+  new_token
+}
+
+#' Create an authenticated URL connection for Lynker Spatial
+#' @param url URL passed to the connection
+#' @returns a URL connection object
+#' @export
+lynker_spatial_url <- function(url) {
+  token <- lynker_spatial_auth(libs = "gdal")
+  url(url, headers = list(Authorization = paste("Bearer", token$id_token)))
 }
