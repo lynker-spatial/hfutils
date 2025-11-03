@@ -7,7 +7,7 @@
 3)](https://img.shields.io/badge/License-GPL%20%28%3E%3D%203%29-blue.svg)](https://choosealicense.com/licenses/gpl-3.0/)
 [![LifeCycle](https://img.shields.io/badge/lifecycle-experimental-orange)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Dependencies](https://img.shields.io/badge/dependencies-7/32-orange?style=flat)](#)
-[![Website](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml)
+[![Website](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 # Hydrofabric Utilities
@@ -40,10 +40,10 @@ library(dplyr)
 gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
 hfutils::as_ogr(gpkg)
 #> [1] "divides"        "flowpaths"      "hydrolocations" "pois"          
-#> [5] "network"
+#> [5] "events"         "network"
 #> <OGRSQLConnection>
 #>  DSN: /Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg...
-#> tables: divides, flowpaths, hydrolocations, pois, network
+#> tables: divides, flowpaths, hydrolocations, pois, events, network
 ```
 
 #### Basic connection: Layer
@@ -119,14 +119,7 @@ hfutils::as_ogr(gpkg, "divides")  |>
 #### Remote Access
 
 ``` r
-hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
-#>  [1] "flowpaths"              "divides"                "lakes"                 
-#>  [4] "nexus"                  "pois"                   "hydrolocations"        
-#>  [7] "flowpath-attributes"    "flowpath-attributes-ml" "network"               
-#> [10] "divide-attributes"
-#> <OGRSQLConnection>
-#>  DSN: /vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg
-#> tables: flowpaths, divides, lakes, nexus, pois, hydrolocations, flowpath-attributes, flowpath-attributes-ml, network, divide-attributes
+# hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
 ```
 
 ### Network Properties
@@ -134,13 +127,12 @@ hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg
 ``` r
 ## Accumulate Downstream
 system.time({
-  da <-  hfutils::as_ogr(gpkg, 
-                         'flowpaths')  |> 
+  da <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
   accumulate_downstream(attr = "areasqkm")})
 #>    user  system elapsed 
-#>   0.821   0.464   1.285
+#>   0.911   0.491   1.550
 
 head(da)
 #> [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145
@@ -154,10 +146,10 @@ system.time({
   get_hydroseq()
 })
 #>    user  system elapsed 
-#>   1.008   0.460   1.470
+#>   0.900   0.488   1.398
 
 head(hs)
-#> [1]   804 22722 22724 22723 22725 28137
+#> [1]   806 22724 22726 22725 22727 28139
 ```
 
 ### Questions?

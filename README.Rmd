@@ -12,19 +12,19 @@ knitr::opts_chunk$set(
   out.width = "100%",
   warning = FALSE
 )
-gpkg = '/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'
 ```
 
 <!-- badges: start -->
-[![License: GPL (>= 3)](https://img.shields.io/badge/License-GPL%20%28%3E%3D%203%29-blue.svg)](https://choosealicense.com/licenses/gpl-3.0/)
+[![License: Apache License (>= 2)](https://img.shields.io/badge/License-Apache%20License%20%28%3E%3D%202%29-blue.svg)](https://choosealicense.com/licenses/apache-2.0/)
 [![LifeCycle](https://img.shields.io/badge/lifecycle-experimental-orange)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![Dependencies](https://img.shields.io/badge/dependencies-7/32-orange?style=flat)](#)
+[![Dependencies](https://img.shields.io/badge/dependencies-16/49-red?style=flat)](#)
 [![Website](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 # Hydrofabric Utilities
 
-`hfutils` provides the base utilities needed for hydrofabric creation and manipulation.
+`hfutils` provides the base utilities needed for hydrofabric I/O + navigation; geometry modification + cleaning; and authentication to the Lynker Spatial cloud. Collectively, it provides the building blocks from which reference fabrics and geoprocessed fabrics can be created.
+
 
 ## Installation
 
@@ -72,19 +72,12 @@ hfutils::as_ogr(gpkg, "divides")  |>
   st_as_sf()
 ```
 
-#### Remote Access
-
-```{r}
-hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
-```
-
 ### Network Properties
 
 ```{r}
 ## Accumulate Downstream
 system.time({
-  da <-  hfutils::as_ogr(gpkg, 
-                         'flowpaths')  |> 
+  da <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
   accumulate_downstream(attr = "areasqkm")})
@@ -93,8 +86,7 @@ head(da)
 
 ## Hydrosequence
 system.time({
-  hs <-  hfutils::as_ogr(gpkg, 
-                         'flowpaths')  |> 
+  hs <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
   filter(vpuid == "01") |> 
   st_as_sf() |> 
   get_hydroseq()
