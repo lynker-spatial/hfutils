@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="hfutils">
-<meta name="description" content="Core hydrofabric manipulation utilities.">
-<meta property="og:description" content="Core hydrofabric manipulation utilities.">
+<meta name="description" content="Core hydrofabric access, cleaning, and summary utilities.">
+<meta property="og:description" content="Core hydrofabric access, cleaning, and summary utilities.">
 <meta property="og:image" content="/logo.png">
 </head>
 <body>
@@ -82,10 +82,10 @@
 <code class="sourceCode R"><span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span></span>
 <span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "divides"        "flowpaths"      "hydrolocations" "pois"          </span></span>
-<span><span class="co">#&gt; [5] "network"</span></span>
+<span><span class="co">#&gt; [5] "events"         "network"</span></span>
 <span><span class="co">#&gt; &lt;OGRSQLConnection&gt;</span></span>
 <span><span class="co">#&gt;  DSN: /Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg...</span></span>
-<span><span class="co">#&gt; tables: divides, flowpaths, hydrolocations, pois, network</span></span></code></pre></div>
+<span><span class="co">#&gt; tables: divides, flowpaths, hydrolocations, pois, events, network</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="basic-connection-layer">Basic connection: Layer<a class="anchor" aria-label="anchor" href="#basic-connection-layer"></a>
@@ -161,14 +161,7 @@
 <h4 id="remote-access">Remote Access<a class="anchor" aria-label="anchor" href="#remote-access"></a>
 </h4>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">'/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg'</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "flowpaths"              "divides"                "lakes"                 </span></span>
-<span><span class="co">#&gt;  [4] "nexus"                  "pois"                   "hydrolocations"        </span></span>
-<span><span class="co">#&gt;  [7] "flowpath-attributes"    "flowpath-attributes-ml" "network"               </span></span>
-<span><span class="co">#&gt; [10] "divide-attributes"</span></span>
-<span><span class="co">#&gt; &lt;OGRSQLConnection&gt;</span></span>
-<span><span class="co">#&gt;  DSN: /vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg</span></span>
-<span><span class="co">#&gt; tables: flowpaths, divides, lakes, nexus, pois, hydrolocations, flowpath-attributes, flowpath-attributes-ml, network, divide-attributes</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -177,13 +170,12 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Accumulate Downstream</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, </span>
-<span>                         <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
+<span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/accumulate_downstream.html">accumulate_downstream</a></span><span class="op">(</span>attr <span class="op">=</span> <span class="st">"areasqkm"</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.821   0.464   1.285</span></span>
+<span><span class="co">#&gt;   0.911   0.491   1.550</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">da</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145</span></span>
@@ -197,10 +189,10 @@
 <span>  <span class="fu"><a href="reference/get_hydroseq.html">get_hydroseq</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.008   0.460   1.470</span></span>
+<span><span class="co">#&gt;   0.900   0.488   1.398</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]   804 22722 22724 22723 22725 28137</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]   806 22724 22726 22725 22727 28139</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="questions">Questions?<a class="anchor" aria-label="anchor" href="#questions"></a>
@@ -221,8 +213,7 @@
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="LICENSE.html">Full license</a></li>
-<li><small>GPL (&gt;= 3)</small></li>
+<li>Apache License (&gt;= 2)</li>
 </ul>
 </div>
 
@@ -248,7 +239,7 @@
 <li><a href="https://choosealicense.com/licenses/gpl-3.0/" class="external-link"><img src="https://img.shields.io/badge/License-GPL%20%28%3E%3D%203%29-blue.svg" alt="License: GPL (&gt;= 3)"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange" alt="LifeCycle"></a></li>
 <li><a href="#"><img src="https://img.shields.io/badge/dependencies-7/32-orange?style=flat" alt="Dependencies"></a></li>
-<li><a href="https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg" alt="Website"></a></li>
+<li><a href="https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg" alt="Website"></a></li>
 </ul>
 </div>
 
