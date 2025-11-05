@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Core hydrofabric manipulation utilities.
+Core hydrofabric access, cleaning, and summary utilities.
 }
 \seealso{
 Useful links:
