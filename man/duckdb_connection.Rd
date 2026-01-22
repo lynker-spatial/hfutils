@@ -4,12 +4,14 @@
 \alias{duckdb_connection}
 \title{Create a new DuckDB connection.}
 \usage{
-duckdb_connection(..., extensions = character(0))
+duckdb_connection(..., extensions = character(0), add_auth = TRUE)
 }
 \arguments{
 \item{...}{Arguments passed to [DBI::dbConnect()].}
 
 \item{extensions}{Character vector of extensions to install and load on connect.}
+
+\item{add_auth}{Include Lynker Spatial authentication.}
 }
 \value{
 A DBI connection to a DuckDB instance.

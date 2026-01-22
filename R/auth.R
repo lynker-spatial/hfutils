@@ -1,6 +1,6 @@
 #' Authenticate with Lynker Spatial
 #' @param token An existing OAuth2 token. If NULL, then a new token is provisioned and returned.
-#'              If the token is expired, then 
+#'              If the token is expired, then
 #' @param ... Unused
 #' @param libs Supported libraries to configure auth for.
 #' @param duckdb_con A DuckDB DBI connection to add a bearer token secret to.
@@ -24,7 +24,7 @@ lynker_spatial_auth <- function(
 
   if (inherits(token, "httr2_token")) {
     # if (now > expired_time)
-    if ("expires_at" %in% token && Sys.time() >= as.POSIXct(token$expires_at)) {
+    if ("expires_at" %in% names(token) && Sys.time() >= as.POSIXct(token$expires_at)) {
       token <- lynker_spatial_refresh(token)
     }
 
@@ -32,7 +32,7 @@ lynker_spatial_auth <- function(
   } else {
     stop("token is malformed", call. = FALSE)
   }
-  
+
   # Set GDAL Bearer
   if ("gdal" %in% libs) {
     Sys.setenv(GDAL_HTTP_AUTH = "BEARER", GDAL_HTTP_BEARER = id_token)
@@ -81,7 +81,7 @@ lynker_spatial_client <- function() {
 
 #' Get an OAuth2 token for Lynker Spatial
 #' @keywords internal
-lynker_spatial_token <- function(..., client = lynker_spatial_client()) {  
+lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
   # Get the token using the OIDC client
   token <- httr2::oauth_flow_auth_code(
     client,
@@ -106,16 +106,5 @@ lynker_spatial_refresh <- function(token = getOption("lynker_spatial.token"), ..
     stop("token is malformed", call. = FALSE)
   }
 
-  new_token <- httr2::oauth_flow_refresh(client, token$refresh_token, scope = "openid profile email phone")
-  options("lynker_spatial.token" = new_token)
-  new_token
-}
-
-#' Create an authenticated URL connection for Lynker Spatial
-#' @param url URL passed to the connection
-#' @returns a URL connection object
-#' @export
-lynker_spatial_url <- function(url) {
-  token <- lynker_spatial_auth(libs = "gdal")
-  url(url, headers = list(Authorization = paste("Bearer", token$id_token)))
+  httr2::oauth_flow_refresh(client, token$refresh_token, scope = "openid profile email phone")
 }

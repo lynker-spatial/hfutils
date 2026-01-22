@@ -1,7 +1,7 @@
 Package: hfutils
 Type: Package
 Title: hfutils
-Description: Core hydrofabric manipulation utilities.
+Description: Core hydrofabric access, cleaning, and summary utilities.
 Version: 0.3.3
 Authors@R: 
     c(person(given = "Mike", 
@@ -16,6 +16,7 @@ URL: https://github.com/lynker-spatial/hfutils
 Depends: 
     R (>= 4.2)
 Imports: 
+    arrow,
     cli,
     DBI,
     dbplyr,
@@ -35,7 +36,7 @@ Imports:
     units,
     utils,
     yyjsonr
-License: GPL (>= 3)
+License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
