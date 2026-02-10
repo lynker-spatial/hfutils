@@ -75,8 +75,8 @@ lynker_spatial_client <- function() {
   client
 }
 
-#' Get an OAuth2 token for Lynker Spatial
-#' @keywords internal
+##' Get an OAuth2 token for Lynker Spatial
+#' @export
 lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
   # Get the token using the OIDC client
   httr2::oauth_flow_auth_code(
@@ -88,8 +88,8 @@ lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
   )
 }
 
-#' Refresh an existing Lynker Spatial token
-#' @keywords internal
+##' Refresh an existing Lynker Spatial token
+#' @export
 lynker_spatial_refresh <- function(token, ..., client = lynker_spatial_client()) {
   if (!inherits(token, "httr2_token")) {
     stop("token is malformed", call. = FALSE)

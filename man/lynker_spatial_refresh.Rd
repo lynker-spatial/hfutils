@@ -9,4 +9,3 @@ lynker_spatial_refresh(token, ..., client = lynker_spatial_client())
 \description{
 Refresh an existing Lynker Spatial token
 }
-\keyword{internal}
