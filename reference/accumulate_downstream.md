@@ -1,0 +1,76 @@
+# Accumulate an attribute downstream over a directed acyclic network
+
+Propagates a per-node attribute (e.g. area) downstream along \`toid\`
+links and returns the accumulated (upstream-summed) value for each input
+row. The network must be a DAG (no cycles). This is an O(E) pass after a
+single topological sort and is fast on large hydro networks.
+
+## Usage
+
+``` r
+accumulate_downstream(x, id = "flowpath_id", toid = "flowpath_toid", attr)
+```
+
+## Arguments
+
+- x:
+
+  A data frame, tibble, or sf object containing at least the identifier
+  column given by \`id\`, the downstream pointer column given by
+  \`toid\`, and the attribute column named in \`attr\`.
+
+- id:
+
+  Character scalar. Column name in \`x\` with unique node identifiers.
+  Defaults to \`"flowpath_id"\`.
+
+- toid:
+
+  Character scalar. Column name in \`x\` with the \*downstream\* node
+  identifier for each row. Use \`NA\` or \`0\` for outlets/terminals.
+  Defaults to \`"flowpath_toid"\`.
+
+- attr:
+
+  Character scalar. Column name in \`x\` containing the attribute to
+  accumulate (e.g., \`"incremental_areasqkm"\`). Values are coerced to
+  numeric.
+
+## Value
+
+A numeric vector the same length as \`nrow(x)\` giving the accumulated
+totals aligned to the rows of \`x\`.
+
+## Details
+
+The algorithm builds a vertex set from \`id\` and non-missing \`toid\`
+values, performs a topological sort (using igraph), then processes edges
+in nondecreasing topological order of their sources. For each edge \`u
+-\> v\`, the running total at \`u\` is added to \`v\`. This naturally
+handles confluences because multiple upstream sources will contribute to
+the same downstream target. The function treats \`NA\` and \`0\` in
+\`toid\` as outlets.
+
+The function stops with an error if the network contains cycles. Ensure
+your graph is acyclic (tree/DAG) before calling.
+
+## Performance
+
+Only a single neighbor-independent edge pass is made after topo sort,
+and computations are done on integer indices. This avoids per-vertex
+neighbor lookups and scales well to large hydrologic networks.
+
+## Examples
+
+``` r
+# Toy: 1 -> 3, 2 -> 3, 3 -> 4 (two headwaters merging into 3, then into 4)
+df <- data.frame(
+  flowpath_id   = c(1, 2, 3, 4),
+  flowpath_toid = c(3, 3, 4, NA),
+  area           = c(1.0, 2.0, 0.5, 0.0)
+)
+accumulate(df, id = "flowpath_id", toid = "flowpath_toid", attr = "area")
+#> Error in accumulate(df, id = "flowpath_id", toid = "flowpath_toid", attr = "area"): could not find function "accumulate"
+# Expected: node 1 stays 1.0, node 2 stays 2.0,
+# node 3 gets 1.0 + 2.0 + 0.5 = 3.5, node 4 gets 3.5 + 0.0 = 3.5
+```
