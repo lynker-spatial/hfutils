@@ -9,4 +9,3 @@ lynker_spatial_token(..., client = lynker_spatial_client())
 \description{
 Get an OAuth2 token for Lynker Spatial
 }
-\keyword{internal}
