@@ -39,17 +39,19 @@ Imports:
 License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Collate: 
+Collate:
     'OGRSQL.R'
     'OGRSQLConnection.R'
     'OGRSQLDriver.R'
     'OGRSQLResult.R'
     'auth.R'
+    'clean_geom.R'
     'duckdb.R'
     'geom.R'
+    'hf_invariants.R'
     'hfio.R'
     'hfutils-package.R'
     'network_properties.R'

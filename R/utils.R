@@ -163,8 +163,8 @@ add_lengthkm <- function(x) {
 #'
 #' @export
 #' @importFrom terra vect makeValid aggregate
-#' @importFrom sf st_as_sf st_collection_extract st_geometry_type
-#' @importFrom dplyr select
+#' @importFrom sf st_as_sf st_collection_extract st_geometry_type st_area
+#' @importFrom dplyr select mutate group_by ungroup slice_max
 #' @importFrom rlang sym !!
 
 union_polygons <- function(poly, ID) {
@@ -177,10 +177,30 @@ union_polygons <- function(poly, ID) {
     sf::st_as_sf() |>
     dplyr::select(!!id_sym)
 
-  # Normalize geometry type if needed
   if (any(grepl("COLLECTION", sf::st_geometry_type(poly)))) {
     poly <- sf::st_collection_extract(poly, "POLYGON")
   }
+
+  # terra::aggregate wraps all output in MULTIPOLYGON regardless of part count.
+  # Cast to POLYGON; genuinely disjoint members produce duplicate IDs — keep the
+  # largest polygon part per group and discard orphan fragments.
+  if (any(sf::st_geometry_type(poly) == "MULTIPOLYGON")) {
+    cast <- sf::st_cast(poly, "POLYGON", warn = FALSE)
+    dupes <- cast[[ID]][duplicated(cast[[ID]])]
+    if (length(dupes) > 0L) {
+      warning(sprintf(
+        "union_polygons: %d group(s) produced disjoint MULTIPOLYGON after union (e.g. %s) — keeping largest polygon part per group",
+        length(unique(dupes)), paste(head(unique(dupes), 3), collapse = ", ")))
+      cast <- cast |>
+        dplyr::mutate(tmp_area_ = as.numeric(sf::st_area(.))) |>
+        dplyr::group_by(!!id_sym) |>
+        dplyr::slice_max(tmp_area_, n = 1L, with_ties = FALSE) |>
+        dplyr::ungroup() |>
+        dplyr::select(-tmp_area_)
+    }
+    poly <- cast
+  }
+
   poly
 }
 
@@ -237,11 +257,22 @@ flowpaths_to_linestrings <- function(flowpaths) {
   bool <- (st_geometry_type(sf::st_geometry(flowpaths)) == "MULTILINESTRING")
   multis <- flowpaths[bool, ]
   if (nrow(multis) > 0) {
-    sf::st_geometry(multis) <- st_line_merge(sf::st_geometry(multis))
+    merged <- st_line_merge(sf::st_geometry(multis))
+    # Rebuild sfc to flush stale class after in-place element assignment
+    sf::st_geometry(multis) <- sf::st_sfc(as.list(merged), crs = sf::st_crs(flowpaths))
   }
   singles <- flowpaths[!bool, ]
+  out <- bind_rows(multis, singles)
 
-  bind_rows(multis, singles)
+  # After st_line_merge, any remaining MULTILINESTRING means non-contiguous members.
+  # Warn but allow — MULTILINESTRING is valid for flowpaths and topology is preserved.
+  still_multi <- sf::st_geometry_type(out) == "MULTILINESTRING"
+  if (any(still_multi))
+    warning(sprintf(
+      "flowpaths_to_linestrings: %d group(s) are still MULTILINESTRING after st_line_merge — non-contiguous members (kept as-is)",
+      sum(still_multi)))
+
+  out
 }
 
 # quickly check and validate invalid geometries only

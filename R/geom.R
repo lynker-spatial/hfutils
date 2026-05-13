@@ -65,8 +65,26 @@ clean_geometry <- function(catchments,
   if (is.na(target_crs)) target_crs <- sf::st_crs(catchments)
   catchments <- sf::st_transform(catchments, target_crs)
 
-  # grid snap then cast to single POLYGONs with validity cleanup
-  catchments <- lwgeom::st_snap_to_grid(catchments, size = grid)
+  # Grid snap, then repair any ring-touch topology the snap introduces.
+  # Snapping can move two vertices onto the same grid point so a hole boundary
+  # coincides with the outer ring. sf::st_make_valid (GEOS GEOSMakeValid) leaves
+  # this geometry unchanged (it considers touching rings valid), and st_cast
+  # then throws TopologyException when trying to assign the hole to its shell.
+  # lwgeom::lwgeom_make_valid (PostGIS/liblwgeom) resolves this by splitting at
+  # the shared point, returning a GEOMETRYCOLLECTION that st_cast handles cleanly.
+  # Some features with very thin geometry may collapse to empty after snapping —
+  # for those, revert to the original geometry and run sf::st_make_valid instead.
+  orig_geom   <- sf::st_geometry(catchments)
+  snapped     <- lwgeom::st_snap_to_grid(catchments, size = grid)
+  valid_geom  <- lwgeom::lwgeom_make_valid(sf::st_geometry(snapped))
+  became_empty <- sf::st_is_empty(valid_geom)
+  if (any(became_empty)) {
+    valid_geom[became_empty] <- sf::st_make_valid(orig_geom[became_empty])
+    warning(sprintf("clean_geometry: %d feature(s) became empty after grid snap — reverted to original geometry",
+                    sum(became_empty)))
+  }
+  sf::st_geometry(catchments) <- valid_geom
+  catchments <- catchments[!sf::st_is_empty(catchments), , drop = FALSE]
 
   polygons <- suppressWarnings({
     catchments |>
