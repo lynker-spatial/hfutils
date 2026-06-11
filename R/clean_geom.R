@@ -132,10 +132,16 @@ clean_gpkg_layer <- function(
   stopifnot(file.exists(gpkg))
 
   tmp_dir <- tempdir()
-  tmp_src   <- file.path(tmp_dir, paste0(layer, "_src.gpkg"))
-  tmp_4326  <- file.path(tmp_dir, paste0(layer, "_4326.geojson"))
-  tmp_clean <- file.path(tmp_dir, paste0(layer, "_4326_clean.geojson"))
-  tmp_back  <- file.path(tmp_dir, paste0(layer, "_back.gpkg"))
+  # Process-unique stem: forked parallel workers (e.g. concurrent gage runs via
+  # mclapply) share one tempdir(), so layer-keyed names alone would collide and
+  # clobber each other's intermediates. The PID separates workers; the tempfile
+  # suffix separates repeated calls within a worker.
+  uniq      <- sprintf("%s_p%d_%s", layer, Sys.getpid(),
+                       sub("^file", "", basename(tempfile(""))))
+  tmp_src   <- file.path(tmp_dir, paste0(uniq, "_src.gpkg"))
+  tmp_4326  <- file.path(tmp_dir, paste0(uniq, "_4326.geojson"))
+  tmp_clean <- file.path(tmp_dir, paste0(uniq, "_4326_clean.geojson"))
+  tmp_back  <- file.path(tmp_dir, paste0(uniq, "_back.gpkg"))
 
   log_msg <- function(...) {
     if (isTRUE(verbose)) {
