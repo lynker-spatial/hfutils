@@ -67,9 +67,9 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
   total <- numeric(n)
   total[idx] <- incr
 
-  # Build edge list (as names) just for topo sort
-  el_chr <- cbind(v_names[idx[!is.na(jdx)]], v_names[jdx[!is.na(jdx)]])
-  g <- igraph::graph_from_edgelist(el_chr, directed = TRUE)
+  # Build graph for topo sort (consistent with graph_from_data_frame convention)
+  el_df <- data.frame(from = ids[!is.na(jdx)], to = toids[!is.na(jdx)], stringsAsFactors = FALSE)
+  g <- igraph::graph_from_data_frame(el_df, directed = TRUE)
   if (!igraph::is_dag(g)) stop("Network contains cycles; cannot accumulate.")
 
   # Topological order -> rank for each vertex name
