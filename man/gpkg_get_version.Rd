@@ -11,8 +11,8 @@ gpkg_get_version(gpkg)
 }
 \value{
 A named `list` with `version` (semver string), `int_version`
-  (integer), and `provenance` (parsed JSON, or `NULL`); or `NULL` if no
-  version metadata is present.
+  (integer), `license` (SPDX id, or `NULL`), and `provenance` (parsed JSON,
+  or `NULL`); or `NULL` if no version metadata is present.
 }
 \description{
 Reads back the version entries from a GeoPackage's metadata tables. Returns

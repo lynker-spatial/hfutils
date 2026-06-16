@@ -9,6 +9,7 @@ gpkg_set_version(
   version,
   int_version = semver_to_int(version),
   provenance = NULL,
+  license = NULL,
   scope = "geopackage"
 )
 }
@@ -23,6 +24,9 @@ gpkg_set_version(
 \item{provenance}{Optional named `list` written as a JSON build-provenance
 entry (for example `list(software = "hydrofabric 0.1", git_sha = "...",
 build_date = "...")`). `NULL` (default) writes no provenance entry.}
+
+\item{license}{Optional SPDX license identifier (e.g. `"CC0-1.0"`,
+`"ODbL-1.0"`) recorded as a metadata entry. `NULL` (default) writes none.}
 
 \item{scope}{GeoPackage metadata reference scope. Default `"geopackage"`
 (whole-dataset).}

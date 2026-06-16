@@ -42,6 +42,8 @@ semver_to_int <- function(version) {
 #' @param provenance Optional named `list` written as a JSON build-provenance
 #'   entry (for example `list(software = "hydrofabric 0.1", git_sha = "...",
 #'   build_date = "...")`). `NULL` (default) writes no provenance entry.
+#' @param license Optional SPDX license identifier (e.g. `"CC0-1.0"`,
+#'   `"ODbL-1.0"`) recorded as a metadata entry. `NULL` (default) writes none.
 #' @param scope GeoPackage metadata reference scope. Default `"geopackage"`
 #'   (whole-dataset).
 #'
@@ -52,12 +54,13 @@ semver_to_int <- function(version) {
 #' @importFrom jsonlite toJSON
 #' @export
 gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version),
-                             provenance = NULL, scope = "geopackage") {
+                             provenance = NULL, license = NULL, scope = "geopackage") {
 
   stopifnot(file.exists(gpkg), length(version) == 1L, !is.na(version))
 
   prov_uri <- "https://lynker-spatial.com/ns/hydrofabric-provenance"
-  uris     <- c("https://schema.org", "https://semver.org", prov_uri)
+  spdx_uri <- "https://spdx.org/licenses/"
+  uris     <- c("https://schema.org", "https://semver.org", prov_uri, spdx_uri)
 
   con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
@@ -121,6 +124,7 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
     add(prov_uri, "application/json",
         jsonlite::toJSON(provenance, auto_unbox = TRUE, null = "null"))
   }
+  if (!is.null(license)) add(spdx_uri, "text/plain", license)   # SPDX identifier
 
   invisible(gpkg)
 }
@@ -133,8 +137,8 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
 #'
 #' @param gpkg Path to a GeoPackage file.
 #' @return A named `list` with `version` (semver string), `int_version`
-#'   (integer), and `provenance` (parsed JSON, or `NULL`); or `NULL` if no
-#'   version metadata is present.
+#'   (integer), `license` (SPDX id, or `NULL`), and `provenance` (parsed JSON,
+#'   or `NULL`); or `NULL` if no version metadata is present.
 #'
 #' @importFrom DBI dbConnect dbDisconnect dbGetQuery dbListTables
 #' @importFrom RSQLite SQLite
@@ -143,6 +147,7 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
 gpkg_get_version <- function(gpkg) {
   stopifnot(file.exists(gpkg))
   prov_uri <- "https://lynker-spatial.com/ns/hydrofabric-provenance"
+  spdx_uri <- "https://spdx.org/licenses/"
 
   con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
@@ -150,7 +155,7 @@ gpkg_get_version <- function(gpkg) {
 
   q <- DBI::dbGetQuery(con,
     "SELECT md_standard_uri, metadata FROM gpkg_metadata WHERE md_standard_uri IN
-       ('https://schema.org','https://semver.org', ?)", params = list(prov_uri))
+       ('https://schema.org','https://semver.org', ?, ?)", params = list(prov_uri, spdx_uri))
   if (!nrow(q)) return(NULL)
 
   pick <- function(uri) {
@@ -158,8 +163,10 @@ gpkg_get_version <- function(gpkg) {
     if (length(v)) v[[1]] else NA_character_
   }
   prov <- pick(prov_uri)
+  lic  <- pick(spdx_uri)
   list(
     version     = pick("https://semver.org"),
     int_version = suppressWarnings(as.integer(pick("https://schema.org"))),
+    license     = if (is.na(lic)) NULL else lic,
     provenance  = if (!is.na(prov)) jsonlite::fromJSON(prov) else NULL)
 }
