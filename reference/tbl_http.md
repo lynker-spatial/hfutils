@@ -9,7 +9,7 @@ tbl_http(
   urls,
   ...,
   conn = duckdb_connection(extensions = "httpfs"),
-  read_func = c("read_parquet", "read_csv", )
+  read_func = c("read_parquet", "read_csv")
 )
 ```
 
@@ -29,5 +29,5 @@ tbl_http(
 
 - read_func:
 
-  The DuckDB SQL function to call against the list of urls. Defaults to
-  \`read_parquet\`.
+  The DuckDB SQL function to call against the list of urls. One of
+  \`"read_parquet"\` (default) or \`"read_csv"\`.

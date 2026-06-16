@@ -70,4 +70,4 @@ uses those variables to define partitions. Adopted from
 ## See also
 
 [`write_dataset`](https://arrow.apache.org/docs/r/reference/write_dataset.html),
-[`st_read_parquet`](st_read_parquet.md)
+[`st_read_parquet`](https://lynker-spatial.github.io/hfutils/reference/st_read_parquet.md)

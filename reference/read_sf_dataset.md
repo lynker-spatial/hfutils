@@ -44,4 +44,4 @@ Adopted from [wcjochem/sfarrow](https://github.com/wcjochem/sfarrow)
 
 [`open_dataset`](https://arrow.apache.org/docs/r/reference/open_dataset.html),
 [`st_read`](https://r-spatial.github.io/sf/reference/st_read.html),
-[`st_read_parquet`](st_read_parquet.md)
+[`st_read_parquet`](https://lynker-spatial.github.io/hfutils/reference/st_read_parquet.md)

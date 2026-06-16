@@ -1,5 +1,11 @@
-pandoc: 3.1.11
+pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
-articles: {}
-last_built: 2026-02-10T19:14Z
+articles:
+  cloud-and-versioning: cloud-and-versioning.html
+  network-properties: network-properties.html
+  reading-and-writing: reading-and-writing.html
+last_built: 2026-06-16T17:09Z
+urls:
+  reference: https://lynker-spatial.github.io/hfutils/reference
+  article: https://lynker-spatial.github.io/hfutils/articles

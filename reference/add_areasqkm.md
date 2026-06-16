@@ -1,14 +1,10 @@
-# Compute km2 area
-
-Safely compute area in square kilometers (numeric vector)
+# Compute area in square kilometers (numeric)
 
 Safely compute polygon area in km^2 and return a plain numeric vector.
 
 ## Usage
 
 ``` r
-add_areasqkm(x)
-
 add_areasqkm(x)
 ```
 
@@ -21,8 +17,6 @@ add_areasqkm(x)
   possible.
 
 ## Value
-
-numeric
 
 A numeric vector of areas in square kilometers.
 

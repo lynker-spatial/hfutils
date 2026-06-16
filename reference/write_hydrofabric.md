@@ -5,7 +5,7 @@ Write a hydrofabric GeoPackage (mixed sf + non-sf)
 ## Usage
 
 ``` r
-write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = TRUE)
+write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = FALSE)
 ```
 
 ## Arguments
@@ -24,7 +24,11 @@ write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = TRUE)
 
 - enforce_dm:
 
-  logical, enforce \`hf_dm\` schema (column presence)
+  logical, enforce a data-model schema (column presence) by validating
+  each layer against an \`hf_dm\` object found in scope. Defaults to
+  \`FALSE\`; \`hf_dm\` is not shipped with hfutils, so enable this only
+  when a caller (e.g. the \`hydrofabric\` build package) provides
+  \`hf_dm\`.
 
 ## Value
 

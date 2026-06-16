@@ -1,6 +1,6 @@
 # Fast linestring union by ID
 
-Fast union/merge of lines by grouping column, using terra’s
+Fast union/merge of lines by grouping column, using \`terra\`'s
 \`aggregate()\` and returning an \`sf\` layer. Final conversion to clean
 LINESTRINGs is delegated to an internal helper
 \`flowpaths_to_linestrings()\`.
@@ -24,15 +24,12 @@ union_linestrings(lines, ID)
 
 ## Value
 
-An \`sf\` lines layer unioned by \`ID\` (column preserved). The function
-calls \`flowpaths_to_linestrings()\` (package-internal) to ensure clean
-LINESTRING output.
+An \`sf\` lines layer unioned by \`ID\` (column preserved). Output is
+normalized to clean LINESTRINGs via \[flowpaths_to_linestrings()\].
 
-## Details
+## See also
 
-Ensure your package provides \`flowpaths_to_linestrings(x)\` which
-converts/normalizes any MULTILINESTRING results to LINESTRING where
-appropriate and preserves attributes.
+\[flowpaths_to_linestrings()\], \[union_polygons()\]
 
 ## Examples
 

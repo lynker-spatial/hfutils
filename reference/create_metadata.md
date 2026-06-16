@@ -9,7 +9,8 @@ create_metadata(
   df,
   hf_version = "2.2",
   license = "CC-BY-NC-SA",
-  source = "lynker-spatial"
+  source = "lynker-spatial",
+  quiet = TRUE
 )
 ```
 
@@ -30,6 +31,12 @@ create_metadata(
 - source:
 
   dataset source
+
+- quiet:
+
+  logical; if \`FALSE\`, emit an informational message noting the
+  source, hydrofabric version, and license being written. Default
+  \`TRUE\`.
 
 ## Value
 

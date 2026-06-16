@@ -1,7 +1,9 @@
 # Hydrofabric Utilities
 
-`hfutils` provides the base utilities needed for hydrofabric creation
-and manipulation.
+`hfutils` provides the base utilities needed for hydrofabric I/O +
+navigation; geometry modification + cleaning; and authentication to the
+Lynker Spatial cloud. Collectively, it provides the building blocks from
+which reference fabrics and geoprocessed fabrics can be created.
 
 ## Installation
 
@@ -9,11 +11,13 @@ You can install the development version of `hfutils` from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("lynker-spatial/hfutils")
 ```
 
 ``` r
+
 library(hfutils)
 library(dplyr)
 ```
@@ -25,6 +29,7 @@ library(dplyr)
 #### Basic connection: Dataset
 
 ``` r
+
 gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
 hfutils::as_ogr(gpkg)
 #> [1] "divides"        "flowpaths"      "hydrolocations" "pois"          
@@ -37,6 +42,7 @@ hfutils::as_ogr(gpkg)
 #### Basic connection: Layer
 
 ``` r
+
 hfutils::as_ogr(gpkg, "divides") 
 #> # Source:   table<"divides"> [?? x 6]
 #> # Database: OGRSQLConnection
@@ -58,6 +64,7 @@ hfutils::as_ogr(gpkg, "divides")
 #### Lazy Eval
 
 ``` r
+
 hfutils::as_ogr(gpkg, "divides") |> 
   select(divide_id, areasqkm) 
 #> # Source:   SQL [?? x 2]
@@ -80,6 +87,7 @@ hfutils::as_ogr(gpkg, "divides") |>
 #### sf extraction
 
 ``` r
+
 hfutils::as_ogr(gpkg, "divides")  |> 
   filter(vpuid == "01") |> 
   st_as_sf()
@@ -107,12 +115,14 @@ hfutils::as_ogr(gpkg, "divides")  |>
 #### Remote Access
 
 ``` r
+
 # hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
 ```
 
 ### Network Properties
 
 ``` r
+
 ## Accumulate Downstream
 system.time({
   da <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
@@ -147,83 +157,150 @@ questions!
 
 # Package index
 
-## All functions
+## Hydrofabric I/O
 
-- [`OGRSQL()`](OGRSQL.md) : OGRSQL OGRSQL driver, use to \[dbConnect()\]
-  to a data source readable by sf
+Read and write hydrofabric layers from GeoPackages, and lazily query any
+GDAL/OGR vector source with dplyr.
 
-- [`accumulate_downstream()`](accumulate_downstream.md) : Accumulate an
-  attribute downstream over a directed acyclic network
+- [`read_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/read_hydrofabric.md)
+  : Read Hydrofabric Layers from a GeoPackage (or accept in-memory
+  \`sf\` objects)
+- [`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)
+  : Write a hydrofabric GeoPackage (mixed sf + non-sf)
+- [`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)
+  : Delayed read for vector resources
+- [`layer_exists()`](https://lynker-spatial.github.io/hfutils/reference/layer_exists.md)
+  : Check if a layer exists in a geopackage
+- [`OGRSQL()`](https://lynker-spatial.github.io/hfutils/reference/OGRSQL.md)
+  : OGRSQL OGRSQL driver, use to \[dbConnect()\] to a data source
+  readable by sf
 
-- [`add_areasqkm()`](add_areasqkm.md) : Compute km2 area
+## Cloud & GeoParquet
 
-- [`add_lengthkm()`](add_lengthkm.md) : Compute length in kilometers
-  (numeric)
+Authenticated cloud access and GeoParquet/Arrow round-trips for sf
+objects.
 
-- [`add_measures()`](add_measures.md) : Add length and area measures to
-  flowpaths/divides
+- [`lynker_spatial_auth()`](https://lynker-spatial.github.io/hfutils/reference/lynker_spatial_auth.md)
+  : Authenticate with Lynker Spatial
 
-- [`as_ogr()`](as_ogr.md) : Delayed read for vector resources
+- [`lynker_spatial_token()`](https://lynker-spatial.github.io/hfutils/reference/lynker_spatial_token.md)
+  : Get an OAuth2 token for Lynker Spatial
 
-- [`clean_geometry()`](clean_geometry.md) : Clean Catchment Geometry
+- [`lynker_spatial_refresh()`](https://lynker-spatial.github.io/hfutils/reference/lynker_spatial_refresh.md)
+  : Refresh an existing Lynker Spatial token
 
-- [`dbConnect(`*`<OGRSQLDriver>`*`)`](dbConnect-OGRSQLDriver-method.md)
-  : dbConnect
+- [`duckdb_connection()`](https://lynker-spatial.github.io/hfutils/reference/duckdb_connection.md)
+  : Create a new DuckDB connection
 
-- [`duckdb_connection()`](duckdb_connection.md) : Create a new DuckDB
-  connection.
+- [`tbl_http()`](https://lynker-spatial.github.io/hfutils/reference/tbl_http.md)
+  : Read DuckDB File(s) over HTTP
 
-- [`flowpaths_to_linestrings()`](flowpaths_to_linestrings.md) : Convert
-  MULITLINESTINGS to LINESTRINGS
-
-- [`get_hydroseq()`](get_hydroseq.md) : Compute and add the
-  hydrosequence to a directed acyclic network.
-
-- [`get_node()`](get_node.md) : Get endpoint or startpoint of LINESTRING
-
-- [`layer_exists()`](layer_exists.md) : Check if a layer exists in a
-  geopackage
-
-- [`lynker_spatial_auth()`](lynker_spatial_auth.md) : Authenticate with
-  Lynker Spatial
-
-- [`lynker_spatial_refresh()`](lynker_spatial_refresh.md) : Refresh an
-  existing Lynker Spatial token
-
-- [`lynker_spatial_token()`](lynker_spatial_token.md) : Get an OAuth2
-  token for Lynker Spatial
-
-- [`node_geometry()`](node_geometry.md) : Node geometry from line
-  endpoints
-
-- [`read_hydrofabric()`](read_hydrofabric.md) : Read Hydrofabric Layers
-  from a GeoPackage (or accept in-memory \`sf\` objects)
-
-- [`read_sf_dataset()`](read_sf_dataset.md) : Read Parquet Dataset
-
-- [`rename_geometry()`](rename_geometry.md) : Rename geometry column of
-  sf object
-
-- [`st_as_sf(`*`<tbl_OGRSQLConnection>`*`)`](st_as_sf.md) : Force
-  collection of a OGR query Convert as_ogr to a data frame or sf object
-
-- [`st_read_parquet()`](st_read_parquet.md) :
+- [`st_read_parquet()`](https://lynker-spatial.github.io/hfutils/reference/st_read_parquet.md)
+  :
 
   Read a Parquet file to `sf` object
 
-- [`st_write_parquet()`](st_write_parquet.md) :
+- [`st_write_parquet()`](https://lynker-spatial.github.io/hfutils/reference/st_write_parquet.md)
+  :
 
   Write `sf` object to Parquet file
 
-- [`tbl_http()`](tbl_http.md) : Read DuckDB File(s) over HTTP
+- [`read_sf_dataset()`](https://lynker-spatial.github.io/hfutils/reference/read_sf_dataset.md)
+  : Read Parquet Dataset
 
-- [`union_linestrings()`](union_linestrings.md) : Fast linestring union
-  by ID
+- [`write_sf_dataset()`](https://lynker-spatial.github.io/hfutils/reference/write_sf_dataset.md)
+  : Write Parquet Dataset
 
-- [`union_polygons()`](union_polygons.md) : Fast polygon union by ID
+## Geometry cleaning
 
-- [`write_hydrofabric()`](write_hydrofabric.md) : Write a hydrofabric
-  GeoPackage (mixed sf + non-sf)
+Repair and simplify DEM-derived catchment geometry, and fast unions by
+ID.
 
-- [`write_sf_dataset()`](write_sf_dataset.md) : Write Parquet Dataset
+- [`clean_geometry()`](https://lynker-spatial.github.io/hfutils/reference/clean_geometry.md)
+  : Clean Catchment Geometry
+- [`clean_gpkg_layer()`](https://lynker-spatial.github.io/hfutils/reference/clean_gpkg_layer.md)
+  : Clean polygon topology in a GeoPackage layer using GDAL and
+  Mapshaper
+- [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
+  : Fast polygon union by ID
+- [`union_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/union_linestrings.md)
+  : Fast linestring union by ID
+- [`flowpaths_to_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/flowpaths_to_linestrings.md)
+  : Convert MULITLINESTINGS to LINESTRINGS
 
+## Network & topology
+
+Algorithms over the directed (DAG) flow network.
+
+- [`accumulate_downstream()`](https://lynker-spatial.github.io/hfutils/reference/accumulate_downstream.md)
+  : Accumulate an attribute downstream over a directed acyclic network
+- [`get_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.md)
+  : Compute and add the hydrosequence to a directed acyclic network
+- [`add_measures()`](https://lynker-spatial.github.io/hfutils/reference/add_measures.md)
+  : Add length and area measures to flowpaths/divides
+- [`add_areasqkm()`](https://lynker-spatial.github.io/hfutils/reference/add_areasqkm.md)
+  : Compute area in square kilometers (numeric)
+- [`add_lengthkm()`](https://lynker-spatial.github.io/hfutils/reference/add_lengthkm.md)
+  : Compute length in kilometers (numeric)
+- [`get_node()`](https://lynker-spatial.github.io/hfutils/reference/get_node.md)
+  : Get endpoint or startpoint of LINESTRING
+- [`node_geometry()`](https://lynker-spatial.github.io/hfutils/reference/node_geometry.md)
+  : Node geometry from line endpoints
+- [`rename_geometry()`](https://lynker-spatial.github.io/hfutils/reference/rename_geometry.md)
+  : Rename geometry column of sf object
+
+## Versioning & quality assurance
+
+Stamp dataset versions and provenance into GeoPackages, and run staged
+pipeline invariant checks shared across the stack.
+
+- [`gpkg_set_version()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_set_version.md)
+  : Stamp a dataset version into a GeoPackage's metadata tables
+- [`gpkg_get_version()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_get_version.md)
+  : Read the dataset version written by \[gpkg_set_version()\]
+- [`hf_check_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.md)
+  : Pipeline invariant checks
+- [`hf_check_attr_bounds()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_attr_bounds.md)
+  : Check divide/flowpath attribute values against physical-range bounds
+- [`hf_attr_bounds()`](https://lynker-spatial.github.io/hfutils/reference/hf_attr_bounds.md)
+  : Physical-range bounds for divide and flowpath attributes
+
+## DBI / OGR-SQL backend
+
+Low-level S4 classes and methods backing the lazy
+[`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)
+interface.
+
+- [`st_as_sf(`*`<tbl_OGRSQLConnection>`*`)`](https://lynker-spatial.github.io/hfutils/reference/st_as_sf.md)
+  : Force collection of a OGR query Convert as_ogr to a data frame or sf
+  object
+- [`show(`*`<OGRSQLConnection>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLConnection-class.md)
+  [`dbSendQuery(`*`<OGRSQLConnection>`*`,`*`<ANY>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLConnection-class.md)
+  [`dbReadTable(`*`<OGRSQLConnection>`*`,`*`<character>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLConnection-class.md)
+  [`dbListTables(`*`<OGRSQLConnection>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLConnection-class.md)
+  [`dbExistsTable(`*`<OGRSQLConnection>`*`,`*`<ANY>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLConnection-class.md)
+  [`dbDisconnect(`*`<OGRSQLConnection>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLConnection-class.md)
+  : Class OGRSQLConnection (and methods)
+- [`dbDataType(`*`<OGRSQLDriver>`*`,`*`<ANY>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLDriver-class.md)
+  [`dbIsValid(`*`<OGRSQLDriver>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLDriver-class.md)
+  [`dbUnloadDriver(`*`<OGRSQLDriver>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLDriver-class.md)
+  [`dbGetInfo(`*`<OGRSQLDriver>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLDriver-class.md)
+  : Class OGRSQLDriver
+- [`show(`*`<OGRSQLResult>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLResult-class.md)
+  [`dbFetch(`*`<OGRSQLResult>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLResult-class.md)
+  [`dbClearResult(`*`<OGRSQLResult>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLResult-class.md)
+  [`dbHasCompleted(`*`<OGRSQLResult>`*`)`](https://lynker-spatial.github.io/hfutils/reference/OGRSQLResult-class.md)
+  : Class OGRSQLResult (and methods)
+- [`dbConnect(`*`<OGRSQLDriver>`*`)`](https://lynker-spatial.github.io/hfutils/reference/dbConnect-OGRSQLDriver-method.md)
+  : dbConnect
+
+# Articles
+
+### All vignettes
+
+- [Cloud access, versioning, and quality
+  assurance](https://lynker-spatial.github.io/hfutils/articles/cloud-and-versioning.md):
+- [Network properties: accumulation and
+  hydrosequence](https://lynker-spatial.github.io/hfutils/articles/network-properties.md):
+- [Reading and writing a
+  hydrofabric](https://lynker-spatial.github.io/hfutils/articles/reading-and-writing.md):

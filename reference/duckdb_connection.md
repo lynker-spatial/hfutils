@@ -1,6 +1,6 @@
-# Create a new DuckDB connection.
+# Create a new DuckDB connection
 
-Create a new DuckDB connection.
+Create a new DuckDB connection
 
 ## Usage
 

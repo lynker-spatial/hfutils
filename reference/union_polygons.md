@@ -2,7 +2,7 @@
 
 Significantly faster than \`sf::st_union()\`/\`dplyr::summarise()\` for
 unioning large polygon datasets by a grouping column, by leveraging
-terra’s \`aggregate()\` with a round-trip through \`terra::vect()\`.
+\`terra\`'s \`aggregate()\` with a round-trip through \`terra::vect()\`.
 
 ## Usage
 

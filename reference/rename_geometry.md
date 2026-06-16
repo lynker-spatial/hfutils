@@ -5,7 +5,7 @@ Rename geometry column of sf object
 ## Usage
 
 ``` r
-rename_geometry(g, name)
+rename_geometry(g, name = "geometry")
 ```
 
 ## Arguments
@@ -16,7 +16,7 @@ rename_geometry(g, name)
 
 - name:
 
-  new geometry name
+  new geometry name. Default \`"geometry"\`.
 
 ## Value
 

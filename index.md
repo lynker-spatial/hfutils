@@ -1,7 +1,9 @@
 # Hydrofabric Utilities
 
-`hfutils` provides the base utilities needed for hydrofabric creation
-and manipulation.
+`hfutils` provides the base utilities needed for hydrofabric I/O +
+navigation; geometry modification + cleaning; and authentication to the
+Lynker Spatial cloud. Collectively, it provides the building blocks from
+which reference fabrics and geoprocessed fabrics can be created.
 
 ## Installation
 
@@ -9,11 +11,13 @@ You can install the development version of `hfutils` from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("lynker-spatial/hfutils")
 ```
 
 ``` r
+
 library(hfutils)
 library(dplyr)
 ```
@@ -25,6 +29,7 @@ library(dplyr)
 #### Basic connection: Dataset
 
 ``` r
+
 gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
 hfutils::as_ogr(gpkg)
 #> [1] "divides"        "flowpaths"      "hydrolocations" "pois"          
@@ -37,6 +42,7 @@ hfutils::as_ogr(gpkg)
 #### Basic connection: Layer
 
 ``` r
+
 hfutils::as_ogr(gpkg, "divides") 
 #> # Source:   table<"divides"> [?? x 6]
 #> # Database: OGRSQLConnection
@@ -58,6 +64,7 @@ hfutils::as_ogr(gpkg, "divides")
 #### Lazy Eval
 
 ``` r
+
 hfutils::as_ogr(gpkg, "divides") |> 
   select(divide_id, areasqkm) 
 #> # Source:   SQL [?? x 2]
@@ -80,6 +87,7 @@ hfutils::as_ogr(gpkg, "divides") |>
 #### sf extraction
 
 ``` r
+
 hfutils::as_ogr(gpkg, "divides")  |> 
   filter(vpuid == "01") |> 
   st_as_sf()
@@ -107,12 +115,14 @@ hfutils::as_ogr(gpkg, "divides")  |>
 #### Remote Access
 
 ``` r
+
 # hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
 ```
 
 ### Network Properties
 
 ``` r
+
 ## Accumulate Downstream
 system.time({
   da <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 

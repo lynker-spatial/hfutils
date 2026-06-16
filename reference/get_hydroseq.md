@@ -1,6 +1,6 @@
-# Compute and add the hydrosequence to a directed acyclic network.
+# Compute and add the hydrosequence to a directed acyclic network
 
-Compute and add the hydrosequence to a directed acyclic network.
+Compute and add the hydrosequence to a directed acyclic network
 
 ## Usage
 
@@ -26,12 +26,19 @@ get_hydroseq(x, id = "flowpath_id", toid = "flowpath_toid")
   node identifier for each row. Use \`NA\` or \`0\` for
   outlets/terminals. Defaults to \`"flowpath_toid"\`.
 
-- colname:
-
-  Character scalar. Column name to use in result. Defaults to
-  \`"hydroseq"\`
-
 ## Value
 
-The data frame \`topology\` with an additional column, named
-\`colname\`, representing the hydrosequence.
+A numeric vector of hydrosequence values aligned to the rows of \`x\`
+(largest values upstream, decreasing downstream).
+
+## Examples
+
+``` r
+# 1 -> 2 -> 3 (outlet). Headwater "1" gets the largest hydroseq.
+df <- data.frame(
+  flowpath_id   = c("1", "2", "3"),
+  flowpath_toid = c("2", "3", "0")
+)
+get_hydroseq(df)
+#> [1] 2 1 3
+```

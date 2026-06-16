@@ -13,7 +13,8 @@ dbConnect(drv, DSN = "", readonly = TRUE, ...)
 
 - drv:
 
-  OGRSQLDriver created by [`OGRSQL()`](OGRSQL.md)
+  OGRSQLDriver created by
+  [`OGRSQL()`](https://lynker-spatial.github.io/hfutils/reference/OGRSQL.md)
 
 - DSN:
 
