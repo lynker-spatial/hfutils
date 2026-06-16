@@ -4,7 +4,7 @@
 #' Runs a set of invariant assertions at a named pipeline stage. Designed to
 #' be called between pipeline steps so silent failures (orphan divides,
 #' unsplit parents, raster artifacts) halt the run at the step that created
-#' the problem — not 200 lines later during visual inspection.
+#' the problem -- not 200 lines later during visual inspection.
 #'
 #' @param stage Character. One of `"refactored"`, `"reconciled"`,
 #'   `"aggregated"`, `"ngen"`.
@@ -36,6 +36,7 @@
 #' @importFrom igraph graph_from_data_frame topo_sort as_ids V
 #' @importFrom lwgeom st_endpoint st_startpoint
 #' @importFrom utils head
+#' @importFrom stats setNames
 #' @export
 hf_check_invariants <- function(stage, ..., strict = TRUE,
                                 coverage = FALSE, coverage_min = 0.90) {
@@ -174,7 +175,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     n_tiny <- sum(!is.finite(areas) | areas < 1, na.rm = TRUE)
     checks$network_divides_have_area <- .hf_ok(
       n_tiny == 0L,
-      sprintf("%d network divide(s) have < 1 m² area", n_tiny))
+      sprintf("%d network divide(s) have < 1 m2 area", n_tiny))
   }
 
   # No excessive interior rings (raster artifacts)
@@ -244,7 +245,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       sprintf("%d ngen divide_id(s) are not 'cat-' or 'lnd-' prefixed", n_bad))
   }
 
-  # DAG check — flatten fp → nexus → fp into direct fp → fp edges and verify
+  # DAG check -- flatten fp -> nexus -> fp into direct fp -> fp edges and verify
   # the combined graph has no cycles. Including connector (no-divide) fps
   # must not introduce cycles.
   if (!is.null(flowpaths) && !is.null(nexus)) {
@@ -261,12 +262,12 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       error = function(e) NA)
     if (isTRUE(is_dag)) {
       checks$network_is_dag <- .hf_ok(TRUE,
-        sprintf("fp→nexus→fp graph is a DAG (%d flowpaths, %d connectors)",
+        sprintf("fp->nexus->fp graph is a DAG (%d flowpaths, %d connectors)",
                 nrow(flowpaths),
                 sum(!flowpaths$has_divide, na.rm = TRUE)))
     } else {
       checks$network_is_dag <- .hf_ok(FALSE,
-        "fp→nexus→fp graph contains cycle(s)")
+        "fp->nexus->fp graph contains cycle(s)")
     }
   }
 

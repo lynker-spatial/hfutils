@@ -300,7 +300,7 @@ clean_gpkg_layer <- function(
                            full.names = TRUE)
     if (length(numbered) > 0L) {
       log_msg("[info] mapshaper wrote ", length(numbered),
-              " numbered file(s) — using first (polygon) file as output")
+              " numbered file(s) -- using first (polygon) file as output")
       if (!file.rename(numbered[[1L]], tmp_clean)) {
         file.copy(numbered[[1L]], tmp_clean, overwrite = TRUE)
       }

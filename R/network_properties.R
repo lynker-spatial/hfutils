@@ -42,11 +42,11 @@
 #'   flowpath_toid = c(3, 3, 4, NA),
 #'   area           = c(1.0, 2.0, 0.5, 0.0)
 #' )
-#' accumulate(df, id = "flowpath_id", toid = "flowpath_toid", attr = "area")
+#' accumulate_downstream(df, id = "flowpath_id", toid = "flowpath_toid", attr = "area")
 #' # Expected: node 1 stays 1.0, node 2 stays 2.0,
 #' # node 3 gets 1.0 + 2.0 + 0.5 = 3.5, node 4 gets 3.5 + 0.0 = 3.5
 #'
-#' @importFrom igraph graph_from_edgelist is_dag topo_sort as_ids
+#' @importFrom igraph graph_from_data_frame is_dag topo_sort as_ids
 #' @export
 
 accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid", attr) {

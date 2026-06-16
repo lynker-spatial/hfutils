@@ -35,7 +35,7 @@ Invisibly a list with `ok` (logical), `stage`, and `checks`
 Runs a set of invariant assertions at a named pipeline stage. Designed to
 be called between pipeline steps so silent failures (orphan divides,
 unsplit parents, raster artifacts) halt the run at the step that created
-the problem — not 200 lines later during visual inspection.
+the problem -- not 200 lines later during visual inspection.
 }
 \details{
 Expected arguments per stage:

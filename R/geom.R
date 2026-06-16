@@ -56,7 +56,7 @@ clean_geometry <- function(catchments,
   if (identical(Sys.getenv("TURN_OFF_SYS_MAPSHAPER"), "YUP")) sys <- FALSE
   if (is.null(sys)) {
     sys <- FALSE
-    # prefer rmapshaper’s own detection but don’t error if absent
+    # prefer rmapshaper's own detection but don't error if absent
     try(sys <- is.character(check_sys_mapshaper(verbose = FALSE)), silent = TRUE)
   }
 
@@ -72,7 +72,7 @@ clean_geometry <- function(catchments,
   # then throws TopologyException when trying to assign the hole to its shell.
   # lwgeom::lwgeom_make_valid (PostGIS/liblwgeom) resolves this by splitting at
   # the shared point, returning a GEOMETRYCOLLECTION that st_cast handles cleanly.
-  # Some features with very thin geometry may collapse to empty after snapping —
+  # Some features with very thin geometry may collapse to empty after snapping --
   # for those, revert to the original geometry and run sf::st_make_valid instead.
   orig_geom   <- sf::st_geometry(catchments)
   snapped     <- lwgeom::st_snap_to_grid(catchments, size = grid)
@@ -80,7 +80,7 @@ clean_geometry <- function(catchments,
   became_empty <- sf::st_is_empty(valid_geom)
   if (any(became_empty)) {
     valid_geom[became_empty] <- sf::st_make_valid(orig_geom[became_empty])
-    warning(sprintf("clean_geometry: %d feature(s) became empty after grid snap — reverted to original geometry",
+    warning(sprintf("clean_geometry: %d feature(s) became empty after grid snap -- reverted to original geometry",
                     sum(became_empty)))
   }
   sf::st_geometry(catchments) <- valid_geom
