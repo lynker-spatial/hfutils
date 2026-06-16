@@ -4,7 +4,7 @@
 \alias{write_hydrofabric}
 \title{Write a hydrofabric GeoPackage (mixed sf + non-sf)}
 \usage{
-write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = TRUE)
+write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = FALSE)
 }
 \arguments{
 \item{network_list}{named list of layers (may include `sf` and plain data.frames)}
@@ -13,7 +13,10 @@ write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = TRUE)
 
 \item{verbose}{logical, show progress via `cli`}
 
-\item{enforce_dm}{logical, enforce `hf_dm` schema (column presence)}
+\item{enforce_dm}{logical, enforce a data-model schema (column presence) by
+validating each layer against an `hf_dm` object found in scope. Defaults to
+`FALSE`; `hf_dm` is not shipped with hfutils, so enable this only when a
+caller (e.g. the `hydrofabric` build package) provides `hf_dm`.}
 }
 \value{
 `outfile` (invisibly)

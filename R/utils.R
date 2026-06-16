@@ -59,11 +59,12 @@ add_measures <- function(flowpaths, divides) {
 
 #' Rename geometry column of sf object
 #' @param g sf object
-#' @param name new geometry name
+#' @param name new geometry name. Default `"geometry"`.
 #' @return sf object with renamed geometry
 #' @export
-rename_geometry <- function(g, name) {
+rename_geometry <- function(g, name = "geometry") {
   current <- attr(g, "sf_column")
+  if (identical(current, name)) return(g)
   names(g)[names(g) == current] <- name
   attr(g, "sf_column") <- name
   g
@@ -72,20 +73,16 @@ rename_geometry <- function(g, name) {
 #' Node geometry from line endpoints
 #'
 #' Replaces the geometry column of an `sf` object with point geometries taken
-#' from each feature's line endpoints (or start nodes). This is a thin wrapper
-#' around an internal helper `.get_node()` that extracts the desired node from a
-#' geometry vector.
+#' from each feature's line endpoints (or start nodes). Thin wrapper around
+#' [get_node()].
 #'
 #' @param x An `sf` object (typically LINESTRING/MULTILINESTRING).
 #' @param position Character string, either `"end"` (default) or `"start"`,
-#'   forwarded to `.get_node()` to choose which node to extract.
+#'   forwarded to [get_node()] to choose which node to extract.
 #'
 #' @return An `sf` object with geometry set to the requested node locations.
 #'
-#' @details
-#' This function requires an internal helper `.get_node(geom, position)` that
-#' returns an `sfc` of points given an `sfc` of line geometries and a position
-#' of `"start"` or `"end"`. Make sure that helper exists in your package.
+#' @seealso [get_node()]
 #'
 #' @examples
 #' \dontrun{
@@ -96,7 +93,7 @@ rename_geometry <- function(g, name) {
 #' @importFrom sf st_set_geometry st_geometry
 
 node_geometry <- function(x, position = "end") {
-  sf::st_set_geometry(x, hfutils::get_node(sf::st_geometry(x), position))
+  sf::st_set_geometry(x, get_node(sf::st_geometry(x), position))
 }
 
 
@@ -191,12 +188,14 @@ union_polygons <- function(poly, ID) {
       warning(sprintf(
         "union_polygons: %d group(s) produced disjoint MULTIPOLYGON after union (e.g. %s) -- keeping largest polygon part per group",
         length(unique(dupes)), paste(head(unique(dupes), 3), collapse = ", ")))
+      # Compute area before the pipe: the magrittr `.` pronoun is not bound
+      # under the native `|>` pipe used here.
+      cast$tmp_area_ <- as.numeric(sf::st_area(cast))
       cast <- cast |>
-        dplyr::mutate(tmp_area_ = as.numeric(sf::st_area(.))) |>
         dplyr::group_by(!!id_sym) |>
-        dplyr::slice_max(tmp_area_, n = 1L, with_ties = FALSE) |>
+        dplyr::slice_max(.data$tmp_area_, n = 1L, with_ties = FALSE) |>
         dplyr::ungroup() |>
-        dplyr::select(-tmp_area_)
+        dplyr::select(-"tmp_area_")
     }
     poly <- cast
   }
@@ -215,14 +214,10 @@ union_polygons <- function(poly, ID) {
 #'   column used for grouping.
 #' @param ID A string naming the column over which to union geometries.
 #'
-#' @return An `sf` lines layer unioned by `ID` (column preserved). The function
-#'   calls `flowpaths_to_linestrings()` (package-internal) to ensure clean
-#'   LINESTRING output.
+#' @return An `sf` lines layer unioned by `ID` (column preserved). Output is
+#'   normalized to clean LINESTRINGs via [flowpaths_to_linestrings()].
 #'
-#' @details
-#' Ensure your package provides `flowpaths_to_linestrings(x)` which
-#' converts/normalizes any MULTILINESTRING results to LINESTRING where
-#' appropriate and preserves attributes.
+#' @seealso [flowpaths_to_linestrings()], [union_polygons()]
 #'
 #' @examples
 #' \dontrun{
@@ -275,12 +270,15 @@ flowpaths_to_linestrings <- function(flowpaths) {
   out
 }
 
-# quickly check and validate invalid geometries only
+# Quickly validate only the invalid pieces (faster than validating everything).
+# Single shared definition for the package; used by clean_geometry() and friends.
+#' @importFrom sf st_is_valid st_make_valid st_cast
+#' @importFrom dplyr filter bind_rows
 fast_validity_check <- function(x) {
-  bool <- st_is_valid(x)
-  valid <- filter(x, bool)
-  invalid <- st_make_valid(filter(x, !bool)) %>%
-    st_cast("POLYGON")
-
-  return(bind_rows(valid, invalid))
+  valid_flag <- sf::st_is_valid(x)
+  if (all(valid_flag)) return(x)
+  valid   <- dplyr::filter(x, valid_flag)
+  invalid <- sf::st_make_valid(dplyr::filter(x, !valid_flag)) |>
+    sf::st_cast("POLYGON")
+  dplyr::bind_rows(valid, invalid)
 }

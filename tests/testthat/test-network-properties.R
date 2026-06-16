@@ -20,3 +20,20 @@ test_that("accumulate_downstream rejects a cyclic network", {
                     v = c(1, 1), stringsAsFactors = FALSE)
   expect_error(accumulate_downstream(cyc, attr = "v"), "cycle")
 })
+
+test_that("get_hydroseq returns a complete permutation with no gaps", {
+  x <- data.frame(flowpath_id = c("1", "2", "3"),
+                  flowpath_toid = c("2", "3", "0"), stringsAsFactors = FALSE)
+  hs <- get_hydroseq(x)
+  expect_length(hs, 3L)
+  expect_false(anyNA(hs))
+  expect_setequal(hs, seq_len(3L))
+})
+
+test_that("get_hydroseq is identical for numeric and non-numeric (fp-) ids", {
+  xn <- data.frame(flowpath_id = c(1, 2, 3), flowpath_toid = c(2, 3, 0))
+  xc <- data.frame(flowpath_id = c("fp-1", "fp-2", "fp-3"),
+                  flowpath_toid = c("fp-2", "fp-3", "0"), stringsAsFactors = FALSE)
+  expect_equal(get_hydroseq(xc), get_hydroseq(xn))
+  expect_false(anyNA(get_hydroseq(xc)))
+})

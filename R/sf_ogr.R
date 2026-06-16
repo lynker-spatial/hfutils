@@ -88,8 +88,7 @@ as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = "gp
     if(layer %in% dbListTables(x)){
       x = tbl(x, layer)
     } else {
-      stop(layer, ' not in gpkg.', call. = FALSE)
-      dbDisconnect(x)
+      cli::cli_abort("{.val {layer}} not in gpkg.")
     }
   }
 

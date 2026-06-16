@@ -4,12 +4,12 @@
 \alias{rename_geometry}
 \title{Rename geometry column of sf object}
 \usage{
-rename_geometry(g, name)
+rename_geometry(g, name = "geometry")
 }
 \arguments{
 \item{g}{sf object}
 
-\item{name}{new geometry name}
+\item{name}{new geometry name. Default `"geometry"`.}
 }
 \value{
 sf object with renamed geometry

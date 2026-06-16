@@ -1,8 +1,13 @@
 Package: hfutils
 Type: Package
-Title: hfutils
-Description: Core hydrofabric access, cleaning, and summary utilities.
-Version: 0.3.3
+Title: Core Utilities for the Hydrofabric Stack
+Description: Base-layer utilities for accessing, cleaning, summarizing, and
+    versioning hydrofabric datasets. Provides hydrofabric I/O (GeoPackage,
+    GeoParquet, and lazy GDAL/OGR-SQL access), DEM-derived geometry cleaning,
+    network and topology algorithms (downstream accumulation, hydrosequence),
+    staged pipeline invariant checks, and GeoPackage dataset-version and
+    provenance metadata helpers used across the hydrofabric package suite.
+Version: 0.3.4
 Authors@R: 
     c(person(given = "Mike", 
              family = "Johnson", 
@@ -11,8 +16,8 @@ Authors@R:
              person(given = "Justin", family = "Singh-Mohudpur", 
              role = c("aut")))
 Maintainer: Mike Johnson <mjohnson@lynker.com>
-BugReports: https://github.com/lynker-spatial/hfutils
-URL: https://github.com/lynker-spatial/hfutils  
+BugReports: https://github.com/lynker-spatial/hfutils/issues
+URL: https://github.com/lynker-spatial/hfutils, https://lynker-spatial.github.io/hfutils/
 Depends: 
     R (>= 4.2)
 Imports: 
@@ -38,7 +43,11 @@ Imports:
     yyjsonr
 License: Apache License (>= 2)
 Encoding: UTF-8
-LazyData: true
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 Config/testthat/parallel: true

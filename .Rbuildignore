@@ -1,6 +1,14 @@
+^LICENSE$
 ^LICENSE\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
-^_pkgdown\.yaml$
+^_pkgdown\.yml$
+^pkgdown$
 ^pkgdown_site$
+^docs$
+^\.DS_Store$
+^.*/\.DS_Store$
+^\.covrignore$
+^CONTRIBUTING\.md$
+^codecov\.yml$

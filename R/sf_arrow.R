@@ -6,21 +6,26 @@
 #' @details Reference for metadata standard:
 #'   \url{https://github.com/geopandas/geo-arrow-spec}. This is compatible with
 #'   \code{GeoPandas} Parquet files. Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
+#' @param quiet logical; if `FALSE`, emit an informational message noting the
+#'   source, hydrofabric version, and license being written. Default `TRUE`.
 #' @return JSON formatted list with geo-metadata
 #' @keywords internal
 #' @importFrom jsonlite toJSON
 #' @importFrom sf st_crs
+#' @importFrom cli cli_alert_info
 
 create_metadata <-
   function(df,
            hf_version = "2.2",
            license = "CC-BY-NC-SA",
-           source = "lynker-spatial") {
+           source = "lynker-spatial",
+           quiet = TRUE) {
 
-    warning(strwrap(glue("This is writing {source} supported metadata for hydrofabric version {hf_version}.
-                    Use of the data follows an {license} license."),
-                    prefix = "\n", initial = ""
-    ), call. = FALSE)
+    if (!isTRUE(quiet)) {
+      cli::cli_alert_info(
+        "Writing {source} metadata for hydrofabric version {hf_version} (license: {license})."
+      )
+    }
 
     geom_cols <- lapply(df, \(i) inherits(i, "sfc"))
     geom_cols <- names(which(geom_cols == TRUE))
@@ -38,7 +43,7 @@ create_metadata <-
       primary_column = attr(df, "sf_column"),
       columns = col_meta,
       version = hf_version,
-      licence = license,
+      license = license,
       source = source,
       schema_version = "0.1.0",
       creator = list(library = source)

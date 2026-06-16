@@ -1,7 +1,5 @@
 url: https://lynker-spatial.github.io/hfutils
 
-destination: pkgdown_site
-
 template:
   bootstrap: 5
   bslib:
@@ -27,7 +25,7 @@ template:
 navbar:
   bg: light
   structure:
-    left:  [reference]
+    left:  [articles, reference]
     right: [stack, lynker, github]
   components:
     stack:
@@ -52,3 +50,76 @@ footer:
     right: lynker
   components:
     lynker: "The base layer of the [Lynker Spatial](https://www.lynker-spatial.com/) hydrofabric stack"
+
+reference:
+- title: Hydrofabric I/O
+  desc: >
+    Read and write hydrofabric layers from GeoPackages, and lazily query any
+    GDAL/OGR vector source with dplyr.
+  contents:
+  - read_hydrofabric
+  - write_hydrofabric
+  - as_ogr
+  - layer_exists
+  - OGRSQL
+
+- title: Cloud & GeoParquet
+  desc: >
+    Authenticated cloud access and GeoParquet/Arrow round-trips for sf objects.
+  contents:
+  - lynker_spatial_auth
+  - lynker_spatial_token
+  - lynker_spatial_refresh
+  - duckdb_connection
+  - tbl_http
+  - st_read_parquet
+  - st_write_parquet
+  - read_sf_dataset
+  - write_sf_dataset
+
+- title: Geometry cleaning
+  desc: >
+    Repair and simplify DEM-derived catchment geometry, and fast unions by ID.
+  contents:
+  - clean_geometry
+  - clean_gpkg_layer
+  - union_polygons
+  - union_linestrings
+  - flowpaths_to_linestrings
+
+- title: Network & topology
+  desc: >
+    Algorithms over the directed (DAG) flow network.
+  contents:
+  - accumulate_downstream
+  - get_hydroseq
+  - add_measures
+  - add_areasqkm
+  - add_lengthkm
+  - get_node
+  - node_geometry
+  - rename_geometry
+
+- title: Versioning & quality assurance
+  desc: >
+    Stamp dataset versions and provenance into GeoPackages, and run staged
+    pipeline invariant checks shared across the stack.
+  contents:
+  - gpkg_set_version
+  - gpkg_get_version
+  - hf_check_invariants
+
+- title: DBI / OGR-SQL backend
+  desc: >
+    Low-level S4 classes and methods backing the lazy `as_ogr()` interface.
+  contents:
+  - st_as_sf
+  - "OGRSQLConnection-class"
+  - "OGRSQLDriver-class"
+  - "OGRSQLResult-class"
+  - "dbConnect,OGRSQLDriver-method"
+
+- title: internal
+  desc: Internal helpers (documented for completeness).
+  contents:
+  - has_keyword("internal")

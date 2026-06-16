@@ -198,23 +198,26 @@ read_hydrofabric <- function(gpkg = NULL,
 #' @param network_list named list of layers (may include `sf` and plain data.frames)
 #' @param outfile path to `.gpkg` (".gpkg" appended if missing)
 #' @param verbose logical, show progress via `cli`
-#' @param enforce_dm logical, enforce `hf_dm` schema (column presence)
+#' @param enforce_dm logical, enforce a data-model schema (column presence) by
+#'   validating each layer against an `hf_dm` object found in scope. Defaults to
+#'   `FALSE`; `hf_dm` is not shipped with hfutils, so enable this only when a
+#'   caller (e.g. the `hydrofabric` build package) provides `hf_dm`.
 #' @return `outfile` (invisibly)
 #' @export
 write_hydrofabric <- function(network_list,
                               outfile,
                               verbose = TRUE,
-                              enforce_dm = TRUE) {
+                              enforce_dm = FALSE) {
   say <- function(fn, msg) if (isTRUE(verbose)) fn(msg)
 
   if (!is.list(network_list) || length(network_list) == 0)
-    stop("`network_list` must be a non-empty named list.")
+    cli::cli_abort("{.arg network_list} must be a non-empty named list.")
 
   if (is.null(names(network_list)) || any(names(network_list) == "" | is.na(names(network_list))))
-    stop("All elements of `network_list` must be *named* (these become layer/table names).")
+    cli::cli_abort("All elements of {.arg network_list} must be named (these become layer/table names).")
 
   if (!is.character(outfile) || length(outfile) != 1L)
-    stop("`outfile` must be a single file path.")
+    cli::cli_abort("{.arg outfile} must be a single file path.")
 
   if (!grepl("\\.gpkg$", outfile, ignore.case = TRUE))
     outfile <- paste0(outfile, ".gpkg")
@@ -229,7 +232,9 @@ write_hydrofabric <- function(network_list,
   # ---- schema enforcement (columns only; types optional) ----
   if (isTRUE(enforce_dm)) {
     if (!exists("hf_dm", inherits = TRUE))
-      stop("`enforce_dm = TRUE` but `hf_dm` not found in scope.")
+      cli::cli_abort(c(
+        "{.arg enforce_dm} is {.code TRUE} but {.var hf_dm} was not found in scope.",
+        "i" = "Supply an {.var hf_dm} data-model object, or set {.code enforce_dm = FALSE}."))
     dm <- get("hf_dm", inherits = TRUE)
     # If WB not present, drop `wb_id` requirement from all specs
     if (!"WB" %in% names(network_list)) {
@@ -246,13 +251,12 @@ write_hydrofabric <- function(network_list,
         have <- names(data)
         missing <- setdiff(need, have)
         if (length(missing))
-          stop("Layer/table `", layer_name, "` is missing required columns: ",
-               paste(missing, collapse = ", "), call. = FALSE)
+          cli::cli_abort("Layer/table {.val {layer_name}} is missing required column{?s}: {.field {missing}}.")
       }
       TRUE
     }
   } else {
-    enforce_cols <- function(...) TRUE
+    enforce_cols <- function(data, layer_key, layer_name) TRUE
   }
 
   # ---- partition by type ----
@@ -298,7 +302,7 @@ write_hydrofabric <- function(network_list,
     if (!wrote_any) {
       # create empty SQLite file
       con0 <- DBI::dbConnect(RSQLite::SQLite(), tmpfile)
-      on.exit(try(DBI::dbDisconnect(con0), silent = TRUE), add = TRUE)
+      on.exit(suppressWarnings(try(DBI::dbDisconnect(con0), silent = TRUE)), add = TRUE)
       DBI::dbExecute(con0, "PRAGMA application_id=1196437808") # 'GPKG'
       DBI::dbDisconnect(con0)
     }
@@ -310,7 +314,7 @@ write_hydrofabric <- function(network_list,
       obj <- tab_layers[[nm]]
       nm_out <- layer_names[[nm]]
       if (!is.data.frame(obj))
-        stop("Non-sf layer `", nm, "` must be a data.frame/tibble.")
+        cli::cli_abort("Non-sf layer {.val {nm}} must be a data.frame/tibble.")
 
       enforce_cols(obj, nm_out, nm_out)
 
@@ -325,7 +329,7 @@ write_hydrofabric <- function(network_list,
   }
 
   if (!wrote_any)
-    stop("No layers/tables were written. Check `network_list` contents.")
+    cli::cli_abort("No layers/tables were written. Check {.arg network_list} contents.")
 
   # ---- atomic swap ----
   if (file.exists(outfile)) unlink(outfile)
@@ -333,7 +337,7 @@ write_hydrofabric <- function(network_list,
   if (!ok) {
     ok <- file.copy(tmpfile, outfile, overwrite = TRUE)
     unlink(tmpfile)
-    if (!ok) stop("Failed to finalize write to `", outfile, "`.")
+    if (!ok) cli::cli_abort("Failed to finalize write to {.path {outfile}}.")
   }
 
   say(cli::cli_alert_success, glue::glue("Wrote {length(network_list)} layer(s)/table(s) -> {outfile}"))

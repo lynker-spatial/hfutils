@@ -8,7 +8,8 @@ create_metadata(
   df,
   hf_version = "2.2",
   license = "CC-BY-NC-SA",
-  source = "lynker-spatial"
+  source = "lynker-spatial",
+  quiet = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ create_metadata(
 \item{license}{dataset license}
 
 \item{source}{dataset source}
+
+\item{quiet}{logical; if `FALSE`, emit an informational message noting the
+source, hydrofabric version, and license being written. Default `TRUE`.}
 }
 \value{
 JSON formatted list with geo-metadata

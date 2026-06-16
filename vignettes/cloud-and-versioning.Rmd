@@ -1,0 +1,109 @@
+---
+title: "Cloud access, versioning, and quality assurance"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Cloud access, versioning, and quality assurance}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup}
+library(hfutils)
+```
+
+This vignette covers the three responsibilities that make `hfutils` the trusted
+base layer of the stack: **authenticated cloud access**, **dataset versioning &
+provenance**, and **staged invariant checks**.
+
+## Authenticated cloud access
+
+`lynker_spatial_auth()` provisions (or refreshes) an OAuth2 token and wires it
+into the libraries you name. With GDAL configured, any `as_ogr()` /
+`sf::read_sf()` call can read directly from cloud storage via a GDAL virtual
+file system; with DuckDB configured, the bearer token is attached as a secret.
+
+```{r, eval = FALSE}
+# Interactive browser flow; sets GDAL_HTTP_BEARER for the session
+token <- lynker_spatial_auth(libs = "gdal")
+
+as_ogr("/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg",
+       "divides")
+
+# DuckDB over HTTP, with the token attached to the connection
+con <- duckdb_connection(extensions = "httpfs")
+tbl_http("https://.../flowpaths.parquet", conn = con)
+```
+
+## Dataset versioning & provenance
+
+`gpkg_set_version()` stamps a dataset version into the standard GeoPackage
+metadata tables — distinct from the GeoPackage *specification* version in
+`PRAGMA user_version`, which is left untouched. It records a machine-readable
+packed integer (`Mmmpp`), a human-readable semver string, an optional SPDX
+license, and an optional JSON provenance record. It is idempotent: re-stamping
+replaces prior entries rather than accumulating duplicates.
+
+```{r}
+library(sf)
+
+f <- tempfile(fileext = ".gpkg")
+nc <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)[1:2, ]
+st_write(nc, f, "divides", quiet = TRUE)
+
+gpkg_set_version(
+  f, "2.2.0",
+  provenance = list(software = "hydrofabric", vpuid = "09"),
+  license    = "ODbL-1.0"
+)
+
+str(gpkg_get_version(f))
+```
+
+`int_version` (`20200` here) is the value GDAL surfaces as
+`GPKG_METADATA_ITEM_1`, convenient for machine comparison across releases.
+
+```{r, include = FALSE}
+unlink(f)
+```
+
+## Staged invariant checks
+
+`hf_check_invariants()` is the shared QA gate used at each stage of the build
+pipeline. Calling it *between* steps means a silent failure (a duplicate id, a
+dangling `toid`, an orphan divide, a raster ring artifact) halts the run at the
+step that created it — not 200 lines later during visual inspection.
+
+It supports four stages — `"refactored"`, `"reconciled"`, `"aggregated"`, and
+`"ngen"` — each expecting stage-specific inputs. Here is the topology half of a
+`refactored`-stage check on a clean toy network:
+
+```{r}
+refactored <- data.frame(
+  flowpath_id   = c("101", "102", "103"),
+  flowpath_toid = c("102", "103", "0")
+)
+
+res <- hf_check_invariants("refactored", refactored = refactored)
+res$ok
+```
+
+By default any failed check throws (`strict = TRUE`); set `strict = FALSE` to
+downgrade failures to warnings while still surfacing them. A dangling downstream
+pointer is caught:
+
+```{r, error = TRUE}
+broken <- data.frame(
+  flowpath_id   = c("101", "102"),
+  flowpath_toid = c("102", "999")   # 999 does not exist
+)
+
+hf_check_invariants("refactored", refactored = broken)
+```
+
+The `aggregated` and `ngen` stages additionally accept `coverage = TRUE` to run
+the (more expensive) check that each flowpath lies within its assigned
+catchment.

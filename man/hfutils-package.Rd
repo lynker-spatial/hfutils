@@ -4,17 +4,18 @@
 \name{hfutils-package}
 \alias{hfutils}
 \alias{hfutils-package}
-\title{hfutils: hfutils}
+\title{hfutils: Core Utilities for the Hydrofabric Stack}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Core hydrofabric access, cleaning, and summary utilities.
+Base-layer utilities for accessing, cleaning, summarizing, and versioning hydrofabric datasets. Provides hydrofabric I/O (GeoPackage, GeoParquet, and lazy GDAL/OGR-SQL access), DEM-derived geometry cleaning, network and topology algorithms (downstream accumulation, hydrosequence), staged pipeline invariant checks, and GeoPackage dataset-version and provenance metadata helpers used across the hydrofabric package suite.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://github.com/lynker-spatial/hfutils}
-  \item Report bugs at \url{https://github.com/lynker-spatial/hfutils}
+  \item \url{https://lynker-spatial.github.io/hfutils/}
+  \item Report bugs at \url{https://github.com/lynker-spatial/hfutils/issues}
 }
 
 }

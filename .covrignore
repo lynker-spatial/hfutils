@@ -1,0 +1,10 @@
+# Files excluded from test-coverage measurement: they require external services
+# unavailable in a headless CI run, and are validated by integration use rather
+# than unit tests. See CONTRIBUTING.md ("Testing & coverage") for the rationale.
+#
+# R/clean_geom.R : clean_gpkg_layer() shells out to ogr2ogr / mapshaper / gdalsrsinfo
+# R/duckdb.R     : duckdb_connection() / tbl_http() need a live DuckDB + cloud httpfs
+# R/auth.R       : lynker_spatial_*() drive an interactive OAuth2 browser flow
+R/clean_geom.R
+R/duckdb.R
+R/auth.R

@@ -13,9 +13,8 @@ column used for grouping.}
 \item{ID}{A string naming the column over which to union geometries.}
 }
 \value{
-An `sf` lines layer unioned by `ID` (column preserved). The function
-  calls `flowpaths_to_linestrings()` (package-internal) to ensure clean
-  LINESTRING output.
+An `sf` lines layer unioned by `ID` (column preserved). Output is
+  normalized to clean LINESTRINGs via [flowpaths_to_linestrings()].
 }
 \description{
 Fast union/merge of lines by grouping column, using `terra`'s
@@ -23,14 +22,12 @@ Fast union/merge of lines by grouping column, using `terra`'s
 clean LINESTRINGs is delegated to an internal helper
 `flowpaths_to_linestrings()`.
 }
-\details{
-Ensure your package provides `flowpaths_to_linestrings(x)` which
-converts/normalizes any MULTILINESTRING results to LINESTRING where
-appropriate and preserves attributes.
-}
 \examples{
 \dontrun{
 out <- union_linestrings(flow_sf, "group_id")
 }
 
+}
+\seealso{
+[flowpaths_to_linestrings()], [union_polygons()]
 }

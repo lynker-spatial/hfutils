@@ -57,7 +57,7 @@ clean_geometry <- function(catchments,
   if (is.null(sys)) {
     sys <- FALSE
     # prefer rmapshaper's own detection but don't error if absent
-    try(sys <- is.character(check_sys_mapshaper(verbose = FALSE)), silent = TRUE)
+    try(sys <- is.character(rmapshaper::check_sys_mapshaper(verbose = FALSE)), silent = TRUE)
   }
 
   # normalize CRS (only transform if needed)
@@ -295,37 +295,18 @@ clean_geometry <- function(catchments,
 
 # --- helpers ---
 
-# Quickly validate only the invalid pieces (faster than validating everything)
-fast_validity_check <- function(x) {
-  valid_flag <- sf::st_is_valid(x)
-  if (all(valid_flag)) return(x)
-  valid   <- dplyr::filter(x, valid_flag)
-  invalid <- sf::st_make_valid(dplyr::filter(x, !valid_flag)) |>
-    sf::st_cast("POLYGON")
-  dplyr::bind_rows(valid, invalid)
-}
-
-#' Rename geometry column safely
-#' @noRd
-rename_geometry <- function(x, name = "geometry") {
-  if (attr(x, "sf_column") == name) return(x)
-  sf::st_geometry(x) <- name
-  x
-}
-
-#' Compute km2 area
-#' @description Safely compute area in square kilometers (numeric vector)
-#' @param x sf object
-#' @return numeric
-#' @export
-#' @importFrom units set_units drop_units
-add_areasqkm <- function(x) {
-  units::drop_units(units::set_units(sf::st_area(x), "km2"))
-}
+# `fast_validity_check()`, `rename_geometry()`, and `add_areasqkm()` are the
+# single shared definitions in utils.R (this package). They are used here but
+# intentionally not re-defined to avoid divergent copies.
 
 #' Mapshaper simplification wrapper with robust system calls and validation
+#' @param catchments sf POLYGON/MULTIPOLYGON to simplify.
+#' @param keep numeric in (0,1]. Proportion of points to retain.
+#' @param sys logical. Use system mapshaper for rmapshaper calls.
+#' @param gb integer. Heap GB for `mapshaper-xl` when `force = TRUE` and `gb > 8`.
+#' @param force logical. Use system mapshaper / mapshaper-xl binaries directly.
 #' @importFrom yyjsonr write_geojson_file read_geojson_file
-#' @keywords internal
+#' @noRd
 simplify_process <- function(catchments, keep, sys, gb = 8, force = TRUE) {
   stopifnot(is.numeric(keep), keep > 0, keep <= 1)
 

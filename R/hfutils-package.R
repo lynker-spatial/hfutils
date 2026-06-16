@@ -11,3 +11,7 @@
 #' @importFrom glue glue
 #' @importFrom dplyr tbl select mutate rename if_any filter everything distinct collect any_of `%>%` pull
 NULL
+
+# Quiet R CMD check NOTEs for non-standard-evaluation (dplyr/magrittr) symbols
+# that are columns/pronouns rather than global bindings.
+utils::globalVariables(c(".", "areasqkm", "divide_id", "tmp_area_"))

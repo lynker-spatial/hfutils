@@ -18,9 +18,18 @@ identifier for each row. Use `NA` or `0` for outlets/terminals.
 Defaults to `"flowpath_toid"`.}
 }
 \value{
-The data frame `x` with an additional `hydroseq` column representing
-  the hydrosequence.
+A numeric vector of hydrosequence values aligned to the rows of `x`
+  (largest values upstream, decreasing downstream).
 }
 \description{
 Compute and add the hydrosequence to a directed acyclic network
+}
+\examples{
+# 1 -> 2 -> 3 (outlet). Headwater "1" gets the largest hydroseq.
+df <- data.frame(
+  flowpath_id   = c("1", "2", "3"),
+  flowpath_toid = c("2", "3", "0")
+)
+get_hydroseq(df)
+
 }

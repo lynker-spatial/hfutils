@@ -8,7 +8,7 @@ tbl_http(
   urls,
   ...,
   conn = duckdb_connection(extensions = "httpfs"),
-  read_func = c("read_parquet", "read_csv", )
+  read_func = c("read_parquet", "read_csv")
 )
 }
 \arguments{
@@ -19,7 +19,7 @@ tbl_http(
 \item{conn}{A DuckDB connection}
 
 \item{read_func}{The DuckDB SQL function to call against the list of urls.
-Defaults to `read_parquet`.}
+One of `"read_parquet"` (default) or `"read_csv"`.}
 }
 \description{
 Read DuckDB File(s) over HTTP

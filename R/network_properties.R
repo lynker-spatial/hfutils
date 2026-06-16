@@ -103,8 +103,17 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #'   identifier for each row. Use `NA` or `0` for outlets/terminals.
 #'   Defaults to `"flowpath_toid"`.
 #'
-#' @returns The data frame `x` with an additional `hydroseq` column representing
-#'   the hydrosequence.
+#' @returns A numeric vector of hydrosequence values aligned to the rows of `x`
+#'   (largest values upstream, decreasing downstream).
+#'
+#' @examples
+#' # 1 -> 2 -> 3 (outlet). Headwater "1" gets the largest hydroseq.
+#' df <- data.frame(
+#'   flowpath_id   = c("1", "2", "3"),
+#'   flowpath_toid = c("2", "3", "0")
+#' )
+#' get_hydroseq(df)
+#'
 #' @importFrom igraph dfs graph_from_data_frame
 #' @export
 
@@ -115,30 +124,33 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   # This assumes the outlets of this network all connect to an
   # ephemeral "0" node (forming a rooted tree network).
 
+  # IDs are handled as character throughout so non-numeric identifiers
+  # (e.g. "fp-123", scientific-notation strings) survive the round-trip.
   edgelist <- as.data.frame(x)[, c(toid, id)]
   names(edgelist) <- c("id", "toid")
+  edgelist$id   <- as.character(edgelist$id)
+  edgelist$toid <- as.character(edgelist$toid)
 
-  edgelist$id[is.na(edgelist$id)] <- 0
+  edgelist$id[is.na(edgelist$id) | edgelist$id == ""] <- "0"
 
-  if(sum(edgelist$toid == 0) == 0) {
+  if (sum(edgelist$toid == "0", na.rm = TRUE) == 0) {
     ind  <- which(!edgelist$id %in% edgelist$toid)
     root <- edgelist$toid[ind]
   } else {
-    root = 0
+    root <- "0"
   }
 
   # Perform DFS from each terminal upstream to get a
   # distinct topological sort for the hydrosequence.
   sorted <- data.frame(
-    node = as.integer(
-      names(
-        igraph::dfs(
-          igraph::graph_from_data_frame(edgelist),
-          root = as.character(root),
-          mode = "out"
-        )$order
-      )
-    )
+    node = names(
+      igraph::dfs(
+        igraph::graph_from_data_frame(edgelist),
+        root = as.character(root),
+        mode = "out"
+      )$order
+    ),
+    stringsAsFactors = FALSE
   )
 
   sorted$hydroseq <- c(0, seq_len(nrow(sorted) - 1))
@@ -151,6 +163,6 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   names(result) <- c(id, toid, "hydroseq")
 
   # Arrange into input order
-  result$hydroseq[match(x[[id]], result[[id]])]
+  result$hydroseq[match(as.character(x[[id]]), as.character(result[[id]]))]
 }
 
