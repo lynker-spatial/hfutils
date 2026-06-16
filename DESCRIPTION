@@ -51,6 +51,7 @@ Collate:
     'clean_geom.R'
     'duckdb.R'
     'geom.R'
+    'gpkg_metadata.R'
     'hf_invariants.R'
     'hfio.R'
     'hfutils-package.R'
