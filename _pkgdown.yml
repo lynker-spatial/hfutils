@@ -33,6 +33,9 @@ navbar:
     stack:
       text: Stack
       menu:
+        - text: "Architecture overview"
+          href: https://lynker-spatial.github.io/hfpublish/articles/architecture.html
+        - text: -------
         - text: "hfsubset — subset"
           href: https://lynker-spatial.github.io/hfsubset
         - text: "hydrofabric — build"
