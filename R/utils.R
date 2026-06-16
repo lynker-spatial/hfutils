@@ -47,10 +47,22 @@ add_measures <- function(flowpaths, divides) {
   flowpaths$lengthkm <- add_lengthkm(flowpaths)
   divides$areasqkm <- add_areasqkm(divides)
   flowpaths$areasqkm <- NULL
-  flowpaths <- dplyr::left_join(flowpaths,
-                                dplyr::select(sf::st_drop_geometry(divides), divide_id, areasqkm),
-                                by = c("flowpath_id" = "divide_id")
-  )
+  div_tab <- sf::st_drop_geometry(divides)
+  # Join incremental catchment area onto flowpaths. Prefer the explicit
+  # divide->flowpath link (`flowpath_id` on divides), required by the current
+  # schema where divide_id != flowpath_id (e.g. cat-* vs fp-*); joining on
+  # divide_id there matches nothing and silently zeroes areasqkm (and any
+  # downstream-accumulated total area). Fall back to the legacy 1:1 convention
+  # (divide_id == flowpath_id) when divides carry no flowpath_id.
+  if ("flowpath_id" %in% names(div_tab)) {
+    flowpaths <- dplyr::left_join(
+      flowpaths, dplyr::select(div_tab, flowpath_id, areasqkm),
+      by = "flowpath_id")
+  } else {
+    flowpaths <- dplyr::left_join(
+      flowpaths, dplyr::select(div_tab, divide_id, areasqkm),
+      by = c("flowpath_id" = "divide_id"))
+  }
   list(
     flowpaths = rename_geometry(flowpaths, "geometry"),
     divides   = rename_geometry(divides, "geometry")
