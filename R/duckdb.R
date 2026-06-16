@@ -1,4 +1,4 @@
-#' Create a new DuckDB connection.
+#' Create a new DuckDB connection
 #' @param ... Arguments passed to [DBI::dbConnect()].
 #' @param extensions Character vector of extensions to install and load on connect.
 #' @param add_auth Include Lynker Spatial authentication.

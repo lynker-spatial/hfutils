@@ -6,6 +6,16 @@
 \usage{
 lynker_spatial_refresh(token, ..., client = lynker_spatial_client())
 }
+\arguments{
+\item{token}{An existing httr2 OAuth2 token to refresh.}
+
+\item{...}{Unused; reserved for future options.}
+
+\item{client}{An OIDC client, as returned by [lynker_spatial_client()].}
+}
+\value{
+A refreshed httr2 OAuth2 token.
+}
 \description{
 Refresh an existing Lynker Spatial token
 }

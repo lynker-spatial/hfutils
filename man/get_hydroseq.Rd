@@ -2,7 +2,7 @@
 % Please edit documentation in R/network_properties.R
 \name{get_hydroseq}
 \alias{get_hydroseq}
-\title{Compute and add the hydrosequence to a directed acyclic network.}
+\title{Compute and add the hydrosequence to a directed acyclic network}
 \usage{
 get_hydroseq(x, id = "flowpath_id", toid = "flowpath_toid")
 }
@@ -16,13 +16,11 @@ Defaults to `"flowpath_id"`.}
 \item{toid}{Character scalar. Column name in `topology` with the *downstream* node
 identifier for each row. Use `NA` or `0` for outlets/terminals.
 Defaults to `"flowpath_toid"`.}
-
-\item{colname}{Character scalar. Column name to use in result.
-Defaults to `"hydroseq"`}
 }
 \value{
-The data frame `topology` with an additional column, named `colname`, representing the hydrosequence.
+The data frame `x` with an additional `hydroseq` column representing
+  the hydrosequence.
 }
 \description{
-Compute and add the hydrosequence to a directed acyclic network.
+Compute and add the hydrosequence to a directed acyclic network
 }

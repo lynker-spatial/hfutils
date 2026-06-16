@@ -145,7 +145,7 @@ add_lengthkm <- function(x) {
 #'
 #' Significantly faster than `sf::st_union()`/`dplyr::summarise()` for
 #' unioning large polygon datasets by a grouping column, by leveraging
-#' {terra}’s `aggregate()` with a round-trip through `terra::vect()`.
+#' `terra`'s `aggregate()` with a round-trip through `terra::vect()`.
 #'
 #' @param poly An `sf` POLYGON/MULTIPOLYGON object with an attribute column
 #'   used for grouping.
@@ -182,14 +182,14 @@ union_polygons <- function(poly, ID) {
   }
 
   # terra::aggregate wraps all output in MULTIPOLYGON regardless of part count.
-  # Cast to POLYGON; genuinely disjoint members produce duplicate IDs — keep the
+  # Cast to POLYGON; genuinely disjoint members produce duplicate IDs -- keep the
   # largest polygon part per group and discard orphan fragments.
   if (any(sf::st_geometry_type(poly) == "MULTIPOLYGON")) {
     cast <- sf::st_cast(poly, "POLYGON", warn = FALSE)
     dupes <- cast[[ID]][duplicated(cast[[ID]])]
     if (length(dupes) > 0L) {
       warning(sprintf(
-        "union_polygons: %d group(s) produced disjoint MULTIPOLYGON after union (e.g. %s) — keeping largest polygon part per group",
+        "union_polygons: %d group(s) produced disjoint MULTIPOLYGON after union (e.g. %s) -- keeping largest polygon part per group",
         length(unique(dupes)), paste(head(unique(dupes), 3), collapse = ", ")))
       cast <- cast |>
         dplyr::mutate(tmp_area_ = as.numeric(sf::st_area(.))) |>
@@ -206,7 +206,7 @@ union_polygons <- function(poly, ID) {
 
 #' Fast linestring union by ID
 #'
-#' Fast union/merge of lines by grouping column, using {terra}’s
+#' Fast union/merge of lines by grouping column, using `terra`'s
 #' `aggregate()` and returning an `sf` layer. Final conversion to
 #' clean LINESTRINGs is delegated to an internal helper
 #' `flowpaths_to_linestrings()`.
@@ -265,11 +265,11 @@ flowpaths_to_linestrings <- function(flowpaths) {
   out <- bind_rows(multis, singles)
 
   # After st_line_merge, any remaining MULTILINESTRING means non-contiguous members.
-  # Warn but allow — MULTILINESTRING is valid for flowpaths and topology is preserved.
+  # Warn but allow -- MULTILINESTRING is valid for flowpaths and topology is preserved.
   still_multi <- sf::st_geometry_type(out) == "MULTILINESTRING"
   if (any(still_multi))
     warning(sprintf(
-      "flowpaths_to_linestrings: %d group(s) are still MULTILINESTRING after st_line_merge — non-contiguous members (kept as-is)",
+      "flowpaths_to_linestrings: %d group(s) are still MULTILINESTRING after st_line_merge -- non-contiguous members (kept as-is)",
       sum(still_multi)))
 
   out

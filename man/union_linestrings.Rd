@@ -18,7 +18,7 @@ An `sf` lines layer unioned by `ID` (column preserved). The function
   LINESTRING output.
 }
 \description{
-Fast union/merge of lines by grouping column, using {terra}’s
+Fast union/merge of lines by grouping column, using `terra`'s
 `aggregate()` and returning an `sf` layer. Final conversion to
 clean LINESTRINGs is delegated to an internal helper
 `flowpaths_to_linestrings()`.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/duckdb.R
 \name{duckdb_connection}
 \alias{duckdb_connection}
-\title{Create a new DuckDB connection.}
+\title{Create a new DuckDB connection}
 \usage{
 duckdb_connection(..., extensions = character(0), add_auth = TRUE)
 }
@@ -17,5 +17,5 @@ duckdb_connection(..., extensions = character(0), add_auth = TRUE)
 A DBI connection to a DuckDB instance.
 }
 \description{
-Create a new DuckDB connection.
+Create a new DuckDB connection
 }

@@ -132,7 +132,7 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
 #' Read the dataset version written by [gpkg_set_version()]
 #'
 #' Reads back the version entries from a GeoPackage's metadata tables. Returns
-#' `NULL` if the GeoPackage has no metadata table or no version entries — so it
+#' `NULL` if the GeoPackage has no metadata table or no version entries -- so it
 #' is safe to call on any GeoPackage.
 #'
 #' @param gpkg Path to a GeoPackage file.

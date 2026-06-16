@@ -93,7 +93,7 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
   as.numeric(total[idx])
 }
 
-#' Compute and add the hydrosequence to a directed acyclic network.
+#' Compute and add the hydrosequence to a directed acyclic network
 #'
 #' @param x A data frame (or tibble) containing at least the identifier column
 #'   given by `id` and the downstream pointer column given by `toid`.
@@ -102,10 +102,9 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #' @param toid Character scalar. Column name in `topology` with the *downstream* node
 #'   identifier for each row. Use `NA` or `0` for outlets/terminals.
 #'   Defaults to `"flowpath_toid"`.
-#' @param colname Character scalar. Column name to use in result.
-#'   Defaults to `"hydroseq"`
 #'
-#' @returns The data frame `topology` with an additional column, named `colname`, representing the hydrosequence.
+#' @returns The data frame `x` with an additional `hydroseq` column representing
+#'   the hydrosequence.
 #' @importFrom igraph dfs graph_from_data_frame
 #' @export
 

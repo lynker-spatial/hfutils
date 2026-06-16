@@ -6,6 +6,14 @@
 \usage{
 lynker_spatial_token(..., client = lynker_spatial_client())
 }
+\arguments{
+\item{...}{Unused; reserved for future options.}
+
+\item{client}{An OIDC client, as returned by [lynker_spatial_client()].}
+}
+\value{
+An httr2 OAuth2 token.
+}
 \description{
 Get an OAuth2 token for Lynker Spatial
 }

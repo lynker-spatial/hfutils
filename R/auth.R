@@ -75,7 +75,10 @@ lynker_spatial_client <- function() {
   client
 }
 
-##' Get an OAuth2 token for Lynker Spatial
+#' Get an OAuth2 token for Lynker Spatial
+#' @param ... Unused; reserved for future options.
+#' @param client An OIDC client, as returned by [lynker_spatial_client()].
+#' @return An httr2 OAuth2 token.
 #' @export
 lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
   # Get the token using the OIDC client
@@ -88,7 +91,11 @@ lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
   )
 }
 
-##' Refresh an existing Lynker Spatial token
+#' Refresh an existing Lynker Spatial token
+#' @param token An existing httr2 OAuth2 token to refresh.
+#' @param ... Unused; reserved for future options.
+#' @param client An OIDC client, as returned by [lynker_spatial_client()].
+#' @return A refreshed httr2 OAuth2 token.
 #' @export
 lynker_spatial_refresh <- function(token, ..., client = lynker_spatial_client()) {
   if (!inherits(token, "httr2_token")) {

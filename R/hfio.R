@@ -273,7 +273,7 @@ write_hydrofabric <- function(network_list,
       obj <- sf_layers[[nm]]
       nm_out <- layer_names[[nm]]
       enforce_cols(obj, switch(nm_out,
-                               flowpaths = "flowlines", # your dm key → layer mapping
+                               flowpaths = "flowlines", # your dm key -> layer mapping
                                divides   = "divides",
                                pois      = "pois",
                                network   = "network",
@@ -336,7 +336,7 @@ write_hydrofabric <- function(network_list,
     if (!ok) stop("Failed to finalize write to `", outfile, "`.")
   }
 
-  say(cli::cli_alert_success, glue::glue("Wrote {length(network_list)} layer(s)/table(s) → {outfile}"))
+  say(cli::cli_alert_success, glue::glue("Wrote {length(network_list)} layer(s)/table(s) -> {outfile}"))
   invisible(normalizePath(outfile))
 }
 
