@@ -9,7 +9,10 @@ hf_check_invariants(
   ...,
   strict = TRUE,
   coverage = FALSE,
-  coverage_min = 0.9
+  coverage_min = 0.9,
+  attr_bounds = FALSE,
+  domain = NULL,
+  attr_trust_caveated = FALSE
 )
 }
 \arguments{
@@ -26,6 +29,18 @@ coverage check (aggregated and ngen stages only). Default `FALSE`.}
 
 \item{coverage_min}{Minimum fraction of a flowpath that must lie inside
 its assigned catchment. Default `0.90`.}
+
+\item{attr_bounds}{Logical. If `TRUE`, append a per-attribute physical-range
+plausibility pass over the `divides` and `flowpaths` layers (see
+[hf_check_attr_bounds()]). Soft/warn-only and off by default, so it never
+changes the returned `ok` for existing callers until enabled. Absent
+attribute columns are skipped.}
+
+\item{domain}{Domain code (`"CONUS"`, `"AK"`, `"HI"`, `"PRVI"`) selecting the
+`lat`/`lon` bounds for the attribute pass; `NULL` skips lat/lon.}
+
+\item{attr_trust_caveated}{Logical. Include attribute bounds flagged in the
+`caveat` column of the bounds table (default `FALSE`).}
 }
 \value{
 Invisibly a list with `ok` (logical), `stage`, and `checks`

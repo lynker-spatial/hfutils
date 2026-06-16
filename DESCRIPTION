@@ -61,6 +61,7 @@ Collate:
     'duckdb.R'
     'geom.R'
     'gpkg_metadata.R'
+    'hf_attr_bounds.R'
     'hf_invariants.R'
     'hfio.R'
     'hfutils-package.R'

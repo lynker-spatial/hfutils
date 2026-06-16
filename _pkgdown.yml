@@ -126,6 +126,8 @@ reference:
   - gpkg_set_version
   - gpkg_get_version
   - hf_check_invariants
+  - hf_check_attr_bounds
+  - hf_attr_bounds
 
 - title: DBI / OGR-SQL backend
   desc: >

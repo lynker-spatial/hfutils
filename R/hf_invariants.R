@@ -15,6 +15,15 @@
 #'   coverage check (aggregated and ngen stages only). Default `FALSE`.
 #' @param coverage_min Minimum fraction of a flowpath that must lie inside
 #'   its assigned catchment. Default `0.90`.
+#' @param attr_bounds Logical. If `TRUE`, append a per-attribute physical-range
+#'   plausibility pass over the `divides` and `flowpaths` layers (see
+#'   [hf_check_attr_bounds()]). Soft/warn-only and off by default, so it never
+#'   changes the returned `ok` for existing callers until enabled. Absent
+#'   attribute columns are skipped.
+#' @param domain Domain code (`"CONUS"`, `"AK"`, `"HI"`, `"PRVI"`) selecting the
+#'   `lat`/`lon` bounds for the attribute pass; `NULL` skips lat/lon.
+#' @param attr_trust_caveated Logical. Include attribute bounds flagged in the
+#'   `caveat` column of the bounds table (default `FALSE`).
 #'
 #' @details
 #' Expected arguments per stage:
@@ -39,7 +48,9 @@
 #' @importFrom stats setNames
 #' @export
 hf_check_invariants <- function(stage, ..., strict = TRUE,
-                                coverage = FALSE, coverage_min = 0.90) {
+                                coverage = FALSE, coverage_min = 0.90,
+                                attr_bounds = FALSE, domain = NULL,
+                                attr_trust_caveated = FALSE) {
   stage <- match.arg(stage, c("refactored", "reconciled", "aggregated", "ngen"))
   args <- list(...)
   checks <- switch(stage,
@@ -50,6 +61,18 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
                                       coverage_min = coverage_min),
     ngen       = .hf_check_ngen(args, coverage = coverage,
                                 coverage_min = coverage_min))
+
+  # Optional per-attribute physical-plausibility pass. Soft (warn-only) and
+  # off by default, so it never disturbs callers gating on the returned `ok`
+  # until explicitly enabled. Absent attribute columns are skipped.
+  if (isTRUE(attr_bounds) && stage %in% c("reconciled", "aggregated", "ngen")) {
+    checks <- c(checks,
+      .hf_attr_bounds_checks(args$divides, "divides", domain = domain,
+                             trust_caveated = attr_trust_caveated, prefix = "div"),
+      .hf_attr_bounds_checks(args$flowpaths, "flowpaths", domain = domain,
+                             trust_caveated = attr_trust_caveated, prefix = "fp"))
+  }
+
   .hf_report_checks(checks, stage, strict)
 }
 
@@ -355,7 +378,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     tag <- sprintf("[invariants:%s]", stage)
     line <- sprintf("%s %s %-32s %s", tag, icon, nm, res$msg)
     if (isTRUE(res$ok) || identical(res$kind, "info")) message(line)
-    else if (strict) stop(line, call. = FALSE)
+    else if (strict && !isTRUE(res$soft)) stop(line, call. = FALSE)
     else message(line)
   }
   invisible(list(ok = ok_all, stage = stage, checks = checks))

@@ -169,3 +169,35 @@ test_that("ngen stage detects a cycle in the fp->nexus->fp graph", {
     "cycle"
   )
 })
+
+test_that("hf_check_attr_bounds flags out-of-range and skips absent/zero-valid", {
+  df <- data.frame(
+    smcmax_mean     = c(0.4, 0.95, 0.2),   # 0.95 > 0.9 -> 1 bad
+    bexp_mode       = c(5, 5, 20),         # 20 > 15 -> 1 bad
+    glacier_percent = c(0, 0.5, 1),        # inclusive 0..1 -> all ok
+    area_sqkm       = c(1, 2, 3),          # all ok
+    not_a_bound     = c(9, 9, 9)           # no bound -> skipped
+  )
+  res <- suppressMessages(hf_check_attr_bounds(df, "divides", strict = FALSE))
+  expect_false(res$ok)
+  expect_false(res$checks[["smcmax_mean"]]$ok)
+  expect_false(res$checks[["bexp_mode"]]$ok)
+  expect_true(res$checks[["glacier_percent"]]$ok)
+  expect_true(res$checks[["areasqkm"]]$ok)  # data col `area_sqkm` matched via alias, reported canonically
+  expect_null(res$checks[["not_a_bound"]])
+})
+
+test_that("caveated bounds excluded by default; attr failures are soft under strict", {
+  df <- data.frame(imperv_mean = c(0, 0.2, 0.5), smcmax_mean = c(0.5, 0.95, 0.5))
+  res <- suppressMessages(hf_check_attr_bounds(df, "divides", strict = TRUE))
+  expect_null(res$checks[["imperv_mean"]])      # caveated -> skipped
+  expect_false(res$checks[["smcmax_mean"]]$ok)  # soft fail did not abort
+})
+
+test_that("hf_check_attr_bounds matches via aliases (schema name differences)", {
+  # bound canonical name is `lengthkm`; data uses the source alias `length_km`
+  df <- data.frame(length_km = c(0.5, -1, 2))   # -1 <= 0 -> 1 bad
+  res <- suppressMessages(hf_check_attr_bounds(df, "flowpaths", strict = FALSE))
+  expect_false(res$ok)
+  expect_false(res$checks[["lengthkm"]]$ok)     # matched via alias, reported canonically
+})
