@@ -3,8 +3,8 @@
 
 <!-- badges: start -->
 
-[![License: GPL (\>=
-3)](https://img.shields.io/badge/License-GPL%20%28%3E%3D%203%29-blue.svg)](https://choosealicense.com/licenses/gpl-3.0/)
+[![License: Apache License (\>=
+2)](https://img.shields.io/badge/License-Apache%20License%20%28%3E%3D%202%29-blue.svg)](https://choosealicense.com/licenses/apache-2.0/)
 [![LifeCycle](https://img.shields.io/badge/lifecycle-experimental-orange)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Dependencies](https://img.shields.io/badge/dependencies-7/32-orange?style=flat)](#)
 [![Website](https://github.com/mikejohnson51/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml)
