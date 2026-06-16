@@ -1,5 +1,23 @@
 url: https://lynker-spatial.github.io/hfutils
 
+development:
+  mode: auto
+
+home:
+  title: hfutils — core utilities for the hydrofabric stack
+  description: >
+    Base-layer access, cleaning, network/topology, versioning, and quality
+    checks for the Lynker Spatial hydrofabric.
+
+authors:
+  Mike Johnson:
+    href: https://github.com/mikejohnson51
+  Justin Singh-Mohudpur:
+    href: https://github.com/program--
+  footer:
+    roles: [aut, cre]
+    text: "Developed by"
+
 template:
   bootstrap: 5
   bslib:

@@ -12,7 +12,7 @@
 [![Website](https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
-# Hydrofabric Utilities
+# Hydrofabric Utilities <img src="man/figures/logo.png" align="right" height="120" alt="hfutils logo" />
 
 `hfutils` provides the base utilities needed for hydrofabric I/O +
 navigation; geometry modification + cleaning; and authentication to the
