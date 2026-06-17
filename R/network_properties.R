@@ -166,3 +166,50 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   result$hydroseq[match(as.character(x[[id]]), as.character(result[[id]]))]
 }
 
+#' Compute and add Strahler stream order to a directed acyclic network
+#'
+#' Native replacement for `hydroloom::add_streamorder` -- same topological
+#' approach as [get_hydroseq()] (igraph topo-sort), with no external dependency
+#' and no non-dendritic/divergence handling required. Leaves are order 1; at each
+#' node the order is the max of its upstream contributors, incremented by 1 when
+#' that max is shared by two or more of them (Strahler).
+#'
+#' @param x A data frame with the identifier column `id` and downstream pointer
+#'   `toid`. Terminal/outlet rows use `NA`, `""`, `"0"`, or a `toid` that is not
+#'   a known `id`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#' @returns Integer vector of stream orders aligned to the rows of `x`.
+#' @examples
+#' # two headwaters (1,2) join at 3 -> outlet: 3 is order 2
+#' get_streamorder(data.frame(flowpath_id = c("1","2","3"),
+#'                            flowpath_toid = c("3","3","0")))
+#' @importFrom igraph graph_from_data_frame topo_sort as_ids
+#' @export
+get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
+  el <- as.data.frame(x)[, c(id, toid), drop = FALSE]
+  names(el) <- c("id", "toid")
+  el$id   <- as.character(el$id)
+  el$toid <- as.character(el$toid)
+  valid_id <- el$id
+  # route terminals (NA / "" / "0" / dangling) to a single outlet sentinel
+  el$toid[is.na(el$toid) | el$toid == "" | !(el$toid %in% valid_id)] <- "0"
+
+  # upstream contributors per node: ids grouped by the node they drain to
+  up <- split(el$id, el$toid)
+
+  # topological order, upstream before downstream (DAG; network_is_dag holds)
+  g    <- igraph::graph_from_data_frame(el[, c("id", "toid")])
+  ord  <- igraph::as_ids(igraph::topo_sort(g, mode = "out"))
+  ord  <- ord[ord %in% valid_id]                       # drop the "0" sentinel
+
+  so <- stats::setNames(integer(length(valid_id)), valid_id)
+  for (nd in ord) {
+    contribs <- up[[nd]]
+    if (is.null(contribs)) { so[nd] <- 1L; next }       # headwater
+    ords <- so[contribs]
+    m    <- max(ords)
+    so[nd] <- if (sum(ords == m) >= 2L) m + 1L else m
+  }
+  unname(so[as.character(x[[id]])])
+}
+
