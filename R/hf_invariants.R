@@ -383,3 +383,81 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   }
   invisible(list(ok = ok_all, stage = stage, checks = checks))
 }
+
+#' Global-merge (Stage 4) conservation + completeness invariants
+#'
+#' Complements the structural merge checks (id-uniqueness, prefixes, toid
+#' resolution, divide FK, DAG) with the conservation/completeness class that
+#' catches SILENT data loss or corruption when per-VPU fabrics are merged into a
+#' global domain: a dropped/duplicated feature, lost catchment area, a missing
+#' VPU, zeroed drainage area (the `add_measures` zero-fill class), mixed CRS, or
+#' an untagged feature. Reusable across any domain merge.
+#'
+#' @param merged named list with `flowpaths`, `divides`, `nexus` (sf/data.frame)
+#'   for the merged domain product.
+#' @param expected optional list of input expectations summed over the per-VPU
+#'   inputs: `vpus` (character), `n_flowpaths`, `n_divides`, `area_sqkm`. When a
+#'   field is absent the corresponding check reports as info (skipped).
+#' @param area_tol fractional tolerance for divide-area conservation (default 0.005).
+#' @param stage message label (default "merge").
+#' @param strict if TRUE, a failed check stops execution (else warns).
+#' @return invisibly `list(ok, stage, checks)`.
+#' @export
+hf_check_merge_invariants <- function(merged, expected = NULL,
+                                      area_tol = 0.005, stage = "merge",
+                                      strict = FALSE) {
+  fp <- merged$flowpaths; dv <- merged$divides; nx <- merged$nexus
+  if (is.null(fp) || is.null(dv)) stop("merged must contain flowpaths and divides")
+  checks <- list()
+  vcol <- function(x) if (!is.null(x) && "vpuid" %in% names(x)) as.character(x$vpuid) else character(0)
+
+  # completeness: every expected VPU made it into the merge
+  seen <- unique(c(vcol(fp), vcol(dv)))
+  if (!is.null(expected$vpus)) {
+    miss <- setdiff(as.character(expected$vpus), seen)
+    checks$all_vpus_present <- .hf_ok(length(miss) == 0L,
+      if (!length(miss)) sprintf("all %d expected VPU(s) present", length(expected$vpus))
+      else sprintf("%d expected VPU(s) missing: %s", length(miss), paste(miss, collapse = ", ")))
+  } else checks$all_vpus_present <- .hf_info("no expected VPU list supplied")
+
+  # every feature tagged with its source VPU
+  vfp <- vcol(fp); n_untag <- if (length(vfp)) sum(is.na(vfp) | !nzchar(vfp)) else nrow(fp)
+  checks$vpuid_tagged <- .hf_ok(n_untag == 0L,
+    if (!n_untag) "every flowpath carries a vpuid" else sprintf("%d flowpath(s) missing vpuid", n_untag))
+
+  # feature-count conservation (flowpaths/divides are 1:1 re-ID'd, never merged)
+  if (!is.null(expected$n_flowpaths))
+    checks$flowpath_count_conserved <- .hf_ok(nrow(fp) == expected$n_flowpaths,
+      sprintf("merged flowpaths %d vs input sum %d", nrow(fp), expected$n_flowpaths))
+  else checks$flowpath_count_conserved <- .hf_info(sprintf("merged flowpaths: %d", nrow(fp)))
+  if (!is.null(expected$n_divides))
+    checks$divide_count_conserved <- .hf_ok(nrow(dv) == expected$n_divides,
+      sprintf("merged divides %d vs input sum %d", nrow(dv), expected$n_divides))
+  else checks$divide_count_conserved <- .hf_info(sprintf("merged divides: %d", nrow(dv)))
+
+  # divide-area conservation
+  if (!is.null(expected$area_sqkm) && "areasqkm" %in% names(dv)) {
+    got <- sum(as.numeric(dv$areasqkm), na.rm = TRUE)
+    drift <- if (expected$area_sqkm > 0) abs(got - expected$area_sqkm) / expected$area_sqkm else NA_real_
+    checks$divide_area_conserved <- .hf_ok(!is.na(drift) && drift <= area_tol,
+      sprintf("merged divide area %.1f km2 vs input %.1f km2 (%.3f%% drift, tol %.3f%%)",
+              got, expected$area_sqkm, 100 * drift, 100 * area_tol))
+  } else checks$divide_area_conserved <- .hf_info("no input area or areasqkm column")
+
+  # drainage area populated (catches the add_measures total_dasqkm zero-fill)
+  if ("total_dasqkm" %in% names(fp)) {
+    da <- suppressWarnings(as.numeric(fp$total_dasqkm)); n_bad <- sum(is.na(da) | da <= 0)
+    checks$drainage_area_populated <- .hf_ok(n_bad == 0L,
+      if (!n_bad) sprintf("all %d flowpaths have total_dasqkm > 0 (max %.1f km2)", length(da), max(da, na.rm = TRUE))
+      else sprintf("%d/%d flowpath(s) have zero/NA total_dasqkm", n_bad, length(da)))
+  } else checks$drainage_area_populated <- .hf_ok(FALSE, "total_dasqkm column absent from flowpaths")
+
+  # single CRS across all merged layers
+  crs_of <- function(x) if (inherits(x, "sf")) sf::st_crs(x)$epsg else NA
+  crs <- unique(stats::na.omit(c(crs_of(fp), crs_of(dv), crs_of(nx))))
+  checks$crs_consistent <- .hf_ok(length(crs) <= 1L,
+    if (length(crs) <= 1L) sprintf("single CRS (EPSG:%s)", if (length(crs)) crs else "NA")
+    else sprintf("mixed CRS: %s", paste(crs, collapse = ", ")))
+
+  .hf_report_checks(checks, stage, strict)
+}
