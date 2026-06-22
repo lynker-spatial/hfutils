@@ -60,6 +60,20 @@ test_that("ngen stage enforces fp-/cat- id prefixes", {
     "do not start with 'fp-'")
 })
 
+test_that("ngen stage flags dropped/mis-mapped mainstem_id", {
+  drop_fp <- data.frame(flowpath_id = paste0("fp-", 1:5),
+    flowpath_toid = "0", mainstem_id = c(10, rep(NA_real_, 4)),  # 80% NULL
+    stringsAsFactors = FALSE)
+  res <- suppressMessages(hf_check_invariants("ngen", flowpaths = drop_fp,
+    strict = FALSE))
+  expect_false(res$checks$mainstem_id_populated$ok)
+
+  full_fp <- transform(drop_fp, mainstem_id = 11:15)
+  res2 <- suppressMessages(hf_check_invariants("ngen", flowpaths = full_fp,
+    strict = FALSE))
+  expect_true(res2$checks$mainstem_id_populated$ok)
+})
+
 test_that("aggregated stage catches duplicate flowpath_id", {
   fp <- data.frame(flowpath_id = c("1", "1"), stringsAsFactors = FALSE)
   expect_error(

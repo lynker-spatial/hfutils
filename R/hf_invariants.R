@@ -234,6 +234,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       sum(duplicated(ids)) == 0L,
       sprintf("aggregated flowpath_id has %d duplicate(s)",
         sum(duplicated(ids))))
+    checks$mainstem_id_populated <- .hf_mainstem_check(flowpaths)
   }
 
   if (!is.null(divides)) {
@@ -263,6 +264,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     n_bad <- sum(!is.na(ids) & !startsWith(ids, "fp-"))
     checks$ngen_fp_prefix <- .hf_ok(n_bad == 0L,
       sprintf("%d ngen flowpath_id(s) do not start with 'fp-'", n_bad))
+    checks$mainstem_id_populated <- .hf_mainstem_check(flowpaths)
   }
 
   if (!is.null(divides)) {
@@ -326,6 +328,21 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 .hf_ok <- function(ok, msg) list(ok = isTRUE(ok), msg = msg, kind = "check")
 
 .hf_info <- function(msg) list(ok = TRUE, msg = msg, kind = "info")
+
+# Shared mainstem_id population check. mainstem_id is a global reference
+# levelpath id that must propagate intact through every stage / derivative
+# layer -- it is NOT a minted per-stage id. A high NULL fraction means it was
+# dropped or mis-mapped (e.g. remapped through an id table it does not belong
+# to). Returns a check result, or .hf_info when the column is absent.
+.hf_mainstem_check <- function(flowpaths) {
+  if (!"mainstem_id" %in% names(flowpaths)) {
+    return(.hf_info("no mainstem_id column on flowpaths"))
+  }
+  frac <- mean(is.na(flowpaths$mainstem_id))
+  .hf_ok(frac <= 0.05,
+    sprintf("%.1f%% of flowpaths have NULL mainstem_id%s", 100 * frac,
+      if (frac > 0.05) " -- dropped/mis-mapped?" else ""))
+}
 
 .hf_ring_counts <- function(geoms) {
   vapply(geoms, function(g) {
@@ -492,6 +509,9 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
         100 * frac_accum,
         if (frac_accum < 0.10) " -- WARNING: looks unaccumulated (topology resolved?)" else ""))
   } else checks$drainage_area_populated <- .hf_ok(FALSE, "total_dasqkm column absent from flowpaths")
+
+  # mainstem_id (a global reference levelpath id) must survive the merge intact.
+  checks$mainstem_id_populated <- .hf_mainstem_check(fp)
 
   # single CRS across all merged layers
   crs_of <- function(x) if (inherits(x, "sf")) sf::st_crs(x)$epsg else NA

@@ -39,3 +39,22 @@ test_that("hf_check_merge_invariants strict stops on failure", {
     hf_check_merge_invariants(list(flowpaths = fp, divides = dv, nexus = NULL),
       strict = TRUE)))
 })
+
+test_that("hf_check_merge_invariants flags dropped/mis-mapped mainstem_id", {
+  # mostly-NULL mainstem_id -- the merge-drop regression this guards against
+  fp <- data.frame(flowpath_id = paste0("fp-", 1:10), vpuid = "01",
+    total_dasqkm = 1:10, areasqkm = rep(0.5, 10),
+    mainstem_id = c(101, rep(NA_real_, 9)))            # 90% NULL
+  dv <- data.frame(divide_id = paste0("cat-", 1:10), vpuid = "01")
+  res <- suppressMessages(
+    hf_check_merge_invariants(list(flowpaths = fp, divides = dv, nexus = NULL),
+      strict = FALSE))
+  expect_false(res$checks$mainstem_id_populated$ok)
+
+  # fully-populated mainstem_id passes
+  fp$mainstem_id <- 100 + (1:10)
+  res2 <- suppressMessages(
+    hf_check_merge_invariants(list(flowpaths = fp, divides = dv, nexus = NULL),
+      strict = FALSE))
+  expect_true(res2$checks$mainstem_id_populated$ok)
+})
