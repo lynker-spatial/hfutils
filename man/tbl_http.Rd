@@ -14,7 +14,9 @@ tbl_http(
 \arguments{
 \item{urls}{1 or more URLs}
 
-\item{...}{Unused}
+\item{...}{Named options forwarded to the DuckDB reader function, e.g.
+`union_by_name = TRUE` becomes `union_by_name=true`. Logicals map to
+`true`/`false`, character values are single-quoted.}
 
 \item{conn}{A DuckDB connection}
 

@@ -50,7 +50,7 @@ setMethod("dbGetInfo", "OGRSQLDriver", function(dbObj, ...) {
     name = "OGRSQLDriver",
     note = "virtual SQL driver for OGR Resources",
     driver.version = vers["GDAL"],
-    client.version = utils::packageVersion("hfsubsetR")
+    client.version = utils::packageVersion("hfutils")
   )
 })
 

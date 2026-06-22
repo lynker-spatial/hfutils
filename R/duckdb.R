@@ -21,9 +21,28 @@ duckdb_connection <- function(..., extensions = character(0), add_auth = TRUE) {
   conn
 }
 
+# Format named reader options as a DuckDB argument-string fragment. Logicals
+# map to true/false, character values are single-quoted, everything else is
+# written as-is. Returns "" for no options, else ", k1=v1, k2=v2".
+.duckdb_reader_opts <- function(opts) {
+  if (!length(opts)) return("")
+  if (is.null(names(opts)) || !all(nzchar(names(opts)))) {
+    stop("All reader options passed via `...` must be named.", call. = FALSE)
+  }
+  fmt <- function(v) {
+    if (is.logical(v)) tolower(as.character(v))
+    else if (is.character(v)) paste0("'", v, "'")
+    else as.character(v)
+  }
+  paste0(", ", paste(names(opts), vapply(opts, fmt, character(1)),
+                     sep = "=", collapse = ", "))
+}
+
 #' Read DuckDB File(s) over HTTP
 #' @param urls 1 or more URLs
-#' @param ... Unused
+#' @param ... Named options forwarded to the DuckDB reader function, e.g.
+#'   `union_by_name = TRUE` becomes `union_by_name=true`. Logicals map to
+#'   `true`/`false`, character values are single-quoted.
 #' @param conn A DuckDB connection
 #' @param read_func The DuckDB SQL function to call against the list of urls.
 #'                  One of `"read_parquet"` (default) or `"read_csv"`.
@@ -37,10 +56,10 @@ tbl_http <- function(
 
   read_func <- match.arg(read_func)
 
-  # TODO(justin): allow read_func arguments i.e. union_by_name
+  opt_sql <- .duckdb_reader_opts(list(...))
   query <- paste0("SELECT * FROM ", read_func, "([",
     paste0("'", urls, "'", collapse = ","),
-  "])")
+  "]", opt_sql, ")")
 
   dplyr::tbl(conn, dbplyr::sql(query))
 }

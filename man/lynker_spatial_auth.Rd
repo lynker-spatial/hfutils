@@ -17,7 +17,9 @@ If the token is expired, then}
 
 \item{...}{Unused}
 
-\item{libs}{Supported libraries to configure auth for.}
+\item{libs}{Libraries to configure auth for; any of `"gdal"`, `"duckdb"`,
+`"arrow"`. Default `c("gdal", "duckdb")`. `"arrow"` authenticates via the
+AWS S3 credential chain rather than the bearer token (see Details).}
 
 \item{duckdb_con}{A DuckDB DBI connection to add a bearer token secret to.}
 }
@@ -26,4 +28,13 @@ The `token` argument, or a newly provisioned token
 }
 \description{
 Authenticate with Lynker Spatial
+}
+\details{
+Per library: `"gdal"` sets the `GDAL_HTTP_AUTH` /
+  `GDAL_HTTP_BEARER` environment variables; `"duckdb"` creates a
+  bearer-token HTTP secret on `duckdb_con`. `"arrow"` does *not* use the
+  bearer -- the arrow R bindings expose no HTTP custom-header filesystem, so
+  authenticated arrow access is via S3 (`arrow::S3FileSystem`, credentials
+  from the standard AWS chain); requesting `"arrow"` only warns when arrow
+  lacks S3 support.
 }

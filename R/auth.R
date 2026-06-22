@@ -2,8 +2,17 @@
 #' @param token An existing OAuth2 token. If NULL, then a new token is provisioned and returned.
 #'              If the token is expired, then
 #' @param ... Unused
-#' @param libs Supported libraries to configure auth for.
+#' @param libs Libraries to configure auth for; any of `"gdal"`, `"duckdb"`,
+#'   `"arrow"`. Default `c("gdal", "duckdb")`. `"arrow"` authenticates via the
+#'   AWS S3 credential chain rather than the bearer token (see Details).
 #' @param duckdb_con A DuckDB DBI connection to add a bearer token secret to.
+#' @details Per library: `"gdal"` sets the `GDAL_HTTP_AUTH` /
+#'   `GDAL_HTTP_BEARER` environment variables; `"duckdb"` creates a
+#'   bearer-token HTTP secret on `duckdb_con`. `"arrow"` does *not* use the
+#'   bearer -- the arrow R bindings expose no HTTP custom-header filesystem, so
+#'   authenticated arrow access is via S3 (`arrow::S3FileSystem`, credentials
+#'   from the standard AWS chain); requesting `"arrow"` only warns when arrow
+#'   lacks S3 support.
 #' @returns The `token` argument, or a newly provisioned token
 #' @export
 lynker_spatial_auth <- function(
@@ -16,7 +25,7 @@ lynker_spatial_auth <- function(
     token <- lynker_spatial_token()
   }
 
-  libs <- match.arg(libs, several.ok = TRUE)
+  libs <- match.arg(libs, c("gdal", "duckdb", "arrow"), several.ok = TRUE)
 
   if (inherits(token, "httr2_token")) {
     # if (now > expired_time)
@@ -42,7 +51,20 @@ lynker_spatial_auth <- function(
     ))
   }
 
-  # TODO: Set Arrow Bearer (need filesystem impl)
+  # Arrow: the R arrow bindings (<= 23.x) expose only Local/S3/Gcs filesystems
+  # with no HTTP custom-header support, so the OAuth id_token cannot be attached
+  # to arrow's HTTPS reads. Arrow instead authenticates lynker-spatial via S3 --
+  # arrow::S3FileSystem resolves credentials from the standard AWS chain
+  # (env / shared config / SSO), so `s3://` reads are already authenticated when
+  # AWS credentials are present and there is no bearer to set. Protected
+  # HTTPS-gateway reads should use the DuckDB (`tbl_http()`) or GDAL path above.
+  if ("arrow" %in% libs &&
+      (!requireNamespace("arrow", quietly = TRUE) || !arrow::arrow_with_s3())) {
+    warning("arrow is built without S3 support; authenticated lynker-spatial ",
+            "arrow reads are unavailable -- use the DuckDB/GDAL path for ",
+            "protected data.", call. = FALSE)
+  }
+
   token
 }
 
