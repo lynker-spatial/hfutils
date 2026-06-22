@@ -13,7 +13,10 @@ test_that("hf_check_merge_invariants passes a clean merge", {
 
 test_that("hf_check_merge_invariants flags missing VPU, lost area, zeroed DA", {
   fp <- data.frame(flowpath_id = c("fp-1","fp-2"), vpuid = c("01","02"),
-                   total_dasqkm = c(0, 25))                       # one zeroed
+                   total_dasqkm = c(0, 25),                       # one zeroed
+                   areasqkm = c(8, 20))            # fp-1 is a real catchment ->
+                                                   # DA==0 is a genuine violation
+                                                   # (not a catchment-less connector)
   dv <- data.frame(divide_id = c("cat-1","cat-2"), vpuid = c("01","02"),
                    areasqkm = c(10, 15))
   nx <- data.frame(nexus_id = "nex-1")
@@ -29,7 +32,8 @@ test_that("hf_check_merge_invariants flags missing VPU, lost area, zeroed DA", {
 })
 
 test_that("hf_check_merge_invariants strict stops on failure", {
-  fp <- data.frame(flowpath_id = "fp-1", vpuid = "01", total_dasqkm = 0)
+  fp <- data.frame(flowpath_id = "fp-1", vpuid = "01", total_dasqkm = 0,
+                   areasqkm = 1)                  # real catchment, DA==0 -> fail
   dv <- data.frame(divide_id = "cat-1", vpuid = "01", areasqkm = 1)
   expect_error(suppressMessages(
     hf_check_merge_invariants(list(flowpaths = fp, divides = dv, nexus = NULL),

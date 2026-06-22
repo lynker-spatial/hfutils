@@ -12,3 +12,6 @@
 ^\.covrignore$
 ^CONTRIBUTING\.md$
 ^codecov\.yml$
+^README\.Rmd$
+^NOTICE$
+^\.mailmap$

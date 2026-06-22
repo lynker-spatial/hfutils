@@ -14,4 +14,4 @@ NULL
 
 # Quiet R CMD check NOTEs for non-standard-evaluation (dplyr/magrittr) symbols
 # that are columns/pronouns rather than global bindings.
-utils::globalVariables(c(".", "areasqkm", "divide_id", "tmp_area_"))
+utils::globalVariables(c(".", "areasqkm", "divide_id", "flowpath_id", "tmp_area_"))
