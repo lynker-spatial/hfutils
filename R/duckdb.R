@@ -3,6 +3,12 @@
 #' @param extensions Character vector of extensions to install and load on connect.
 #' @param add_auth Include Lynker Spatial authentication.
 #' @returns A DBI connection to a DuckDB instance.
+#' @examples
+#' \dontrun{
+#' conn <- duckdb_connection(extensions = "httpfs")
+#' DBI::dbGetQuery(conn, "SELECT 1")
+#' DBI::dbDisconnect(conn, shutdown = TRUE)
+#' }
 #' @export
 duckdb_connection <- function(..., extensions = character(0), add_auth = TRUE) {
   conn <- DBI::dbConnect(duckdb::duckdb(), ...)
@@ -46,6 +52,13 @@ duckdb_connection <- function(..., extensions = character(0), add_auth = TRUE) {
 #' @param conn A DuckDB connection
 #' @param read_func The DuckDB SQL function to call against the list of urls.
 #'                  One of `"read_parquet"` (default) or `"read_csv"`.
+#' @examples
+#' \dontrun{
+#' urls <- "https://lynker-spatial.s3.amazonaws.com/v20.1/divides.parquet"
+#' tbl_http(urls, union_by_name = TRUE) |>
+#'   dplyr::filter(vpuid == "01") |>
+#'   dplyr::collect()
+#' }
 #' @export
 tbl_http <- function(
   urls,

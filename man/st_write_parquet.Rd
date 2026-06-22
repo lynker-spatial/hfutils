@@ -37,6 +37,12 @@ Convert a simple features spatial object from \code{sf}
 \details{
 Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 }
+\examples{
+\dontrun{
+divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+st_write_parquet(divides, "divides.parquet", hf_version = "2.2")
+}
+}
 \seealso{
 \code{\link[arrow]{write_parquet}}
 }

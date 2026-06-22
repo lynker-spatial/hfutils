@@ -21,3 +21,10 @@ a data frame from `collect()`, sf data frame from `st_as_sf()` (only if it conta
 Force collection of a OGR query
 Convert as_ogr to a data frame or sf object
 }
+\examples{
+\dontrun{
+q <- as_ogr("hydrofabric.gpkg", "flowpaths")
+df <- collect(q)        # plain data frame
+sf <- st_as_sf(q)       # sf object (collect() triggered internally)
+}
+}

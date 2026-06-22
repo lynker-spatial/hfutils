@@ -16,3 +16,10 @@ A numeric vector of lengths in kilometers.
 \description{
 Safely compute linestring length in km and return a plain numeric vector.
 }
+\examples{
+\dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+fl$lengthkm <- add_lengthkm(fl)
+}
+
+}

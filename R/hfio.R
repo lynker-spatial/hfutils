@@ -203,6 +203,15 @@ read_hydrofabric <- function(gpkg = NULL,
 #'   `FALSE`; `hf_dm` is not shipped with hfutils, so enable this only when a
 #'   caller (e.g. the `hydrofabric` build package) provides `hf_dm`.
 #' @return `outfile` (invisibly)
+#' @examples
+#' \dontrun{
+#' network_list <- list(
+#'   flowpaths = sf::read_sf("in.gpkg", "flowpaths"),
+#'   divides   = sf::read_sf("in.gpkg", "divides"),
+#'   network   = sf::st_drop_geometry(sf::read_sf("in.gpkg", "flowpaths"))
+#' )
+#' write_hydrofabric(network_list, "hydrofabric.gpkg")
+#' }
 #' @export
 write_hydrofabric <- function(network_list,
                               outfile,

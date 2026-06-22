@@ -43,9 +43,11 @@ Imports:
     yyjsonr
 License: Apache License (>= 2)
 Encoding: UTF-8
+Language: en-US
 Suggests:
     knitr,
     rmarkdown,
+    spelling,
     testthat (>= 3.0.0),
     withr
 VignetteBuilder: knitr

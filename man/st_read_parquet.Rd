@@ -26,9 +26,16 @@ Read a Parquet file. Uses standard metadata information to
 }
 \details{
 Reference for the metadata used:
-  \url{https://github.com/geopandas/geo-arrow-spec}. These are
+  \url{https://github.com/geoarrow/geoarrow}. These are
   standard with the Python \code{GeoPandas} library.
   Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
+}
+\examples{
+\dontrun{
+divides <- st_read_parquet("divides.parquet")
+divides <- st_read_parquet("divides.parquet",
+                           col_select = c("divide_id", "geometry"))
+}
 }
 \seealso{
 \code{\link[arrow]{read_parquet}}, \code{\link[sf]{st_read}}

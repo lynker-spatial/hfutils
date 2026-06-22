@@ -11,3 +11,9 @@ OGRSQL()
 OGRSQL
 OGRSQL driver, use to [dbConnect()] to a data source readable by sf
 }
+\examples{
+\dontrun{
+con <- dbConnect(OGRSQL(), "hydrofabric.gpkg")
+as_ogr(con, "flowpaths")
+}
+}

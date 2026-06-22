@@ -4,6 +4,11 @@ NULL
 
 #' OGRSQL
 #' OGRSQL driver, use to [dbConnect()] to a data source readable by sf
+#' @examples
+#' \dontrun{
+#' con <- dbConnect(OGRSQL(), "hydrofabric.gpkg")
+#' as_ogr(con, "flowpaths")
+#' }
 #' @export
 
 OGRSQL <- function(){ new("OGRSQLDriver") }
@@ -41,7 +46,7 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
 #' may be used with functions and workflows in the normal DBI way, see [OGRSQL()] for
 #' the as_ogr DBI support.
 #'
-#' To obtain an in memory data frame use an explict `collect()` or `st_as_sf()`.
+#' To obtain an in memory data frame use an explicit `collect()` or `st_as_sf()`.
 #' A call to `collect()` is triggered by `st_as_sf()` and will add the sf class
 #' to the output.
 #'
@@ -50,6 +55,12 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
 #' @param query SQL query to pass in directly
 #' @param ignore_lyrs pattern for layers to be ignored description
 #' @return a 'tbl_OGRSQLConnection'
+#' @examples
+#' \dontrun{
+#' library(dplyr)
+#' tbl <- as_ogr("hydrofabric.gpkg", "flowpaths")
+#' tbl |> filter(order >= 4) |> st_as_sf()
+#' }
 #' @export
 
 as_ogr <- function(x, layer,..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
@@ -102,6 +113,12 @@ as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = "gp
 #' @param ... passed to [collect()]
 #' @name st_as_sf
 #' @return a data frame from `collect()`, sf data frame from `st_as_sf()` (only if it contains an `sfc` geometry column)
+#' @examples
+#' \dontrun{
+#' q <- as_ogr("hydrofabric.gpkg", "flowpaths")
+#' df <- collect(q)        # plain data frame
+#' sf <- st_as_sf(q)       # sf object (collect() triggered internally)
+#' }
 #' @importFrom sf st_as_sf
 #' @importFrom dplyr collect
 #' @export

@@ -23,6 +23,13 @@
 #'   auto-detect. Set env `TURN_OFF_SYS_MAPSHAPER=YUP` to force `FALSE`.
 #'
 #' @return sf with the same ID column and fixed geometry; includes `areasqkm`.
+#' @examples
+#' \dontrun{
+#' divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
+#' flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' cleaned <- clean_geometry(divides, flowlines = flowpaths,
+#'                           fl_ID = "id", ID = "divide_id", crs = 5070)
+#' }
 #' @export
 #' @importFrom sf st_crs st_transform st_is_valid st_make_valid st_cast st_length st_intersects st_zm st_collection_extract st_geometry_type st_drop_geometry st_is_empty st_make_valid
 #' @importFrom dplyr mutate select group_by ungroup filter left_join summarize distinct arrange slice slice_max bind_rows rename any_of add_count everything across

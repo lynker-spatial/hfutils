@@ -17,3 +17,8 @@ An httr2 OAuth2 token.
 \description{
 Get an OAuth2 token for Lynker Spatial
 }
+\examples{
+\dontrun{
+token <- lynker_spatial_token()
+}
+}

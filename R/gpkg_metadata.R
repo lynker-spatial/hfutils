@@ -52,6 +52,13 @@ semver_to_int <- function(version) {
 #' @importFrom DBI dbConnect dbDisconnect dbExecute dbGetQuery dbListTables
 #' @importFrom RSQLite SQLite
 #' @importFrom jsonlite toJSON
+#' @examples
+#' \dontrun{
+#' gpkg_set_version("hydrofabric.gpkg", version = "2.2.0",
+#'                  license = "ODbL-1.0",
+#'                  provenance = list(software = "hydrofabric 0.1",
+#'                                    build_date = Sys.Date()))
+#' }
 #' @export
 gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version),
                              provenance = NULL, license = NULL, scope = "geopackage") {
@@ -143,6 +150,11 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
 #' @importFrom DBI dbConnect dbDisconnect dbGetQuery dbListTables
 #' @importFrom RSQLite SQLite
 #' @importFrom jsonlite fromJSON
+#' @examples
+#' \dontrun{
+#' info <- gpkg_get_version("hydrofabric.gpkg")
+#' info$version
+#' }
 #' @export
 gpkg_get_version <- function(gpkg) {
   stopifnot(file.exists(gpkg))

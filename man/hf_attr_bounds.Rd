@@ -20,3 +20,9 @@ column (`;`-separated) lists alternate column names a bound also matches, so
 a single bound covers schema naming differences (e.g. `lengthkm` matches
 `length_km`).
 }
+\examples{
+\dontrun{
+bounds <- hf_attr_bounds()
+head(bounds)
+}
+}

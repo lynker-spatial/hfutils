@@ -17,3 +17,9 @@ sf object with renamed geometry
 \description{
 Rename geometry column of sf object
 }
+\examples{
+\dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+fl <- rename_geometry(fl, "geometry")
+}
+}

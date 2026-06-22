@@ -19,3 +19,9 @@ Reads back the version entries from a GeoPackage's metadata tables. Returns
 `NULL` if the GeoPackage has no metadata table or no version entries -- so it
 is safe to call on any GeoPackage.
 }
+\examples{
+\dontrun{
+info <- gpkg_get_version("hydrofabric.gpkg")
+info$version
+}
+}

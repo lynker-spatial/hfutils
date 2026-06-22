@@ -37,3 +37,14 @@ global domain: a dropped/duplicated feature, lost catchment area, a missing
 VPU, zeroed drainage area (the `add_measures` zero-fill class), mixed CRS, or
 an untagged feature. Reusable across any domain merge.
 }
+\examples{
+\dontrun{
+merged <- list(
+  flowpaths = sf::read_sf("conus.gpkg", "flowpaths"),
+  divides   = sf::read_sf("conus.gpkg", "divides"),
+  nexus     = sf::read_sf("conus.gpkg", "nexus")
+)
+hf_check_merge_invariants(merged,
+  expected = list(vpus = sprintf("\%02d", 1:18)))
+}
+}

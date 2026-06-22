@@ -31,6 +31,14 @@ This function is primarily for use after opening a dataset with
   order to create \code{\link[sf]{sf}} objects.
   Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 }
+\examples{
+\dontrun{
+ds <- arrow::open_dataset("divides_dataset/")
+divides <- ds |>
+  dplyr::filter(vpuid == "01") |>
+  read_sf_dataset()
+}
+}
 \seealso{
 \code{\link[arrow]{open_dataset}}, \code{\link[sf]{st_read}}, \code{\link{st_read_parquet}}
 }

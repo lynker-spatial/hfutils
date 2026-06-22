@@ -4,7 +4,7 @@
 #' @param license dataset license
 #' @param source dataset source
 #' @details Reference for metadata standard:
-#'   \url{https://github.com/geopandas/geo-arrow-spec}. This is compatible with
+#'   \url{https://github.com/geoarrow/geoarrow}. This is compatible with
 #'   \code{GeoPandas} Parquet files. Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 #' @param quiet logical; if `FALSE`, emit an informational message noting the
 #'   source, hydrofabric version, and license being written. Default `TRUE`.
@@ -61,7 +61,7 @@ create_metadata <-
 
 validate_metadata <- function(metadata) {
   if (is.null(metadata) | !is.list(metadata)) {
-    stop("Error: empty or malformed geo metadata", call. = F)
+    stop("Error: empty or malformed geo metadata", call. = FALSE)
   } else{
     # check for presence of required geo keys
     req_names <- c("primary_column", "columns")
@@ -158,11 +158,17 @@ arrow_to_sf <- function(tbl, metadata) {
 #' @param ... additional parameters to pass to
 #'   \code{\link[arrow]{ParquetFileReader}}
 #' @details Reference for the metadata used:
-#'   \url{https://github.com/geopandas/geo-arrow-spec}. These are
+#'   \url{https://github.com/geoarrow/geoarrow}. These are
 #'   standard with the Python \code{GeoPandas} library.
 #'   Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 #' @seealso \code{\link[arrow]{read_parquet}}, \code{\link[sf]{st_read}}
 #' @return object of class \code{\link[sf]{sf}}
+#' @examples
+#' \dontrun{
+#' divides <- st_read_parquet("divides.parquet")
+#' divides <- st_read_parquet("divides.parquet",
+#'                            col_select = c("divide_id", "geometry"))
+#' }
 #' @export
 
 st_read_parquet <- function(dsn, col_select = NULL,
@@ -209,6 +215,11 @@ st_read_parquet <- function(dsn, col_select = NULL,
 #' @return \code{obj} invisibly
 #' @details Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 #' @seealso \code{\link[arrow]{write_parquet}}
+#' @examples
+#' \dontrun{
+#' divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+#' st_write_parquet(divides, "divides.parquet", hf_version = "2.2")
+#' }
 #' @export
 
 st_write_parquet <- function(obj, dsn,
@@ -253,6 +264,13 @@ st_write_parquet <- function(obj, dsn,
 #'   Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 #' @return object of class \code{\link[sf]{sf}}
 #' @seealso \code{\link[arrow]{open_dataset}}, \code{\link[sf]{st_read}}, \code{\link{st_read_parquet}}
+#' @examples
+#' \dontrun{
+#' ds <- arrow::open_dataset("divides_dataset/")
+#' divides <- ds |>
+#'   dplyr::filter(vpuid == "01") |>
+#'   read_sf_dataset()
+#' }
 #' @export
 
 read_sf_dataset <- function(dataset, find_geom = FALSE) {
@@ -303,6 +321,13 @@ read_sf_dataset <- function(dataset, find_geom = FALSE) {
 #'   partitions. Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 #' @return \code{obj} invisibly
 #' @seealso \code{\link[arrow]{write_dataset}}, \code{\link{st_read_parquet}}
+#' @examples
+#' \dontrun{
+#' divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+#' divides |>
+#'   dplyr::group_by(vpuid) |>
+#'   write_sf_dataset(path = "divides_dataset/")
+#' }
 #' @export
 
 write_sf_dataset <- function(obj,

@@ -32,7 +32,7 @@ Create standardized geo metadata for Parquet files
 }
 \details{
 Reference for metadata standard:
-  \url{https://github.com/geopandas/geo-arrow-spec}. This is compatible with
+  \url{https://github.com/geoarrow/geoarrow}. This is compatible with
   \code{GeoPandas} Parquet files. Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 }
 \keyword{internal}

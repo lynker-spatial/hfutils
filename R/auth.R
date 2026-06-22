@@ -14,6 +14,11 @@
 #'   from the standard AWS chain); requesting `"arrow"` only warns when arrow
 #'   lacks S3 support.
 #' @returns The `token` argument, or a newly provisioned token
+#' @examples
+#' \dontrun{
+#' conn <- DBI::dbConnect(duckdb::duckdb())
+#' token <- lynker_spatial_auth(libs = c("gdal", "duckdb"), duckdb_con = conn)
+#' }
 #' @export
 lynker_spatial_auth <- function(
   token = NULL,
@@ -101,6 +106,10 @@ lynker_spatial_client <- function() {
 #' @param ... Unused; reserved for future options.
 #' @param client An OIDC client, as returned by [lynker_spatial_client()].
 #' @return An httr2 OAuth2 token.
+#' @examples
+#' \dontrun{
+#' token <- lynker_spatial_token()
+#' }
 #' @export
 lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
   # Get the token using the OIDC client
@@ -118,6 +127,11 @@ lynker_spatial_token <- function(..., client = lynker_spatial_client()) {
 #' @param ... Unused; reserved for future options.
 #' @param client An OIDC client, as returned by [lynker_spatial_client()].
 #' @return A refreshed httr2 OAuth2 token.
+#' @examples
+#' \dontrun{
+#' token <- lynker_spatial_token()
+#' token <- lynker_spatial_refresh(token)
+#' }
 #' @export
 lynker_spatial_refresh <- function(token, ..., client = lynker_spatial_client()) {
   if (!inherits(token, "httr2_token")) {

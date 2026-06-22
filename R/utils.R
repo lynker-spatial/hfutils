@@ -2,6 +2,10 @@
 #' @param gpkg path to .gpkg
 #' @param name layer name
 #' @return logical
+#' @examples
+#' \dontrun{
+#' layer_exists("hydrofabric.gpkg", "divides")
+#' }
 #' @export
 layer_exists <- function(gpkg, name) {
   file.exists(gpkg) && name %in% sf::st_layers(gpkg)$name
@@ -11,6 +15,11 @@ layer_exists <- function(gpkg, name) {
 #' @param x sf LINESTRING
 #' @param position "start" or "end"
 #' @return sf POINT
+#' @examples
+#' \dontrun{
+#' fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' outlets <- get_node(sf::st_geometry(fl), position = "end")
+#' }
 #' @export
 
 get_node <- function(x, position = "end") {
@@ -41,6 +50,13 @@ network_is_dag <- function(fl, ID = "id", toID = "toid") {
 #' @param flowpaths sf LINESTRING
 #' @param divides sf POLYGON
 #' @return named list of updated flowpaths and divides
+#' @examples
+#' \dontrun{
+#' fps <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' divs <- sf::read_sf("hydrofabric.gpkg", "divides")
+#' out <- add_measures(fps, divs)
+#' out$flowpaths$lengthkm
+#' }
 #' @export
 #'
 add_measures <- function(flowpaths, divides) {
@@ -73,6 +89,11 @@ add_measures <- function(flowpaths, divides) {
 #' @param g sf object
 #' @param name new geometry name. Default `"geometry"`.
 #' @return sf object with renamed geometry
+#' @examples
+#' \dontrun{
+#' fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' fl <- rename_geometry(fl, "geometry")
+#' }
 #' @export
 rename_geometry <- function(g, name = "geometry") {
   current <- attr(g, "sf_column")
@@ -140,6 +161,12 @@ add_areasqkm <- function(x) {
 #'   CRS, `sf::st_length()` will compute ellipsoidal areas when possible.
 #'
 #' @return A numeric vector of lengths in kilometers.
+#'
+#' @examples
+#' \dontrun{
+#' fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' fl$lengthkm <- add_lengthkm(fl)
+#' }
 #'
 #' @export
 #' @importFrom units set_units drop_units
@@ -253,9 +280,14 @@ union_linestrings <- function(lines, ID) {
     flowpaths_to_linestrings()
 }
 
-#' Convert MULITLINESTINGS to LINESTRINGS
+#' Convert MULTILINESTRINGS to LINESTRINGS
 #' @param flowpaths a flowpath `sf` object
 #' @return a `sf` object
+#' @examples
+#' \dontrun{
+#' fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' fl <- flowpaths_to_linestrings(fl)
+#' }
 #' @export
 #' @importFrom sf st_geometry_type st_geometry st_line_merge
 #' @importFrom dplyr bind_rows

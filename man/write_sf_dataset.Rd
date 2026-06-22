@@ -46,6 +46,14 @@ Translate an \code{sf} spatial object to \code{data.frame} with WKB
   \code{\link[dplyr]{group_by}}) and uses those variables to define
   partitions. Adopted from \href{https://github.com/wcjochem/sfarrow}{wcjochem/sfarrow}
 }
+\examples{
+\dontrun{
+divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+divides |>
+  dplyr::group_by(vpuid) |>
+  write_sf_dataset(path = "divides_dataset/")
+}
+}
 \seealso{
 \code{\link[arrow]{write_dataset}}, \code{\link{st_read_parquet}}
 }

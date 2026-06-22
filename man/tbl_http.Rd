@@ -26,3 +26,11 @@ One of `"read_parquet"` (default) or `"read_csv"`.}
 \description{
 Read DuckDB File(s) over HTTP
 }
+\examples{
+\dontrun{
+urls <- "https://lynker-spatial.s3.amazonaws.com/v20.1/divides.parquet"
+tbl_http(urls, union_by_name = TRUE) |>
+  dplyr::filter(vpuid == "01") |>
+  dplyr::collect()
+}
+}

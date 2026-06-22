@@ -41,3 +41,9 @@ in the layer are skipped; bounds carrying a `caveat` are skipped unless
 `trust_caveated = TRUE`. Failures are reported but never abort, even when
 `strict = TRUE`.
 }
+\examples{
+\dontrun{
+divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+hf_check_attr_bounds(divides, which = "divides", domain = "CONUS")
+}
+}

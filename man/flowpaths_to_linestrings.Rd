@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{flowpaths_to_linestrings}
 \alias{flowpaths_to_linestrings}
-\title{Convert MULITLINESTINGS to LINESTRINGS}
+\title{Convert MULTILINESTRINGS to LINESTRINGS}
 \usage{
 flowpaths_to_linestrings(flowpaths)
 }
@@ -13,5 +13,11 @@ flowpaths_to_linestrings(flowpaths)
 a `sf` object
 }
 \description{
-Convert MULITLINESTINGS to LINESTRINGS
+Convert MULTILINESTRINGS to LINESTRINGS
+}
+\examples{
+\dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+fl <- flowpaths_to_linestrings(fl)
+}
 }

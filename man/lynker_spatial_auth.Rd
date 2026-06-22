@@ -38,3 +38,9 @@ Per library: `"gdal"` sets the `GDAL_HTTP_AUTH` /
   from the standard AWS chain); requesting `"arrow"` only warns when arrow
   lacks S3 support.
 }
+\examples{
+\dontrun{
+conn <- DBI::dbConnect(duckdb::duckdb())
+token <- lynker_spatial_auth(libs = c("gdal", "duckdb"), duckdb_con = conn)
+}
+}

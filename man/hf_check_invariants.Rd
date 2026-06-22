@@ -64,3 +64,11 @@ Expected arguments per stage:
 - `stage = "ngen"`: `flowpaths` (sf with `fp-` IDs), `divides` (sf with
   `cat-` IDs).
 }
+\examples{
+\dontrun{
+flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
+hf_check_invariants("ngen", flowpaths = flowpaths, divides = divides,
+                    strict = FALSE)
+}
+}

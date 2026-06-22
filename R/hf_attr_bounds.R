@@ -11,6 +11,11 @@
 #'
 #' @return A data.frame of bounds (one row per attribute, plus per-domain rows
 #'   for `lat`/`lon`).
+#' @examples
+#' \dontrun{
+#' bounds <- hf_attr_bounds()
+#' head(bounds)
+#' }
 #' @export
 hf_attr_bounds <- function() {
   path <- system.file("extdata", "divide_attr_bounds.csv", package = "hfutils")
@@ -99,6 +104,11 @@ hf_attr_bounds <- function() {
 #'
 #' @return Invisibly a list with `ok` and `checks` (same shape as
 #'   [hf_check_invariants()]).
+#' @examples
+#' \dontrun{
+#' divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+#' hf_check_attr_bounds(divides, which = "divides", domain = "CONUS")
+#' }
 #' @export
 hf_check_attr_bounds <- function(layer, which = c("divides", "flowpaths"),
                                  domain = NULL, strict = FALSE,

@@ -19,3 +19,9 @@ A refreshed httr2 OAuth2 token.
 \description{
 Refresh an existing Lynker Spatial token
 }
+\examples{
+\dontrun{
+token <- lynker_spatial_token()
+token <- lynker_spatial_refresh(token)
+}
+}

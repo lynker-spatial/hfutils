@@ -46,6 +46,13 @@
 #' @importFrom lwgeom st_endpoint st_startpoint
 #' @importFrom utils head
 #' @importFrom stats setNames
+#' @examples
+#' \dontrun{
+#' flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+#' divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
+#' hf_check_invariants("ngen", flowpaths = flowpaths, divides = divides,
+#'                     strict = FALSE)
+#' }
 #' @export
 hf_check_invariants <- function(stage, ..., strict = TRUE,
                                 coverage = FALSE, coverage_min = 0.90,
@@ -402,6 +409,16 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 #' @param stage message label (default "merge").
 #' @param strict if TRUE, a failed check stops execution (else warns).
 #' @return invisibly `list(ok, stage, checks)`.
+#' @examples
+#' \dontrun{
+#' merged <- list(
+#'   flowpaths = sf::read_sf("conus.gpkg", "flowpaths"),
+#'   divides   = sf::read_sf("conus.gpkg", "divides"),
+#'   nexus     = sf::read_sf("conus.gpkg", "nexus")
+#' )
+#' hf_check_merge_invariants(merged,
+#'   expected = list(vpus = sprintf("%02d", 1:18)))
+#' }
 #' @export
 hf_check_merge_invariants <- function(merged, expected = NULL,
                                       area_tol = 0.005, stage = "merge",

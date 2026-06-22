@@ -24,3 +24,13 @@ caller (e.g. the `hydrofabric` build package) provides `hf_dm`.}
 \description{
 Write a hydrofabric GeoPackage (mixed sf + non-sf)
 }
+\examples{
+\dontrun{
+network_list <- list(
+  flowpaths = sf::read_sf("in.gpkg", "flowpaths"),
+  divides   = sf::read_sf("in.gpkg", "divides"),
+  network   = sf::st_drop_geometry(sf::read_sf("in.gpkg", "flowpaths"))
+)
+write_hydrofabric(network_list, "hydrofabric.gpkg")
+}
+}

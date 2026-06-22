@@ -17,3 +17,9 @@ sf POINT
 \description{
 Get endpoint or startpoint of LINESTRING
 }
+\examples{
+\dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+outlets <- get_node(sf::st_geometry(fl), position = "end")
+}
+}

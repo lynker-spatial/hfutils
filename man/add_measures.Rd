@@ -17,3 +17,11 @@ named list of updated flowpaths and divides
 \description{
 Add length and area measures to flowpaths/divides
 }
+\examples{
+\dontrun{
+fps <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+divs <- sf::read_sf("hydrofabric.gpkg", "divides")
+out <- add_measures(fps, divs)
+out$flowpaths$lengthkm
+}
+}

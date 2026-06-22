@@ -17,3 +17,8 @@ logical
 \description{
 Check if a layer exists in a geopackage
 }
+\examples{
+\dontrun{
+layer_exists("hydrofabric.gpkg", "divides")
+}
+}
