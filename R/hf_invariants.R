@@ -444,12 +444,31 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
               got, expected$area_sqkm, 100 * drift, 100 * area_tol))
   } else checks$divide_area_conserved <- .hf_info("no input area or areasqkm column")
 
-  # drainage area populated (catches the add_measures total_dasqkm zero-fill)
+  # drainage area populated + accumulating.
   if ("total_dasqkm" %in% names(fp)) {
-    da <- suppressWarnings(as.numeric(fp$total_dasqkm)); n_bad <- sum(is.na(da) | da <= 0)
+    da   <- suppressWarnings(as.numeric(fp$total_dasqkm))
+    area <- if ("areasqkm" %in% names(fp)) suppressWarnings(as.numeric(fp$areasqkm))
+            else rep(NA_real_, length(da))
+    # Correct DA invariant: total_dasqkm must (a) never be NA, (b) be >= its own
+    # local area (accumulation never loses own area), and (c) be > 0 wherever the
+    # flowpath has a real catchment (areasqkm > 0). A catchment-less connector
+    # (areasqkm == 0) fed only by other catchment-less reaches legitimately has
+    # total_dasqkm == 0 -- NOT a failure (previously these were wrongly flagged).
+    n_bad <- sum(is.na(da) |
+                 (!is.na(area) & da < area - 1e-6) |
+                 (!is.na(area) & area > 0 & da <= 0))
     checks$drainage_area_populated <- .hf_ok(n_bad == 0L,
-      if (!n_bad) sprintf("all %d flowpaths have total_dasqkm > 0 (max %.1f km2)", length(da), max(da, na.rm = TRUE))
-      else sprintf("%d/%d flowpath(s) have zero/NA total_dasqkm", n_bad, length(da)))
+      if (!n_bad) sprintf("all %d flowpaths have valid total_dasqkm (max %.1f km2)", length(da), max(da, na.rm = TRUE))
+      else sprintf("%d/%d flowpath(s) have invalid total_dasqkm (NA, < own area, or 0 with a catchment)", n_bad, length(da)))
+    # Accumulation sanity (informational): a real network has many reaches whose
+    # DA exceeds their own local area. ~0% indicates a topology-resolution bug
+    # (e.g. passing nexus ids to accumulate_downstream -> DA == own area for all).
+    pos <- !is.na(area) & area > 0 & !is.na(da)
+    frac_accum <- if (sum(pos)) mean(da[pos] > area[pos] + 1e-6) else 1
+    checks$drainage_area_accumulates <- .hf_info(
+      sprintf("%.1f%% of area>0 flowpaths have DA > own area%s",
+              100 * frac_accum,
+              if (frac_accum < 0.10) " -- WARNING: looks unaccumulated (topology resolved?)" else ""))
   } else checks$drainage_area_populated <- .hf_ok(FALSE, "total_dasqkm column absent from flowpaths")
 
   # single CRS across all merged layers
