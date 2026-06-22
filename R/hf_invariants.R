@@ -51,7 +51,7 @@
 #' flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
 #' divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
 #' hf_check_invariants("ngen", flowpaths = flowpaths, divides = divides,
-#'                     strict = FALSE)
+#'   strict = FALSE)
 #' }
 #' @export
 hf_check_invariants <- function(stage, ..., strict = TRUE,
@@ -63,11 +63,11 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   checks <- switch(stage,
     refactored = .hf_check_refactored(args),
     reconciled = .hf_check_reconciled(args, coverage = coverage,
-                                      coverage_min = coverage_min),
+      coverage_min = coverage_min),
     aggregated = .hf_check_aggregated(args, coverage = coverage,
-                                      coverage_min = coverage_min),
+      coverage_min = coverage_min),
     ngen       = .hf_check_ngen(args, coverage = coverage,
-                                coverage_min = coverage_min))
+      coverage_min = coverage_min))
 
   # Optional per-attribute physical-plausibility pass. Soft (warn-only) and
   # off by default, so it never disturbs callers gating on the returned `ok`
@@ -75,9 +75,9 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   if (isTRUE(attr_bounds) && stage %in% c("reconciled", "aggregated", "ngen")) {
     checks <- c(checks,
       .hf_attr_bounds_checks(args$divides, "divides", domain = domain,
-                             trust_caveated = attr_trust_caveated, prefix = "div"),
+        trust_caveated = attr_trust_caveated, prefix = "div"),
       .hf_attr_bounds_checks(args$flowpaths, "flowpaths", domain = domain,
-                             trust_caveated = attr_trust_caveated, prefix = "fp"))
+        trust_caveated = attr_trust_caveated, prefix = "fp"))
   }
 
   .hf_report_checks(checks, stage, strict)
@@ -93,13 +93,13 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     checks$refactored_unique <- .hf_ok(
       sum(duplicated(ids)) == 0,
       sprintf("refactored flowpath_id has %d duplicate(s)",
-              sum(duplicated(ids))))
+        sum(duplicated(ids))))
     toids <- as.character(refactored$flowpath_toid)
     dangling <- setdiff(toids[toids != "0" & !is.na(toids)], ids)
     checks$refactored_topology <- .hf_ok(
       length(dangling) == 0,
       sprintf("%d refactored flowpath_toid values reference nonexistent IDs",
-              length(dangling)))
+        length(dangling)))
   }
 
   if (!is.null(reconciled)) {
@@ -130,7 +130,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       checks$reconciled_members_exist <- .hf_ok(
         length(missing) == 0L,
         sprintf("%d reconciled member ID(s) not in refactored or split-parents (e.g. %s)",
-                length(missing), paste(utils::head(missing, 3), collapse = ", ")))
+          length(missing), paste(utils::head(missing, 3), collapse = ", ")))
     }
   }
   checks
@@ -146,7 +146,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   # component ordering, so st_endpoint / st_startpoint produce unreliable
   # outlet/inlet proxies and would inflate the disconnected count.
   if (!is.null(reconciled) && inherits(reconciled, "sf") &&
-      "toID" %in% names(reconciled) && nrow(reconciled) > 0L) {
+    "toID" %in% names(reconciled) && nrow(reconciled) > 0L) {
     geom_types <- as.character(sf::st_geometry_type(reconciled))
     ls_rows    <- geom_types == "LINESTRING"
     if (any(ls_rows)) {
@@ -162,16 +162,16 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
           lwgeom::st_startpoint(sf::st_geometry(rec_ls)))[, 1:2]
         ds_idx  <- rid_to_idx[rtoid[has_ds]]
         d_end   <- sqrt(rowSums((eps[has_ds, , drop = FALSE] -
-                                  sps[ds_idx, , drop = FALSE])^2))
+          sps[ds_idx, , drop = FALSE])^2))
         d_start <- sqrt(rowSums((sps[has_ds, , drop = FALSE] -
-                                  sps[ds_idx, , drop = FALSE])^2))
+          sps[ds_idx, , drop = FALSE])^2))
         flagged      <- which(d_end > 100)
         reversed     <- sum(d_start[flagged] < d_end[flagged])
         disconnected <- length(flagged) - reversed
         checks$reconciled_flow_direction <- .hf_ok(
           reversed == 0L,
           sprintf("%d flowline(s) reversed (fix: sf::st_reverse); %d disconnected (geometry gap, not reversal)",
-                  reversed, disconnected))
+            reversed, disconnected))
       }
     }
   }
@@ -180,9 +180,9 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 
   # Split network from landscape divides
   is_lnd <- grepl("^lnd-", as.character(divides$divide_id)) |
-            is.na(divides$flowpath_id)
+    is.na(divides$flowpath_id)
   net_divs <- divides[!is_lnd, ]
-  lnd_divs <- divides[ is_lnd, ]
+  lnd_divs <- divides[is_lnd, ]
 
   # Every reconciled flowline has a network divide.
   # Flowpaths that are legitimately divideless (all reference members had
@@ -196,7 +196,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     checks$every_flowline_has_divide <- .hf_ok(
       length(missing) == 0L,
       sprintf("%d reconciled flowline(s) have no matching network divide (e.g. %s)",
-              length(missing), paste(utils::head(missing, 5), collapse = ", ")))
+        length(missing), paste(utils::head(missing, 5), collapse = ", ")))
   }
 
   # All network divides have area > 0
@@ -214,7 +214,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   checks$no_excessive_rings <- .hf_ok(
     max_rings <= 50L,
     sprintf("max interior rings in a single divide: %d (threshold: 50)",
-            max_rings))
+      max_rings))
 
   # Landscape carry-through non-empty (informational, not strict)
   checks$landscape_preserved <- .hf_info(
@@ -233,7 +233,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     checks$aggregated_flowpath_unique <- .hf_ok(
       sum(duplicated(ids)) == 0L,
       sprintf("aggregated flowpath_id has %d duplicate(s)",
-              sum(duplicated(ids))))
+        sum(duplicated(ids))))
   }
 
   if (!is.null(divides)) {
@@ -241,7 +241,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     checks$aggregated_divide_unique <- .hf_ok(
       sum(duplicated(dids)) == 0L,
       sprintf("aggregated divide_id has %d duplicate(s)",
-              sum(duplicated(dids))))
+        sum(duplicated(dids))))
   }
 
   if (coverage && !is.null(flowpaths) && !is.null(divides)) {
@@ -269,8 +269,8 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     dids <- as.character(divides$divide_id)
     # 'lnd-' is accepted for landscape (non-flowline) carry-through
     n_bad <- sum(!is.na(dids) &
-                  !startsWith(dids, "cat-") &
-                  !startsWith(dids, "lnd-"))
+      !startsWith(dids, "cat-") &
+      !startsWith(dids, "lnd-"))
     checks$ngen_cat_prefix <- .hf_ok(n_bad == 0L,
       sprintf("%d ngen divide_id(s) are not 'cat-' or 'lnd-' prefixed", n_bad))
   }
@@ -280,7 +280,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   # must not introduce cycles.
   if (!is.null(flowpaths) && !is.null(nexus)) {
     nex_lu <- setNames(as.character(nexus$nexus_toid),
-                        as.character(nexus$nexus_id))
+      as.character(nexus$nexus_id))
     next_fp <- nex_lu[as.character(flowpaths$flowpath_toid)]
     edge_df <- data.frame(
       flowpath_id   = as.character(flowpaths$flowpath_id),
@@ -293,8 +293,8 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     if (isTRUE(is_dag)) {
       checks$network_is_dag <- .hf_ok(TRUE,
         sprintf("fp->nexus->fp graph is a DAG (%d flowpaths, %d connectors)",
-                nrow(flowpaths),
-                sum(!flowpaths$has_divide, na.rm = TRUE)))
+          nrow(flowpaths),
+          sum(!flowpaths$has_divide, na.rm = TRUE)))
     } else {
       checks$network_is_dag <- .hf_ok(FALSE,
         "fp->nexus->fp graph contains cycle(s)")
@@ -312,13 +312,13 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 # ---- helpers -----------------------------------------------------------------
 
 .hf_network_is_dag <- function(flowpaths, id_col = "flowpath_id",
-                                toid_col = "flowpath_toid") {
+                               toid_col = "flowpath_toid") {
   ids   <- as.character(flowpaths[[id_col]])
   toids <- as.character(flowpaths[[toid_col]])
   keep  <- !is.na(toids) & toids != "0" & toids %in% ids
   if (!any(keep)) return(TRUE)
   edge_df <- data.frame(from = ids[keep], to = toids[keep],
-                        stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE)
   g <- igraph::graph_from_data_frame(edge_df, directed = TRUE)
   igraph::is_dag(g)
 }
@@ -330,7 +330,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 .hf_ring_counts <- function(geoms) {
   vapply(geoms, function(g) {
     if (length(g) == 0L || sf::st_is_empty(g)) return(0L)
-    if (inherits(g, "POLYGON"))      return(max(0L, length(g) - 1L))
+    if (inherits(g, "POLYGON")) return(max(0L, length(g) - 1L))
     if (inherits(g, "MULTIPOLYGON")) return(sum(vapply(g, function(p)
       max(0L, length(p) - 1L), integer(1L))))
     0L
@@ -361,17 +361,17 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       error = function(e) NULL)
     if (is.null(inter) || length(inter) == 0L) next
     inside[i] <- as.numeric(sf::st_length(sf::st_sfc(inter,
-                                                     crs = sf::st_crs(fp_t))))
+      crs = sf::st_crs(fp_t))))
   }
   frac <- ifelse(total_len > 0, inside / total_len, NA_real_)
   bad  <- which(matched & !is.na(frac) & frac < coverage_min)
   ok   <- length(bad) == 0L
   msg  <- if (ok) sprintf("all %d flowpaths have >= %.0f%% coverage by their catchment",
-                          sum(matched), 100 * coverage_min)
-          else sprintf("%d flowpath(s) below %.0f%% coverage (worst: %s at %.0f%%)",
-                       length(bad), 100 * coverage_min,
-                       as.character(fp_sub$flowpath_id[bad[which.min(frac[bad])]]),
-                       100 * min(frac[bad], na.rm = TRUE))
+    sum(matched), 100 * coverage_min)
+  else sprintf("%d flowpath(s) below %.0f%% coverage (worst: %s at %.0f%%)",
+    length(bad), 100 * coverage_min,
+    as.character(fp_sub$flowpath_id[bad[which.min(frac[bad])]]),
+    100 * min(frac[bad], na.rm = TRUE))
   .hf_ok(ok, msg)
 }
 
@@ -380,8 +380,8 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   for (nm in names(checks)) {
     res <- checks[[nm]]
     icon <- if (identical(res$kind, "info")) "i"
-            else if (isTRUE(res$ok))         "\u2713"
-            else                              "\u2717"
+    else if (isTRUE(res$ok)) "\u2713"
+    else                              "\u2717"
     tag <- sprintf("[invariants:%s]", stage)
     line <- sprintf("%s %s %-32s %s", tag, icon, nm, res$msg)
     if (isTRUE(res$ok) || identical(res$kind, "info")) message(line)
@@ -423,7 +423,9 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 hf_check_merge_invariants <- function(merged, expected = NULL,
                                       area_tol = 0.005, stage = "merge",
                                       strict = FALSE) {
-  fp <- merged$flowpaths; dv <- merged$divides; nx <- merged$nexus
+  fp <- merged$flowpaths
+  dv <- merged$divides
+  nx <- merged$nexus
   if (is.null(fp) || is.null(dv)) stop("merged must contain flowpaths and divides")
   checks <- list()
   vcol <- function(x) if (!is.null(x) && "vpuid" %in% names(x)) as.character(x$vpuid) else character(0)
@@ -438,7 +440,8 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
   } else checks$all_vpus_present <- .hf_info("no expected VPU list supplied")
 
   # every feature tagged with its source VPU
-  vfp <- vcol(fp); n_untag <- if (length(vfp)) sum(is.na(vfp) | !nzchar(vfp)) else nrow(fp)
+  vfp <- vcol(fp)
+  n_untag <- if (length(vfp)) sum(is.na(vfp) | !nzchar(vfp)) else nrow(fp)
   checks$vpuid_tagged <- .hf_ok(n_untag == 0L,
     if (!n_untag) "every flowpath carries a vpuid" else sprintf("%d flowpath(s) missing vpuid", n_untag))
 
@@ -458,25 +461,27 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
     drift <- if (expected$area_sqkm > 0) abs(got - expected$area_sqkm) / expected$area_sqkm else NA_real_
     checks$divide_area_conserved <- .hf_ok(!is.na(drift) && drift <= area_tol,
       sprintf("merged divide area %.1f km2 vs input %.1f km2 (%.3f%% drift, tol %.3f%%)",
-              got, expected$area_sqkm, 100 * drift, 100 * area_tol))
+        got, expected$area_sqkm, 100 * drift, 100 * area_tol))
   } else checks$divide_area_conserved <- .hf_info("no input area or areasqkm column")
 
   # drainage area populated + accumulating.
   if ("total_dasqkm" %in% names(fp)) {
     da   <- suppressWarnings(as.numeric(fp$total_dasqkm))
     area <- if ("areasqkm" %in% names(fp)) suppressWarnings(as.numeric(fp$areasqkm))
-            else rep(NA_real_, length(da))
+    else rep(NA_real_, length(da))
     # Correct DA invariant: total_dasqkm must (a) never be NA, (b) be >= its own
     # local area (accumulation never loses own area), and (c) be > 0 wherever the
     # flowpath has a real catchment (areasqkm > 0). A catchment-less connector
     # (areasqkm == 0) fed only by other catchment-less reaches legitimately has
     # total_dasqkm == 0 -- NOT a failure (previously these were wrongly flagged).
     n_bad <- sum(is.na(da) |
-                 (!is.na(area) & da < area - 1e-6) |
-                 (!is.na(area) & area > 0 & da <= 0))
+      (!is.na(area) & da < area - 1e-6) |
+      (!is.na(area) & area > 0 & da <= 0))
     checks$drainage_area_populated <- .hf_ok(n_bad == 0L,
       if (!n_bad) sprintf("all %d flowpaths have valid total_dasqkm (max %.1f km2)", length(da), max(da, na.rm = TRUE))
-      else sprintf("%d/%d flowpath(s) have invalid total_dasqkm (NA, < own area, or 0 with a catchment)", n_bad, length(da)))
+      else sprintf(
+        paste0("%d/%d flowpath(s) have invalid total_dasqkm ",
+               "(NA, < own area, or 0 with a catchment)"), n_bad, length(da)))
     # Accumulation sanity (informational): a real network has many reaches whose
     # DA exceeds their own local area. ~0% indicates a topology-resolution bug
     # (e.g. passing nexus ids to accumulate_downstream -> DA == own area for all).
@@ -484,8 +489,8 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
     frac_accum <- if (sum(pos)) mean(da[pos] > area[pos] + 1e-6) else 1
     checks$drainage_area_accumulates <- .hf_info(
       sprintf("%.1f%% of area>0 flowpaths have DA > own area%s",
-              100 * frac_accum,
-              if (frac_accum < 0.10) " -- WARNING: looks unaccumulated (topology resolved?)" else ""))
+        100 * frac_accum,
+        if (frac_accum < 0.10) " -- WARNING: looks unaccumulated (topology resolved?)" else ""))
   } else checks$drainage_area_populated <- .hf_ok(FALSE, "total_dasqkm column absent from flowpaths")
 
   # single CRS across all merged layers

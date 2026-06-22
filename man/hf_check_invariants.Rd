@@ -69,6 +69,6 @@ Expected arguments per stage:
 flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
 divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
 hf_check_invariants("ngen", flowpaths = flowpaths, divides = divides,
-                    strict = FALSE)
+  strict = FALSE)
 }
 }

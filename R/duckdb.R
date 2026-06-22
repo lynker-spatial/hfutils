@@ -41,7 +41,7 @@ duckdb_connection <- function(..., extensions = character(0), add_auth = TRUE) {
     else as.character(v)
   }
   paste0(", ", paste(names(opts), vapply(opts, fmt, character(1)),
-                     sep = "=", collapse = ", "))
+    sep = "=", collapse = ", "))
 }
 
 #' Read DuckDB File(s) over HTTP
@@ -61,18 +61,18 @@ duckdb_connection <- function(..., extensions = character(0), add_auth = TRUE) {
 #' }
 #' @export
 tbl_http <- function(
-  urls,
-  ...,
-  conn = duckdb_connection(extensions = "httpfs"),
-  read_func = c("read_parquet", "read_csv")
-) {
+    urls,
+    ...,
+    conn = duckdb_connection(extensions = "httpfs"),
+    read_func = c("read_parquet", "read_csv")
+    ) {
 
   read_func <- match.arg(read_func)
 
   opt_sql <- .duckdb_reader_opts(list(...))
   query <- paste0("SELECT * FROM ", read_func, "([",
     paste0("'", urls, "'", collapse = ","),
-  "]", opt_sql, ")")
+    "]", opt_sql, ")")
 
   dplyr::tbl(conn, dbplyr::sql(query))
 }

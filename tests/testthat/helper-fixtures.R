@@ -43,7 +43,7 @@ recon_fixture <- function(reverse_first = FALSE) {
     divide_id   = c("1", "2", "3", "lnd-1"),
     flowpath_id = c("1", "2", "3", NA),
     geometry = sf::st_sfc(.sq(500, 0), .sq(1500, 0), .sq(2500, 0), .sq(5000, 0),
-                          crs = 5070))
+      crs = 5070))
   list(reconciled = reconciled, divides = divides)
 }
 
@@ -54,7 +54,7 @@ agg_fixture <- function() {
     flowpath_id = c("1", "2", "3"),
     divide_id   = c("1", "2", "3"),
     geometry = sf::st_sfc(.ls(0, 0, 1000, 0), .ls(1000, 0, 2000, 0),
-                          .ls(2000, 0, 3000, 0), crs = 5070))
+      .ls(2000, 0, 3000, 0), crs = 5070))
   divides <- sf::st_sf(
     divide_id = c("1", "2", "3"),
     geometry = sf::st_sfc(.sq(500, 0), .sq(1500, 0), .sq(2500, 0), crs = 5070))
@@ -69,7 +69,7 @@ ngen_fixture <- function() {
     divide_id     = c("cat-1", "cat-2", "cat-3"),
     has_divide    = c(TRUE, TRUE, TRUE),
     geometry = sf::st_sfc(.ls(0, 0, 1000, 0), .ls(1000, 0, 2000, 0),
-                          .ls(2000, 0, 3000, 0), crs = 5070))
+      .ls(2000, 0, 3000, 0), crs = 5070))
   divides <- sf::st_sf(
     divide_id = c("cat-1", "cat-2", "cat-3"),
     geometry = sf::st_sfc(.sq(500, 0), .sq(1500, 0), .sq(2500, 0), crs = 5070))

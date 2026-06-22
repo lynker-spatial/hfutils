@@ -3,7 +3,7 @@
 make_layers <- function() {
   nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)[1:3, ]
   list(divides   = nc,
-       flowpaths = sf::st_cast(nc, "MULTILINESTRING"))
+    flowpaths = sf::st_cast(nc, "MULTILINESTRING"))
 }
 
 test_that("write_hydrofabric round-trips through read_hydrofabric", {
@@ -58,7 +58,7 @@ test_that("write_hydrofabric rejects an unnamed list and a non-data.frame table"
     "named")
   expect_error(
     write_hydrofabric(list(divides = nc_divides(2L), bad = 1:5),
-                      tempfile(fileext = ".gpkg"), verbose = FALSE),
+      tempfile(fileext = ".gpkg"), verbose = FALSE),
     "data.frame")
 })
 
@@ -66,7 +66,7 @@ test_that("enforce_dm = TRUE without an hf_dm in scope errors clearly", {
   skip_if_not_installed("sf")
   expect_error(
     write_hydrofabric(list(divides = nc_divides(2L)), tempfile(fileext = ".gpkg"),
-                      verbose = FALSE, enforce_dm = TRUE),
+      verbose = FALSE, enforce_dm = TRUE),
     "hf_dm")
 })
 

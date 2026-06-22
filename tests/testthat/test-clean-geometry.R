@@ -32,8 +32,8 @@ test_that("flowlines drive prime-part selection without error", {
   # a flowline matching ID 1, lying on its largest (prime) part
   nc <- nc_divides(1L)
   fl  <- sf::st_sf(fl_ID = 1L,
-                  geometry = suppressWarnings(sf::st_cast(sf::st_geometry(nc[1, ]),
-                                                          "MULTILINESTRING")))
+    geometry = suppressWarnings(sf::st_cast(sf::st_geometry(nc[1, ]),
+      "MULTILINESTRING")))
   out <- suppressWarnings(
     clean_geometry(cats, flowlines = fl, fl_ID = "fl_ID", ID = "ID")
   )
@@ -79,7 +79,7 @@ test_that("clean_geometry keeps the largest part of a disjoint id and never infl
 test_that("a missing ID column is rejected", {
   skip_if_not_installed("sf")
   expect_error(clean_geometry(nc_divides(2L), ID = "not_a_column"),
-               "not found")
+    "not found")
 })
 
 test_that("invalid `keep` is rejected", {

@@ -55,9 +55,9 @@ semver_to_int <- function(version) {
 #' @examples
 #' \dontrun{
 #' gpkg_set_version("hydrofabric.gpkg", version = "2.2.0",
-#'                  license = "ODbL-1.0",
-#'                  provenance = list(software = "hydrofabric 0.1",
-#'                                    build_date = Sys.Date()))
+#'   license = "ODbL-1.0",
+#'   provenance = list(software = "hydrofabric 0.1",
+#'     build_date = Sys.Date()))
 #' }
 #' @export
 gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version),
@@ -111,10 +111,10 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
   DBI::dbExecute(con, sprintf(
     "DELETE FROM gpkg_metadata_reference WHERE md_file_id IN
        (SELECT id FROM gpkg_metadata WHERE md_standard_uri IN (%s))", ph),
-    params = as.list(uris))
+  params = as.list(uris))
   DBI::dbExecute(con, sprintf(
     "DELETE FROM gpkg_metadata WHERE md_standard_uri IN (%s)", ph),
-    params = as.list(uris))
+  params = as.list(uris))
 
   add <- function(uri, mime, value) {
     DBI::dbExecute(con, "INSERT INTO gpkg_metadata
@@ -129,7 +129,7 @@ gpkg_set_version <- function(gpkg, version, int_version = semver_to_int(version)
   add("https://semver.org", "text/plain", version)        # human (semver)
   if (!is.null(provenance)) {
     add(prov_uri, "application/json",
-        jsonlite::toJSON(provenance, auto_unbox = TRUE, null = "null"))
+      jsonlite::toJSON(provenance, auto_unbox = TRUE, null = "null"))
   }
   if (!is.null(license)) add(spdx_uri, "text/plain", license)   # SPDX identifier
 

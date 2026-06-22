@@ -22,7 +22,8 @@ unioning large polygon datasets by a grouping column, by leveraging
 }
 \section{Notes}{
 
-If any resulting geometries are geometry collections, they are extracted to POLYGON using `sf::st_collection_extract()`.
+If any resulting geometries are geometry collections, they are extracted to
+POLYGON using `sf::st_collection_extract()`.
 }
 
 \examples{

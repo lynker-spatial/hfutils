@@ -11,7 +11,7 @@ test_that("lynker_spatial_refresh rejects a malformed token", {
 test_that("lynker_spatial_auth validates the libs argument", {
   expect_error(
     lynker_spatial_auth(token = structure(list(), class = "httr2_token"),
-                        libs = "nope"),
+      libs = "nope"),
     "should be one of|arg"
   )
 })

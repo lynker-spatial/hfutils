@@ -22,7 +22,7 @@ test_that("refactored stage catches duplicate ids", {
     stringsAsFactors = FALSE
   )
   expect_error(suppressMessages(hf_check_invariants("refactored", refactored = dup)),
-               "duplicate")
+    "duplicate")
 })
 
 test_that("refactored stage catches a dangling downstream pointer", {
@@ -32,7 +32,7 @@ test_that("refactored stage catches a dangling downstream pointer", {
     stringsAsFactors = FALSE
   )
   expect_error(suppressMessages(hf_check_invariants("refactored", refactored = broken)),
-               "nonexistent")
+    "nonexistent")
 })
 
 test_that("strict = FALSE downgrades failures to messages and reports ok = FALSE", {
@@ -50,14 +50,14 @@ test_that("strict = FALSE downgrades failures to messages and reports ok = FALSE
 
 test_that("ngen stage enforces fp-/cat- id prefixes", {
   good_fp <- data.frame(flowpath_id = c("fp-1", "fp-2"),
-                        flowpath_toid = c("fp-2", "0"), stringsAsFactors = FALSE)
+    flowpath_toid = c("fp-2", "0"), stringsAsFactors = FALSE)
   res <- suppressMessages(hf_check_invariants("ngen", flowpaths = good_fp))
   expect_true(res$checks$ngen_fp_prefix$ok)
 
   bad_fp <- data.frame(flowpath_id = c("fp-1", "2"),
-                       flowpath_toid = c("0", "0"), stringsAsFactors = FALSE)
+    flowpath_toid = c("0", "0"), stringsAsFactors = FALSE)
   expect_error(suppressMessages(hf_check_invariants("ngen", flowpaths = bad_fp)),
-               "do not start with 'fp-'")
+    "do not start with 'fp-'")
 })
 
 test_that("aggregated stage catches duplicate flowpath_id", {
@@ -82,7 +82,7 @@ test_that("refactored stage validates reconciled members against refactored ids"
 
   res <- suppressMessages(
     hf_check_invariants("refactored", refactored = refactored,
-                        reconciled = reconciled))
+      reconciled = reconciled))
   expect_true(res$ok)
   expect_true(res$checks$reconciled_has_members$ok)
   expect_true(res$checks$reconciled_members_exist$ok)
@@ -90,12 +90,12 @@ test_that("refactored stage validates reconciled members against refactored ids"
 
 test_that("refactored stage flags a reconciled member that does not exist", {
   refactored <- data.frame(flowpath_id = "1", flowpath_toid = "0",
-                           stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE)
   reconciled <- data.frame(ID = "10", member_flowpath_id = "1,999",
-                           stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE)
   expect_error(
     suppressMessages(hf_check_invariants("refactored", refactored = refactored,
-                                         reconciled = reconciled)),
+      reconciled = reconciled)),
     "not in refactored")
 })
 
@@ -105,7 +105,7 @@ test_that("aggregated coverage is informational when there are no fp-divide pair
   fx$flowpaths$divide_id <- NA_character_      # no pairs to check
   res <- suppressMessages(
     hf_check_invariants("aggregated", flowpaths = fx$flowpaths,
-                        divides = fx$divides, coverage = TRUE))
+      divides = fx$divides, coverage = TRUE))
   expect_true(res$ok)
   expect_identical(res$checks$flowpath_coverage$kind, "info")
 })
@@ -115,7 +115,7 @@ test_that("reconciled stage passes a clean, well-oriented network", {
   fx <- recon_fixture()
   res <- suppressMessages(
     hf_check_invariants("reconciled", reconciled = fx$reconciled,
-                        divides = fx$divides))
+      divides = fx$divides))
   expect_true(res$ok)
   expect_true(res$checks$reconciled_flow_direction$ok)
   expect_true(res$checks$every_flowline_has_divide$ok)
@@ -130,7 +130,7 @@ test_that("reconciled stage flags a reversed flowline", {
   fx <- recon_fixture(reverse_first = TRUE)
   expect_error(
     suppressMessages(hf_check_invariants("reconciled", reconciled = fx$reconciled,
-                                         divides = fx$divides)),
+      divides = fx$divides)),
     "reversed"
   )
 })
@@ -140,7 +140,7 @@ test_that("aggregated coverage check passes when flowpaths lie in their divides"
   fx <- agg_fixture()
   res <- suppressMessages(
     hf_check_invariants("aggregated", flowpaths = fx$flowpaths,
-                        divides = fx$divides, coverage = TRUE))
+      divides = fx$divides, coverage = TRUE))
   expect_true(res$ok)
   expect_true(res$checks$flowpath_coverage$ok)
 })
@@ -150,7 +150,7 @@ test_that("ngen stage validates prefixes, the fp->nexus->fp DAG, and coverage", 
   fx <- ngen_fixture()
   res <- suppressMessages(
     hf_check_invariants("ngen", flowpaths = fx$flowpaths, divides = fx$divides,
-                        nexus = fx$nexus, coverage = TRUE))
+      nexus = fx$nexus, coverage = TRUE))
   expect_true(res$ok)
   expect_true(res$checks$ngen_fp_prefix$ok)
   expect_true(res$checks$ngen_cat_prefix$ok)
@@ -165,7 +165,7 @@ test_that("ngen stage detects a cycle in the fp->nexus->fp graph", {
   fx$nexus$nexus_toid[fx$nexus$nexus_id == "nex-3"] <- "fp-1"
   expect_error(
     suppressMessages(hf_check_invariants("ngen", flowpaths = fx$flowpaths,
-                                         nexus = fx$nexus)),
+      nexus = fx$nexus)),
     "cycle"
   )
 })

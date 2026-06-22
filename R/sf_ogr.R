@@ -11,7 +11,9 @@ NULL
 #' }
 #' @export
 
-OGRSQL <- function(){ new("OGRSQLDriver") }
+OGRSQL <- function() {
+  new("OGRSQLDriver")
+}
 
 #' dbConnect
 #'
@@ -25,10 +27,10 @@ OGRSQL <- function(){ new("OGRSQLDriver") }
 #' @export
 
 setMethod("dbConnect", "OGRSQLDriver",
-          function(drv, DSN = "", readonly = TRUE, ...) {
-            if (nchar(DSN) < 1) stop("DSN must be a valid data source name (file, connection string, url, ...)")
-            new("OGRSQLConnection", DSN = DSN,  readonly = readonly, ...)
-          })
+  function(drv, DSN = "", readonly = TRUE, ...) {
+    if (nchar(DSN) < 1) stop("DSN must be a valid data source name (file, connection string, url, ...)")
+    new("OGRSQLConnection", DSN = DSN,  readonly = readonly, ...)
+  })
 
 #' @rdname OGRSQLConnection-class
 #' @export
@@ -63,7 +65,7 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
 #' }
 #' @export
 
-as_ogr <- function(x, layer,..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
+as_ogr <- function(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
   UseMethod("as_ogr")
 }
 
@@ -84,26 +86,26 @@ as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = "gp
   }
 
   if (missing(layer)) {
-    tbls = dbListTables(x)
-    tbls = tbls[!grepl(ignore_lyrs, tbls)]
+    tbls <- dbListTables(x)
+    tbls <- tbls[!grepl(ignore_lyrs, tbls)]
 
-    if(length(tbls) == 1){
-      layer = tbls
+    if (length(tbls) == 1) {
+      layer <- tbls
     } else {
-      layer = NULL
+      layer <- NULL
       print(tbls)
     }
   }
 
-  if(!is.null(layer)){
-    if(layer %in% dbListTables(x)){
-      x = tbl(x, layer)
+  if (!is.null(layer)) {
+    if (layer %in% dbListTables(x)) {
+      x <- tbl(x, layer)
     } else {
       cli::cli_abort("{.val {layer}} not in gpkg.")
     }
   }
 
-    x
+  x
 
 }
 
@@ -130,7 +132,7 @@ st_as_sf.tbl_OGRSQLConnection <- function(x, ...) {
 
   d <- collect(x, ...)
 
-  if(any(c("geom", "geometry") %in% colnames(d))){
+  if (any(c("geom", "geometry") %in% colnames(d))) {
     st_as_sf(d)
   } else {
     d

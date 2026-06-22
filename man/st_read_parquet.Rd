@@ -34,7 +34,7 @@ Reference for the metadata used:
 \dontrun{
 divides <- st_read_parquet("divides.parquet")
 divides <- st_read_parquet("divides.parquet",
-                           col_select = c("divide_id", "geometry"))
+  col_select = c("divide_id", "geometry"))
 }
 }
 \seealso{

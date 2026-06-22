@@ -60,15 +60,15 @@ create_metadata <-
 #' @keywords internal
 
 validate_metadata <- function(metadata) {
-  if (is.null(metadata) | !is.list(metadata)) {
+  if (is.null(metadata) || !is.list(metadata)) {
     stop("Error: empty or malformed geo metadata", call. = FALSE)
-  } else{
+  } else {
     # check for presence of required geo keys
     req_names <- c("primary_column", "columns")
     for (n in req_names) {
       if (!n %in% names(metadata)) {
         stop(paste0("Required name: '", n, "' not found in geo metadata"),
-             call. = FALSE)
+          call. = FALSE)
       }
     }
     # check for presence of required geometry columns info
@@ -79,11 +79,11 @@ validate_metadata <- function(metadata) {
       for (ng in req_geo_names) {
         if (!ng %in% names(geo_col)) {
           stop(paste0("Required 'geo' metadata item '", ng, "' not found in ", c),
-               call. = FALSE)
+            call. = FALSE)
         }
         if (geo_col[["encoding"]] != "WKB") {
           stop("Only well-known binary (WKB) encoding is currently supported.",
-               call. = FALSE)
+            call. = FALSE)
         }
       }
     }
@@ -99,7 +99,7 @@ validate_metadata <- function(metadata) {
 #' @keywords internal
 
 encode_wkb <- function(df) {
-  geom_cols <- lapply(df, \(i)inherits(i, "sfc"))
+  geom_cols <- lapply(df, \(i) inherits(i, "sfc"))
   geom_cols <- names(which(geom_cols == TRUE))
 
   df <- as.data.frame(df)
@@ -141,7 +141,7 @@ arrow_to_sf <- function(tbl, metadata) {
 
   for (col in geom_cols) {
     tbl[[col]] <- sf::st_as_sfc(tbl[[col]],
-                                crs = sf::st_crs(metadata$columns[[col]]$crs))
+      crs = sf::st_crs(metadata$columns[[col]]$crs))
   }
 
   tbl <- sf::st_sf(tbl, sf_column_name = primary_geom)
@@ -167,33 +167,35 @@ arrow_to_sf <- function(tbl, metadata) {
 #' \dontrun{
 #' divides <- st_read_parquet("divides.parquet")
 #' divides <- st_read_parquet("divides.parquet",
-#'                            col_select = c("divide_id", "geometry"))
+#'   col_select = c("divide_id", "geometry"))
 #' }
 #' @export
 
 st_read_parquet <- function(dsn, col_select = NULL,
-                            props = NULL, ...){
-  if(missing(dsn)){
+                            props = NULL, ...) {
+  if (missing(dsn)) {
     stop("Please provide a data source")
   }
 
-  if(!is.null(props)){ warning("'props' is deprecated in `arrow`. See arrow::ParquetFileWriter.") }
+  if (!is.null(props)) {
+    warning("'props' is deprecated in `arrow`. See arrow::ParquetFileWriter.")
+  }
 
   pq <- arrow::ParquetFileReader$create(dsn, ...)
   schema <- pq$GetSchema()
   metadata <- schema$metadata
 
-  if(!"geo" %in% names(metadata)){
+  if (!"geo" %in% names(metadata)) {
     stop("No geometry metadata found. Use arrow::read_parquet")
-  } else{
+  } else {
     geo <- jsonlite::fromJSON(metadata$geo)
     validate_metadata(geo)
   }
 
-  if(!is.null(col_select)){
+  if (!is.null(col_select)) {
     indices <- which(names(schema) %in% col_select) - 1L # 0-indexing
     tbl <- pq$ReadTable(indices)
-  } else{
+  } else {
     tbl <- pq$ReadTable()
   }
 
@@ -227,14 +229,18 @@ st_write_parquet <- function(obj, dsn,
                              license = "ODbL",
                              source = "spatial.water.noaa.gov",
                              ...) {
-  if (!inherits(obj, "sf")) { stop("Must be sf data format") }
+  if (!inherits(obj, "sf")) {
+    stop("Must be sf data format")
+  }
 
-  if (missing(dsn)) { stop("Missing output file") }
+  if (missing(dsn)) {
+    stop("Missing output file")
+  }
 
   geo_metadata <- create_metadata(obj,
-                                  hf_version = hf_version,
-                                  license = license,
-                                  source = source)
+    hf_version = hf_version,
+    license = license,
+    source = source)
 
   df  <- encode_wkb(obj)
   tbl <- arrow::Table$create(df)
@@ -280,13 +286,13 @@ read_sf_dataset <- function(dataset, find_geom = FALSE) {
 
   if (inherits(dataset, "arrow_dplyr_query")) {
     metadata <- dataset$.data$metadata
-  } else{
+  } else {
     metadata <- dataset$metadata
   }
 
   if (!"geo" %in% names(metadata)) {
     stop("No geometry metadata found. Use arrow::read_parquet")
-  } else{
+  } else {
     geo <- jsonlite::fromJSON(metadata$geo)
     validate_metadata(geo)
   }
@@ -347,15 +353,15 @@ write_sf_dataset <- function(obj,
   }
 
   geo_metadata <- create_metadata(obj,
-                                  hf_version = hf_version,
-                                  license = license,
-                                  source = source)
+    hf_version = hf_version,
+    license = license,
+    source = source)
 
   if (inherits(obj, "grouped_df")) {
     partitioning <- force(partitioning)
     dataset <- dplyr::group_modify(obj, ~ encode_wkb(.x))
     dataset <- dplyr::ungroup(dataset)
-  } else{
+  } else {
     dataset <- encode_wkb(obj)
   }
 

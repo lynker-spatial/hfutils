@@ -25,6 +25,6 @@ that max is shared by two or more of them (Strahler).
 }
 \examples{
 # two headwaters (1,2) join at 3 -> outlet: 3 is order 2
-get_streamorder(data.frame(flowpath_id = c("1","2","3"),
-                           flowpath_toid = c("3","3","0")))
+get_streamorder(data.frame(flowpath_id = c("1", "2", "3"),
+  flowpath_toid = c("3", "3", "0")))
 }

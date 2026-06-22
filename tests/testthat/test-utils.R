@@ -37,7 +37,7 @@ test_that("union_polygons keeps the largest part for a disjoint group", {
   skip_if_not_installed("sf")
   nc <- nc_divides(50L)
   g <- rbind(sf::st_sf(grp = "a", geometry = sf::st_geometry(nc[1, ])),
-             sf::st_sf(grp = "a", geometry = sf::st_geometry(nc[50, ])))
+    sf::st_sf(grp = "a", geometry = sf::st_geometry(nc[50, ])))
   expect_warning(out <- union_polygons(g, "grp"), "disjoint MULTIPOLYGON")
   expect_equal(nrow(out), 1L)
   expect_true(all(sf::st_geometry_type(out) == "POLYGON"))

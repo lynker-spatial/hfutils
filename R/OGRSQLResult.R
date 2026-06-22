@@ -18,21 +18,25 @@ setClass("OGRSQLResult", contains = "DBIResult", slots = c(layer_data = "ANY"))
 #' @export
 
 setMethod("show", "OGRSQLResult", function(object) {
-            cat(sprintf("Field names: %s\n",
-                        paste(names(object@layer_data), collapse = ", ")))
-            invisible(NULL)
+  cat(sprintf("Field names: %s\n",
+    paste(names(object@layer_data), collapse = ", ")))
+  invisible(NULL)
 })
 
 #' @rdname OGRSQLResult-class
 #' @export
-setMethod("dbFetch", "OGRSQLResult", function(res, n = -1, ...) { res@layer_data })
+setMethod("dbFetch", "OGRSQLResult", function(res, n = -1, ...) {
+  res@layer_data
+})
 
 #' @rdname OGRSQLResult-class
 #' @export
-setMethod("dbClearResult", "OGRSQLResult", function(res, ...) { TRUE })
+setMethod("dbClearResult", "OGRSQLResult", function(res, ...) {
+  TRUE
+})
 
 #' @rdname OGRSQLResult-class
 #' @export
-setMethod("dbHasCompleted", "OGRSQLResult", function(res, ...) { TRUE })
-
-
+setMethod("dbHasCompleted", "OGRSQLResult", function(res, ...) {
+  TRUE
+})

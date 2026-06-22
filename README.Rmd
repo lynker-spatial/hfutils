@@ -49,28 +49,28 @@ library(dplyr)
 #### Basic connection: Dataset
 
 ```{r, eval = TRUE}
-gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
+gpkg <- "/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg"
 hfutils::as_ogr(gpkg)
 ```
 
 #### Basic connection: Layer
 
 ```{r, eval = TRUE}
-hfutils::as_ogr(gpkg, "divides") 
+hfutils::as_ogr(gpkg, "divides")
 ```
 
 #### Lazy Eval
 
 ```{r, eval = TRUE}
-hfutils::as_ogr(gpkg, "divides") |> 
-  select(divide_id, areasqkm) 
+hfutils::as_ogr(gpkg, "divides") |>
+  select(divide_id, areasqkm)
 ```
 
 #### sf extraction
 
 ```{r, eval = TRUE}
-hfutils::as_ogr(gpkg, "divides")  |> 
-  filter(vpuid == "01") |> 
+hfutils::as_ogr(gpkg, "divides")  |>
+  filter(vpuid == "01") |>
   st_as_sf()
 ```
 
@@ -79,19 +79,20 @@ hfutils::as_ogr(gpkg, "divides")  |>
 ```{r}
 ## Accumulate Downstream
 system.time({
-  da <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
-  filter(vpuid == "01") |> 
-  st_as_sf() |> 
-  accumulate_downstream(attr = "areasqkm")})
+  da <-  hfutils::as_ogr(gpkg, "flowpaths")  |>
+    filter(vpuid == "01") |>
+    st_as_sf() |>
+    accumulate_downstream(attr = "areasqkm")
+})
 
 head(da)
 
 ## Hydrosequence
 system.time({
-  hs <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
-  filter(vpuid == "01") |> 
-  st_as_sf() |> 
-  get_hydroseq()
+  hs <-  hfutils::as_ogr(gpkg, "flowpaths")  |>
+    filter(vpuid == "01") |>
+    st_as_sf() |>
+    get_hydroseq()
 })
 
 head(hs)

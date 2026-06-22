@@ -128,7 +128,7 @@ clean_gpkg_layer <- function(
     gap_fill_area = NULL,
     overlap_rule = NULL,
     verbose = FALSE
-) {
+    ) {
   stopifnot(file.exists(gpkg))
 
   tmp_dir <- tempdir()
@@ -137,7 +137,7 @@ clean_gpkg_layer <- function(
   # clobber each other's intermediates. The PID separates workers; the tempfile
   # suffix separates repeated calls within a worker.
   uniq      <- sprintf("%s_p%d_%s", layer, Sys.getpid(),
-                       sub("^file", "", basename(tempfile(""))))
+    sub("^file", "", basename(tempfile(""))))
   tmp_src   <- file.path(tmp_dir, paste0(uniq, "_src.gpkg"))
   tmp_4326  <- file.path(tmp_dir, paste0(uniq, "_4326.geojson"))
   tmp_clean <- file.path(tmp_dir, paste0(uniq, "_4326_clean.geojson"))
@@ -149,16 +149,18 @@ clean_gpkg_layer <- function(
     }
   }
 
-  on.exit({
-    log_msg("\n[cleanup] removing temporary files")
-    # Also clean up any numbered files mapshaper may have written
-    # (e.g. layer_4326_clean1.geojson, layer_4326_clean2.geojson)
-    stem    <- sub("\\.geojson$", "", tmp_clean)
-    numbered <- list.files(dirname(tmp_clean),
-                           pattern = paste0("^", basename(stem), "[0-9]+\\.geojson$"),
-                           full.names = TRUE)
-    unlink(c(tmp_src, tmp_4326, tmp_clean, tmp_back, numbered), force = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      log_msg("\n[cleanup] removing temporary files")
+      # Also clean up any numbered files mapshaper may have written
+      # (e.g. layer_4326_clean1.geojson, layer_4326_clean2.geojson)
+      stem    <- sub("\\.geojson$", "", tmp_clean)
+      numbered <- list.files(dirname(tmp_clean),
+        pattern = paste0("^", basename(stem), "[0-9]+\\.geojson$"),
+        full.names = TRUE)
+      unlink(c(tmp_src, tmp_4326, tmp_clean, tmp_back, numbered), force = TRUE)
+    },
+    add = TRUE)
 
   run_cmd <- function(cmd, args, capture = FALSE, step = NULL) {
     if (!is.null(step)) {
@@ -296,18 +298,18 @@ clean_gpkg_layer <- function(
   if (!file.exists(tmp_clean)) {
     stem     <- sub("\\.geojson$", "", tmp_clean)
     numbered <- list.files(dirname(tmp_clean),
-                           pattern = paste0("^", basename(stem), "[0-9]+\\.geojson$"),
-                           full.names = TRUE)
+      pattern = paste0("^", basename(stem), "[0-9]+\\.geojson$"),
+      full.names = TRUE)
     if (length(numbered) > 0L) {
       log_msg("[info] mapshaper wrote ", length(numbered),
-              " numbered file(s) -- using first (polygon) file as output")
+        " numbered file(s) -- using first (polygon) file as output")
       if (!file.rename(numbered[[1L]], tmp_clean)) {
         file.copy(numbered[[1L]], tmp_clean, overwrite = TRUE)
       }
     } else {
       stop(sprintf("mapshaper did not write output to '%s' (no numbered files found either)",
-                   tmp_clean),
-           call. = FALSE)
+        tmp_clean),
+      call. = FALSE)
     }
   }
 

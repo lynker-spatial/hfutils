@@ -11,8 +11,8 @@ test_that("gpkg_set_version writes version + provenance that gpkg_get_version re
   skip_if_not_installed("sf")
   f <- make_gpkg()
   gpkg_set_version(f, "4.0.1",
-                   provenance = list(software = "hydrofabric 0.1", vpuid = "09"),
-                   license = "CC0-1.0")
+    provenance = list(software = "hydrofabric 0.1", vpuid = "09"),
+    license = "CC0-1.0")
 
   v <- gpkg_get_version(f)
   expect_equal(v$version, "4.0.1")

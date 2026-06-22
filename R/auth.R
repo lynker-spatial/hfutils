@@ -21,11 +21,11 @@
 #' }
 #' @export
 lynker_spatial_auth <- function(
-  token = NULL,
-  ...,
-  libs = c("gdal", "duckdb"),
-  duckdb_con = NULL
-) {
+    token = NULL,
+    ...,
+    libs = c("gdal", "duckdb"),
+    duckdb_con = NULL
+    ) {
   if (is.null(token)) {
     token <- lynker_spatial_token()
   }
@@ -64,10 +64,10 @@ lynker_spatial_auth <- function(
   # AWS credentials are present and there is no bearer to set. Protected
   # HTTPS-gateway reads should use the DuckDB (`tbl_http()`) or GDAL path above.
   if ("arrow" %in% libs &&
-      (!requireNamespace("arrow", quietly = TRUE) || !arrow::arrow_with_s3())) {
+    (!requireNamespace("arrow", quietly = TRUE) || !arrow::arrow_with_s3())) {
     warning("arrow is built without S3 support; authenticated lynker-spatial ",
-            "arrow reads are unavailable -- use the DuckDB/GDAL path for ",
-            "protected data.", call. = FALSE)
+      "arrow reads are unavailable -- use the DuckDB/GDAL path for ",
+      "protected data.", call. = FALSE)
   }
 
   token

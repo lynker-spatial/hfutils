@@ -60,24 +60,25 @@ hf_attr_bounds <- function() {
     v <- v[!is.na(v)]
     if (!length(v)) next
 
-    lo <- b$lower[i]; hi <- b$upper[i]
+    lo <- b$lower[i]
+    hi <- b$upper[i]
     bad <- logical(length(v))
     if (!is.na(lo)) bad <- bad | (if (isTRUE(b$lower_inclusive[i])) v < lo else v <= lo)
     if (!is.na(hi)) bad <- bad | (if (isTRUE(b$upper_inclusive[i])) v > hi else v >= hi)
 
     nm  <- if (is.null(prefix)) a else paste0(prefix, ".", a)
     rng <- sprintf("[%s, %s]",
-                   if (is.na(lo)) "-Inf" else lo,
-                   if (is.na(hi)) "Inf" else hi)
+      if (is.na(lo)) "-Inf" else lo,
+      if (is.na(hi)) "Inf" else hi)
     if (sum(bad) == 0L) {
       checks[[nm]] <- list(ok = TRUE, msg = sprintf("in range %s", rng),
-                           kind = "check", soft = TRUE)
+        kind = "check", soft = TRUE)
     } else {
       ex <- utils::head(sort(unique(v[bad])), max_report)
       checks[[nm]] <- list(
         ok = FALSE, kind = "check", soft = TRUE,
         msg = sprintf("%d/%d out of range %s (e.g. %s)",
-                      sum(bad), length(v), rng, paste(signif(ex, 4), collapse = ", ")))
+          sum(bad), length(v), rng, paste(signif(ex, 4), collapse = ", ")))
     }
   }
   checks
@@ -115,7 +116,7 @@ hf_check_attr_bounds <- function(layer, which = c("divides", "flowpaths"),
                                  trust_caveated = FALSE, max_report = 5L) {
   which  <- match.arg(which)
   checks <- .hf_attr_bounds_checks(layer, which, domain = domain,
-                                   trust_caveated = trust_caveated,
-                                   max_report = max_report)
+    trust_caveated = trust_caveated,
+    max_report = max_report)
   .hf_report_checks(checks, stage = paste0("attr_bounds:", which), strict = strict)
 }

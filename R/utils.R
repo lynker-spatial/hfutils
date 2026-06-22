@@ -190,7 +190,8 @@ add_lengthkm <- function(x) {
 #' @return An `sf` polygon layer unioned by `ID` (column preserved).
 #'
 #' @section Notes:
-#' If any resulting geometries are geometry collections, they are extracted to POLYGON using `sf::st_collection_extract()`.
+#' If any resulting geometries are geometry collections, they are extracted to
+#' POLYGON using `sf::st_collection_extract()`.
 #'
 #' @examples
 #' \dontrun{
@@ -225,7 +226,8 @@ union_polygons <- function(poly, ID) {
     dupes <- cast[[ID]][duplicated(cast[[ID]])]
     if (length(dupes) > 0L) {
       warning(sprintf(
-        "union_polygons: %d group(s) produced disjoint MULTIPOLYGON after union (e.g. %s) -- keeping largest polygon part per group",
+        paste0("union_polygons: %d group(s) produced disjoint MULTIPOLYGON ",
+               "after union (e.g. %s) -- keeping largest polygon part per group"),
         length(unique(dupes)), paste(head(unique(dupes), 3), collapse = ", ")))
       # Compute area before the pipe: the magrittr `.` pronoun is not bound
       # under the native `|>` pipe used here.
@@ -308,7 +310,8 @@ flowpaths_to_linestrings <- function(flowpaths) {
   still_multi <- sf::st_geometry_type(out) == "MULTILINESTRING"
   if (any(still_multi))
     warning(sprintf(
-      "flowpaths_to_linestrings: %d group(s) are still MULTILINESTRING after st_line_merge -- non-contiguous members (kept as-is)",
+      paste0("flowpaths_to_linestrings: %d group(s) are still MULTILINESTRING ",
+             "after st_line_merge -- non-contiguous members (kept as-is)"),
       sum(still_multi)))
 
   out

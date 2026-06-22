@@ -74,7 +74,8 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 
   # Topological order -> rank for each vertex name
   topo_names <- igraph::as_ids(igraph::topo_sort(g, mode = "out"))
-  rank <- integer(n); rank[match(topo_names, v_names)] <- seq_along(topo_names)
+  rank <- integer(n)
+  rank[match(topo_names, v_names)] <- seq_along(topo_names)
 
   # Integer edge arrays (no NAs)
   src <- idx[!is.na(jdx)]
@@ -82,7 +83,8 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 
   # Process edges in nondecreasing rank of the source vertex
   ord <- order(rank[src])
-  src <- src[ord]; dst <- dst[ord]
+  src <- src[ord]
+  dst <- dst[ord]
 
   # Single pass over edges; propagation ripples downstream automatically
   for (e in seq_along(src)) {
@@ -181,8 +183,8 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 #' @returns Integer vector of stream orders aligned to the rows of `x`.
 #' @examples
 #' # two headwaters (1,2) join at 3 -> outlet: 3 is order 2
-#' get_streamorder(data.frame(flowpath_id = c("1","2","3"),
-#'                            flowpath_toid = c("3","3","0")))
+#' get_streamorder(data.frame(flowpath_id = c("1", "2", "3"),
+#'   flowpath_toid = c("3", "3", "0")))
 #' @importFrom igraph graph_from_data_frame topo_sort as_ids
 #' @export
 get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
@@ -205,11 +207,13 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   so <- stats::setNames(integer(length(valid_id)), valid_id)
   for (nd in ord) {
     contribs <- up[[nd]]
-    if (is.null(contribs)) { so[nd] <- 1L; next }       # headwater
+    if (is.null(contribs)) {
+      so[nd] <- 1L
+      next
+    }       # headwater
     ords <- so[contribs]
     m    <- max(ords)
     so[nd] <- if (sum(ords == m) >= 2L) m + 1L else m
   }
   unname(so[as.character(x[[id]])])
 }
-

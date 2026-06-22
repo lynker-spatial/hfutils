@@ -8,8 +8,8 @@
 setClass(
   "OGRSQLConnection",
   contains = "DBIConnection",
-  slots = list(DSN = "character", 
-               readonly = "logical")
+  slots = list(DSN = "character",
+    readonly = "logical")
 )
 
 #' @rdname OGRSQLConnection-class
@@ -20,7 +20,7 @@ setMethod("show", "OGRSQLConnection", function(object) {
   tables <- DBI::dbListTables(object)
   dsn <- object@DSN
   if (grepl("pass", dsn, ignore.case = TRUE) ||
-      grepl("user", dsn, ignore.case = TRUE)) {
+    grepl("user", dsn, ignore.case = TRUE)) {
     dsn <- paste0(strsplit(dsn, "\\s")[[1L]][1L], "...")
   }
   cat("\tDSN: ", dsn, "\n", sep = "")
@@ -35,21 +35,20 @@ setMethod("dbSendQuery", "OGRSQLConnection", function(conn, statement, ...) {
   args <- list(...)
   args$dsn <- conn@DSN
   args$layer <- "<fake layer>"
-  args$query <- statement   
+  args$query <- statement
   args$quiet <- TRUE
   args$as_tibble <- TRUE
-  #browser()
   qu <- as.character(args$query)
-  
+
   if (grepl("AS.*q", qu) &&
-      grepl("WHERE \\(0 = 1)", qu)) {
+    grepl("WHERE \\(0 = 1)", qu)) {
     ## workaround for non-DB sources
     args$query <- dbplyr::sql(gsub("WHERE \\(0 = 1)", "LIMIT 0", qu))
   }
   op <- options(warn = -1)
   on.exit(options(op), add = TRUE)
   layer_data <- do.call(sf::st_read, args)
-  
+
   if (getOption("ogr.query.debug")) {
     message(
       sprintf(
@@ -72,7 +71,7 @@ setMethod("dbSendQuery", "OGRSQLConnection", function(conn, statement, ...) {
     }
   }
   new("OGRSQLResult", layer_data = layer_data)
-  
+
 })
 
 #' @rdname OGRSQLConnection-class

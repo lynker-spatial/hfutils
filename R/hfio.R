@@ -79,10 +79,10 @@ read_hydrofabric <- function(gpkg = NULL,
 
   .layer_names <- function(dsn) {
     tryCatch(sf::st_layers(dsn)$name,
-             error = function(e) cli::cli_abort(c(
-               "Failed to list layers from {.path {dsn}}.",
-               "x" = conditionMessage(e)
-             )))
+      error = function(e) cli::cli_abort(c(
+        "Failed to list layers from {.path {dsn}}.",
+        "x" = conditionMessage(e)
+      )))
   }
 
   .layer_exists <- function(dsn, layer) {
@@ -142,7 +142,7 @@ read_hydrofabric <- function(gpkg = NULL,
   out <- list()
 
   if (is.null(gpkg)) {
-    if (.is_sf(divides))   out$divides   <- divides
+    if (.is_sf(divides)) out$divides   <- divides
     if (.is_sf(flowpaths)) out$flowpaths <- flowpaths
     if (length(out) == 0L) {
       cli::cli_abort("Nothing to read: provide a GeoPackage path or in-memory `sf` objects.")
@@ -286,18 +286,18 @@ write_hydrofabric <- function(network_list,
       obj <- sf_layers[[nm]]
       nm_out <- layer_names[[nm]]
       enforce_cols(obj, switch(nm_out,
-                               flowpaths = "flowlines", # your dm key -> layer mapping
-                               divides   = "divides",
-                               pois      = "pois",
-                               network   = "network",
-                               WB        = "WB",
-                               nexus     = "nexus",
-                               nm_out),
-                   nm_out)
+        flowpaths = "flowlines", # your dm key -> layer mapping
+        divides   = "divides",
+        pois      = "pois",
+        network   = "network",
+        WB        = "WB",
+        nexus     = "nexus",
+        nm_out),
+      nm_out)
       i <- i + 1L
       sf::write_sf(obj,
-                   dsn = tmpfile,
-                   layer = nm_out)
+        dsn = tmpfile,
+        layer = nm_out)
       wrote_any <- TRUE
     }
   }

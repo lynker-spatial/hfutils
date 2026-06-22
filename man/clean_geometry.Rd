@@ -59,6 +59,6 @@ corresponding flowline feature.
 divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
 flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
 cleaned <- clean_geometry(divides, flowlines = flowpaths,
-                          fl_ID = "id", ID = "divide_id", crs = 5070)
+  fl_ID = "id", ID = "divide_id", crs = 5070)
 }
 }

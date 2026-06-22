@@ -1,0 +1,12 @@
+linters: linters_with_defaults(
+    line_length_linter = line_length_linter(120L), # house width; styler does not wrap
+    indentation_linter = NULL,    # styler is the formatter of record (owns indentation)
+    object_name_linter = NULL,    # DBI generics (dbConnect, ...) + hydrofabric column
+                                  # conventions (ID, toID, DSN, fl_ID) are intentional
+    commented_code_linter = NULL, # false-positives on prose comments ("# a -> b")
+    return_linter = NULL,         # explicit return() is intentional (sfarrow heritage)
+    brace_linter = NULL,          # allow guard clauses: if (x) return(y), inline handlers
+    object_usage_linter = NULL    # false-positives on cli/glue interpolation + .onLoad
+  )
+encoding: "UTF-8"
+exclusions: list("tests/testthat.R", "tests/spelling.R")

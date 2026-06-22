@@ -57,8 +57,8 @@ accumulating duplicates.
 \examples{
 \dontrun{
 gpkg_set_version("hydrofabric.gpkg", version = "2.2.0",
-                 license = "ODbL-1.0",
-                 provenance = list(software = "hydrofabric 0.1",
-                                   build_date = Sys.Date()))
+  license = "ODbL-1.0",
+  provenance = list(software = "hydrofabric 0.1",
+    build_date = Sys.Date()))
 }
 }

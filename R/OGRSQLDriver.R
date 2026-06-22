@@ -17,14 +17,14 @@ setMethod("dbDataType", "OGRSQLDriver", function(dbObj, obj, ...) {
   if (is.data.frame(obj)) return(callNextMethod(dbObj, obj))
 
   switch(typeof(obj),
-         logical = "boolean",
-         character = "character",
-         double = "numeric",
-         integer = "integer",
-         list = "character",
-         raw = "character",
-         blob = "character",
-         stop("Unsupported type", call. = FALSE)
+    logical = "boolean",
+    character = "character",
+    double = "numeric",
+    integer = "integer",
+    list = "character",
+    raw = "character",
+    blob = "character",
+    stop("Unsupported type", call. = FALSE)
   )
 }
 )
@@ -32,7 +32,9 @@ setMethod("dbDataType", "OGRSQLDriver", function(dbObj, obj, ...) {
 #' @rdname OGRSQLDriver-class
 #' @export
 
-setMethod("dbIsValid", "OGRSQLDriver", function(dbObj, ...) { TRUE })
+setMethod("dbIsValid", "OGRSQLDriver", function(dbObj, ...) {
+  TRUE
+})
 
 #' @rdname OGRSQLDriver-class
 #' @export
@@ -53,7 +55,3 @@ setMethod("dbGetInfo", "OGRSQLDriver", function(dbObj, ...) {
     client.version = utils::packageVersion("hfutils")
   )
 })
-
-
-
-

@@ -28,11 +28,15 @@
 #' divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
 #' flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
 #' cleaned <- clean_geometry(divides, flowlines = flowpaths,
-#'                           fl_ID = "id", ID = "divide_id", crs = 5070)
+#'   fl_ID = "id", ID = "divide_id", crs = 5070)
 #' }
 #' @export
-#' @importFrom sf st_crs st_transform st_is_valid st_make_valid st_cast st_length st_intersects st_zm st_collection_extract st_geometry_type st_drop_geometry st_is_empty st_make_valid
-#' @importFrom dplyr mutate select group_by ungroup filter left_join summarize distinct arrange slice slice_max bind_rows rename any_of add_count everything across
+#' @importFrom sf st_crs st_transform st_is_valid st_make_valid st_cast st_length
+#' @importFrom sf st_intersects st_zm st_collection_extract st_geometry_type
+#' @importFrom sf st_drop_geometry st_is_empty
+#' @importFrom dplyr mutate select group_by ungroup filter left_join summarize
+#' @importFrom dplyr distinct arrange slice slice_max bind_rows rename any_of
+#' @importFrom dplyr add_count everything across
 #' @importFrom rlang .data !! sym
 #' @importFrom lwgeom st_snap_to_grid
 #' @importFrom rmapshaper ms_dissolve ms_explode ms_simplify
@@ -88,7 +92,7 @@ clean_geometry <- function(catchments,
   if (any(became_empty)) {
     valid_geom[became_empty] <- sf::st_make_valid(orig_geom[became_empty])
     warning(sprintf("clean_geometry: %d feature(s) became empty after grid snap -- reverted to original geometry",
-                    sum(became_empty)))
+      sum(became_empty)))
   }
   sf::st_geometry(catchments) <- valid_geom
   catchments <- catchments[!sf::st_is_empty(catchments), , drop = FALSE]
@@ -118,16 +122,16 @@ clean_geometry <- function(catchments,
 
   # if all rows already 1 POLYGON per ID, we can short-circuit
   if (all(sf::st_geometry_type(polygons) == "POLYGON") &&
-      nrow(polygons) == master_n &&
-      all(polygons$part_count == 1)) {
+    nrow(polygons) == master_n &&
+    all(polygons$part_count == 1)) {
 
     if (!is.null(keep)) {
       polygons <- tryCatch(
         simplify_process(polygons,
-                         keep = keep,
-                         sys = sys,
-                         gb = gb,
-                         force = force),
+          keep = keep,
+          sys = sys,
+          gb = gb,
+          force = force),
         error = function(e) {
           if (isTRUE(force)) {
             message("System mapshaper simplification failed: ", conditionMessage(e))
@@ -150,11 +154,13 @@ clean_geometry <- function(catchments,
   extra_parts <- dplyr::filter(extra_parts, !sf::st_is_empty(extra_parts))
 
   # dissolve by ID, then explode back to single parts
-  extra_parts <- try({
-    tmp <- rmapshaper::ms_dissolve(extra_parts, key = ID,
-                                   copy_fields = names(extra_parts), sys = sys)
-    rmapshaper::ms_explode(tmp, sys = sys)
-  }, silent = TRUE)
+  extra_parts <- try(
+    {
+      tmp <- rmapshaper::ms_dissolve(extra_parts, key = ID,
+        copy_fields = names(extra_parts), sys = sys)
+      rmapshaper::ms_explode(tmp, sys = sys)
+    },
+    silent = TRUE)
 
   if (inherits(extra_parts, "try-error")) {
     # fall back to original pieces if dissolve fails
@@ -215,28 +221,33 @@ clean_geometry <- function(catchments,
   # If there are remaining small parts, join them back to the appropriate main polygon using the
   # longest intersection (LINESTRING) heuristic; otherwise use main_parts as-is.
   if (nrow(small_parts) > 0) {
-    small_parts <- tryCatch({
-      tmp <- rmapshaper::ms_dissolve(small_parts, key = ID,
-                                     copy_fields = names(small_parts), sys = sys)
-      rmapshaper::ms_explode(tmp, sys = sys)
-    }, error = function(e) NULL, warning = function(w) NULL)
+    small_parts <- tryCatch(
+      {
+        tmp <- rmapshaper::ms_dissolve(small_parts, key = ID,
+          copy_fields = names(small_parts), sys = sys)
+        rmapshaper::ms_explode(tmp, sys = sys)
+      },
+      error = function(e) NULL,
+      warning = function(w) NULL)
 
     if (!is.null(small_parts) && nrow(small_parts) > 0) {
       small_parts <- small_parts |>
         dplyr::mutate(areasqkm = add_areasqkm(small_parts),
-                      newID = dplyr::row_number()) |>
+          newID = dplyr::row_number()) |>
         dplyr::select(.data$newID, !!sym(ID))
 
       # intersect small parts with main parts; pick the longest boundary overlap
-      ints <- tryCatch({
-        suppressWarnings({
+      ints <- tryCatch(
+        {
+          suppressWarnings({
+            sf::st_intersection(small_parts, sf::st_make_valid(main_parts)) |>
+              sf::st_collection_extract("LINESTRING")
+          })
+        },
+        error = function(e) {
           sf::st_intersection(small_parts, sf::st_make_valid(main_parts)) |>
-            sf::st_collection_extract("LINESTRING")
+            sf::st_collection_extract("POINT")
         })
-      }, error = function(e) {
-        sf::st_intersection(small_parts, sf::st_make_valid(main_parts)) |>
-          sf::st_collection_extract("POINT")
-      })
 
       ints <- ints |>
         dplyr::mutate(l = sf::st_length(ints)) |>
