@@ -38,6 +38,25 @@ Correctness and quality pass on the base layer.
   round trips, and auth guard paths.
 * Standardized user-facing errors in `write_hydrofabric()` and `as_ogr()` on
   `cli::cli_abort()`.
+* **Attribute-integrity invariants.** `hf_check_merge_invariants()` and the
+  per-stage `hf_check_invariants()` (aggregated/ngen) now guard
+  `mainstem_id_populated` and `hydroseq_valid` via shared `.hf_mainstem_check()`
+  / `.hf_hydroseq_check()` helpers — catching carried/recomputed columns that
+  are silently dropped or mis-mapped (the class behind two Stage-4 regressions
+  in `hydrofabric`). Tests cover dropped / duplicate / clean at the per-stage
+  and merge entry points.
+* `dbGetInfo()` on the `OGRSQLDriver` now reports `hfutils`' own version for
+  `client.version` (was an undeclared, unguarded `packageVersion("hfsubsetR")`
+  that errored on any machine without that sibling package installed).
+* `tbl_http()` forwards named reader options through `...` to the DuckDB read
+  function (e.g. `union_by_name = TRUE` → `union_by_name=true`); previously
+  `...` was accepted but silently dropped.
+* `lynker_spatial_auth()` documents per-library behavior and adds `"arrow"` as
+  an opt-in target — arrow authenticates lynker-spatial via the S3 credential
+  chain (it has no HTTP-header filesystem for the bearer token).
+* `\dontrun{}` examples on every exported function; spell-check setup
+  (`Language`, `inst/WORDLIST`, `tests/spelling.R`); `styler` + a documented
+  `.lintr` policy (lint-clean) + a `lint` CI workflow.
 
 # hfutils 0.3.3
 
