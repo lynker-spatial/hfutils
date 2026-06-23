@@ -74,6 +74,23 @@ test_that("ngen stage flags dropped/mis-mapped mainstem_id", {
   expect_true(res2$checks$mainstem_id_populated$ok)
 })
 
+test_that("ngen stage flags incomplete/duplicate hydroseq routing order", {
+  na_fp <- data.frame(flowpath_id = paste0("fp-", 1:10), flowpath_toid = "0",
+    hydroseq = c(1:5, rep(NA, 5)), stringsAsFactors = FALSE)        # 50% NA
+  expect_false(suppressMessages(hf_check_invariants("ngen", flowpaths = na_fp,
+    strict = FALSE))$checks$hydroseq_valid$ok)
+
+  dup_fp <- data.frame(flowpath_id = paste0("fp-", 1:5), flowpath_toid = "0",
+    hydroseq = c(1, 2, 2, 3, 4), stringsAsFactors = FALSE)          # duplicate
+  expect_false(suppressMessages(hf_check_invariants("ngen", flowpaths = dup_fp,
+    strict = FALSE))$checks$hydroseq_valid$ok)
+
+  ok_fp <- data.frame(flowpath_id = paste0("fp-", 1:5), flowpath_toid = "0",
+    hydroseq = 1:5, stringsAsFactors = FALSE)
+  expect_true(suppressMessages(hf_check_invariants("ngen", flowpaths = ok_fp,
+    strict = FALSE))$checks$hydroseq_valid$ok)
+})
+
 test_that("aggregated stage catches duplicate flowpath_id", {
   fp <- data.frame(flowpath_id = c("1", "1"), stringsAsFactors = FALSE)
   expect_error(

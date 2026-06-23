@@ -265,6 +265,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
     checks$ngen_fp_prefix <- .hf_ok(n_bad == 0L,
       sprintf("%d ngen flowpath_id(s) do not start with 'fp-'", n_bad))
     checks$mainstem_id_populated <- .hf_mainstem_check(flowpaths)
+    checks$hydroseq_valid <- .hf_hydroseq_check(flowpaths)
   }
 
   if (!is.null(divides)) {
@@ -342,6 +343,22 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   .hf_ok(frac <= 0.05,
     sprintf("%.1f%% of flowpaths have NULL mainstem_id%s", 100 * frac,
       if (frac > 0.05) " -- dropped/mis-mapped?" else ""))
+}
+
+# Shared hydroseq integrity check. hydroseq is the topological routing order:
+# every flowpath needs one (per-VPU outputs are 0% NA) and they must be unique.
+# A NA fraction flags reaches left unordered (e.g. the global merge leaving
+# cross-VPU/terminal reaches without a recomputed hydroseq).
+.hf_hydroseq_check <- function(flowpaths) {
+  if (!"hydroseq" %in% names(flowpaths)) {
+    return(.hf_info("no hydroseq column on flowpaths"))
+  }
+  h <- flowpaths$hydroseq
+  frac_na <- mean(is.na(h))
+  n_dup   <- sum(duplicated(h[!is.na(h)]))
+  .hf_ok(frac_na <= 0.005 && n_dup == 0L,
+    sprintf("hydroseq: %.2f%% NA, %d duplicate(s)%s", 100 * frac_na, n_dup,
+      if (frac_na > 0.005 || n_dup > 0L) " -- routing order incomplete" else ""))
 }
 
 .hf_ring_counts <- function(geoms) {
@@ -512,6 +529,8 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
 
   # mainstem_id (a global reference levelpath id) must survive the merge intact.
   checks$mainstem_id_populated <- .hf_mainstem_check(fp)
+  # hydroseq routing order must be complete + unique after the global recompute.
+  checks$hydroseq_valid <- .hf_hydroseq_check(fp)
 
   # single CRS across all merged layers
   crs_of <- function(x) if (inherits(x, "sf")) sf::st_crs(x)$epsg else NA
