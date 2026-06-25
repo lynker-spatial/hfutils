@@ -35,7 +35,17 @@
 #' - `stage = "aggregated"`: `flowpaths` (sf), `divides` (sf), `network`
 #'   (data.frame, optional).
 #' - `stage = "ngen"`: `flowpaths` (sf with `fp-` IDs), `divides` (sf with
-#'   `cat-` IDs).
+#'   `cat-` IDs), and optionally `nexus` (data.frame with `nexus_id` /
+#'   `nexus_toid`, enabling the `fp -> nexus -> fp` DAG check), `flowlines`
+#'   and/or `network` (a data.frame carrying the `So` channel-slope routing
+#'   attribute), and `lakes` (sf with a `lake_id` column and waterbody
+#'   polygons). When the relevant columns are present, the ngen stage adds:
+#'   `slope_valid` and `So_valid` (channel `slope` / `So` must be strictly
+#'   positive everywhere they appear, since routing requires it; an all-`NA`
+#'   column reports as info rather than failing), and `lake_spatial_consistent`
+#'   (every flowpath stamped with a `lake_id` must lie within ~one lake-extent,
+#'   1 km floor, of that lake -- catching `wbareacomi` VAA mis-indexing without
+#'   demanding exact geometry overlap).
 #'
 #' @return Invisibly a list with `ok` (logical), `stage`, and `checks`
 #'   (named list of per-check results).
@@ -307,6 +317,75 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
   if (coverage && !is.null(flowpaths) && !is.null(divides)) {
     checks$flowpath_coverage <- .hf_coverage_check(
       flowpaths, divides, coverage_min)
+  }
+
+  # -- slope_valid (ported from hfrefactor 2026-06) -------------------------
+  # Channel routing needs a strictly positive slope on every flowpath. All-NA =
+  # slope step not run for this build (info); once present, every value must > 0.
+  if (!is.null(flowpaths) && "slope" %in% names(flowpaths)) {
+    sl <- suppressWarnings(as.numeric(flowpaths$slope))
+    if (all(is.na(sl))) {
+      checks$slope_valid <- .hf_info("slope not computed (all NA) for this build")
+    } else {
+      checks$slope_valid <- .hf_ok(
+        sum(is.na(sl)) == 0L && sum(sl < 0, na.rm = TRUE) == 0L &&
+          sum(sl == 0, na.rm = TRUE) == 0L,
+        sprintf("%d null + %d negative + %d zero slope(s) (routing needs slope > 0)",
+          sum(is.na(sl)), sum(sl < 0, na.rm = TRUE), sum(sl == 0, na.rm = TRUE)))
+    }
+  }
+
+  # -- So_valid -- channel-bottom slope (routing attr) must be > 0 wherever it
+  # lands (flowpaths / flowlines / network attribute table). .calculate_flow_atts
+  # floors it; any non-positive So in output is a regression.
+  if (!is.null(flowpaths)) {
+    So_src <- c(
+      if ("So" %in% names(flowpaths)) suppressWarnings(as.numeric(flowpaths$So)),
+      if (!is.null(args$flowlines) && "So" %in% names(args$flowlines))
+        suppressWarnings(as.numeric(args$flowlines$So)),
+      if (!is.null(args$network) && "So" %in% names(args$network))
+        suppressWarnings(as.numeric(args$network$So)))
+    if (length(So_src) > 0L) {
+      checks$So_valid <- .hf_ok(
+        sum(is.na(So_src)) == 0L && sum(So_src < 0, na.rm = TRUE) == 0L &&
+          sum(So_src == 0, na.rm = TRUE) == 0L,
+        sprintf("%d null + %d negative + %d zero So value(s) (routing needs So > 0)",
+          sum(is.na(So_src)), sum(So_src < 0, na.rm = TRUE),
+          sum(So_src == 0, na.rm = TRUE)))
+    }
+  }
+
+  # -- lake_spatial_consistent -- the lake_id crosswalk (member_comid ->
+  # wbareacomi) is authoritative, but NWM waterbody polygons and reference
+  # flowlines are DIFFERENT geometries that rarely overlap, so exact intersection
+  # is the wrong test. A stamp is invalid only when PHYSICALLY IMPOSSIBLE: the
+  # reach lies more than ~one lake-extent (1 km floor) from its lake (genuine
+  # wbareacomi VAA mis-index).
+  lakes <- args$lakes
+  if (!is.null(flowpaths) && !is.null(lakes) &&
+      "lake_id" %in% names(flowpaths) && inherits(flowpaths, "sf") &&
+      inherits(lakes, "sf") && nrow(lakes) > 0L) {
+    has_lake <- !is.na(flowpaths$lake_id) & as.character(flowpaths$lake_id) != ""
+    if (any(has_lake)) {
+      n_bad <- tryCatch({
+        fp_l    <- flowpaths[has_lake, ]
+        lk_geom <- sf::st_geometry(lakes)
+        lk_chr  <- as.character(lakes$lake_id)
+        ext <- vapply(lk_geom, function(g) {
+          b <- sf::st_bbox(g)
+          sqrt((b[["xmax"]] - b[["xmin"]])^2 + (b[["ymax"]] - b[["ymin"]])^2)
+        }, numeric(1L))
+        li <- match(as.character(fp_l$lake_id), lk_chr)
+        d  <- as.numeric(sf::st_distance(
+          sf::st_geometry(fp_l), lk_geom[li], by_element = TRUE))
+        sum(is.finite(d) & d > pmax(1000, ext[li]))
+      }, error = function(e) NA_integer_)
+      checks$lake_spatial_consistent <- if (is.na(n_bad))
+        .hf_info("lake_spatial_consistent: not computable (geometry error)")
+      else .hf_ok(n_bad == 0L, sprintf(
+        "%d flowpath(s) stamped with a lake_id physically too far from it (>1 lake-extent; wbareacomi VAA mis-index)",
+        n_bad))
+    }
   }
 
   checks
