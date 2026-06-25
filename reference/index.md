@@ -69,7 +69,7 @@ ID.
 - [`union_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/union_linestrings.md)
   : Fast linestring union by ID
 - [`flowpaths_to_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/flowpaths_to_linestrings.md)
-  : Convert MULITLINESTINGS to LINESTRINGS
+  : Convert MULTILINESTRINGS to LINESTRINGS
 
 ## Network & topology
 
@@ -79,6 +79,8 @@ Algorithms over the directed (DAG) flow network.
   : Accumulate an attribute downstream over a directed acyclic network
 - [`get_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.md)
   : Compute and add the hydrosequence to a directed acyclic network
+- [`get_streamorder()`](https://lynker-spatial.github.io/hfutils/reference/get_streamorder.md)
+  : Compute and add Strahler stream order to a directed acyclic network
 - [`add_measures()`](https://lynker-spatial.github.io/hfutils/reference/add_measures.md)
   : Add length and area measures to flowpaths/divides
 - [`add_areasqkm()`](https://lynker-spatial.github.io/hfutils/reference/add_areasqkm.md)
@@ -103,6 +105,8 @@ pipeline invariant checks shared across the stack.
   : Read the dataset version written by \[gpkg_set_version()\]
 - [`hf_check_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.md)
   : Pipeline invariant checks
+- [`hf_check_merge_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_merge_invariants.md)
+  : Global-merge (Stage 4) conservation + completeness invariants
 - [`hf_check_attr_bounds()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_attr_bounds.md)
   : Check divide/flowpath attribute values against physical-range bounds
 - [`hf_attr_bounds()`](https://lynker-spatial.github.io/hfutils/reference/hf_attr_bounds.md)

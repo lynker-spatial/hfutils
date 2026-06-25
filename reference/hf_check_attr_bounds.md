@@ -53,3 +53,12 @@ hf_check_attr_bounds(
 
 Invisibly a list with \`ok\` and \`checks\` (same shape as
 \[hf_check_invariants()\]).
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+hf_check_attr_bounds(divides, which = "divides", domain = "CONUS")
+} # }
+```

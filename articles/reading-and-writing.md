@@ -62,7 +62,7 @@ also accepts in-memory `sf` objects directly (skip the GeoPackage), a
 ``` r
 
 fp_only <- read_hydrofabric(tmp, realization = "flowpaths", crs = 5070,
-                            verbose = FALSE)
+  verbose = FALSE)
 st_crs(fp_only$flowpaths)$epsg
 #> [1] 5070
 ```

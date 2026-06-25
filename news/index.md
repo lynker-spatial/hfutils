@@ -69,6 +69,31 @@ Correctness and quality pass on the base layer.
   [`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)
   on
   [`cli::cli_abort()`](https://cli.r-lib.org/reference/cli_abort.html).
+- **Attribute-integrity invariants.**
+  [`hf_check_merge_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_merge_invariants.md)
+  and the per-stage
+  [`hf_check_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.md)
+  (aggregated/ngen) now guard `mainstem_id_populated` and
+  `hydroseq_valid` via shared `.hf_mainstem_check()` /
+  `.hf_hydroseq_check()` helpers — catching carried/recomputed columns
+  that are silently dropped or mis-mapped (the class behind two Stage-4
+  regressions in `hydrofabric`). Tests cover dropped / duplicate / clean
+  at the per-stage and merge entry points.
+- `dbGetInfo()` on the `OGRSQLDriver` now reports `hfutils`’ own version
+  for `client.version` (was an undeclared, unguarded
+  `packageVersion("hfsubsetR")` that errored on any machine without that
+  sibling package installed).
+- [`tbl_http()`](https://lynker-spatial.github.io/hfutils/reference/tbl_http.md)
+  forwards named reader options through `...` to the DuckDB read
+  function (e.g. `union_by_name = TRUE` → `union_by_name=true`);
+  previously `...` was accepted but silently dropped.
+- [`lynker_spatial_auth()`](https://lynker-spatial.github.io/hfutils/reference/lynker_spatial_auth.md)
+  documents per-library behavior and adds `"arrow"` as an opt-in target
+  — arrow authenticates lynker-spatial via the S3 credential chain (it
+  has no HTTP-header filesystem for the bearer token).
+- `\dontrun{}` examples on every exported function; spell-check setup
+  (`Language`, `inst/WORDLIST`, `tests/spelling.R`); `styler` + a
+  documented `.lintr` policy (lint-clean) + a `lint` CI workflow.
 
 ## hfutils 0.3.3
 

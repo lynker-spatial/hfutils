@@ -44,7 +44,6 @@ JSON formatted list with geo-metadata
 
 ## Details
 
-Reference for metadata standard:
-<https://github.com/geopandas/geo-arrow-spec>. This is compatible with
-`GeoPandas` Parquet files. Adopted from
+Reference for metadata standard: <https://github.com/geoarrow/geoarrow>.
+This is compatible with `GeoPandas` Parquet files. Adopted from
 [wcjochem/sfarrow](https://github.com/wcjochem/sfarrow)

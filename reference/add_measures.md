@@ -21,3 +21,14 @@ add_measures(flowpaths, divides)
 ## Value
 
 named list of updated flowpaths and divides
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+fps <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+divs <- sf::read_sf("hydrofabric.gpkg", "divides")
+out <- add_measures(fps, divs)
+out$flowpaths$lengthkm
+} # }
+```

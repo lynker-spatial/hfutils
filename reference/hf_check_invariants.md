@@ -80,4 +80,26 @@ Expected arguments per stage:
 (sf of reconciled divides). - \`stage = "aggregated"\`: \`flowpaths\`
 (sf), \`divides\` (sf), \`network\` (data.frame, optional). - \`stage =
 "ngen"\`: \`flowpaths\` (sf with \`fp-\` IDs), \`divides\` (sf with
-\`cat-\` IDs).
+\`cat-\` IDs), and optionally \`nexus\` (data.frame with \`nexus_id\` /
+\`nexus_toid\`, enabling the \`fp -\> nexus -\> fp\` DAG check),
+\`flowlines\` and/or \`network\` (a data.frame carrying the \`So\`
+channel-slope routing attribute), and \`lakes\` (sf with a \`lake_id\`
+column and waterbody polygons). When the relevant columns are present,
+the ngen stage adds: \`slope_valid\` and \`So_valid\` (channel \`slope\`
+/ \`So\` must be strictly positive everywhere they appear, since routing
+requires it; an all-\`NA\` column reports as info rather than failing),
+and \`lake_spatial_consistent\` (every flowpath stamped with a
+\`lake_id\` must lie within ~one lake-extent, 1 km floor, of that lake –
+catching \`wbareacomi\` VAA mis-indexing without demanding exact
+geometry overlap).
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
+hf_check_invariants("ngen", flowpaths = flowpaths, divides = divides,
+  strict = FALSE)
+} # }
+```

@@ -1,7 +1,9 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://lynker-spatial.github.io/hfutils/404.html</loc></url>
+<url><loc>https://lynker-spatial.github.io/hfutils/CODE_OF_CONDUCT.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/CONTRIBUTING.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/LICENSE-text.html</loc></url>
+<url><loc>https://lynker-spatial.github.io/hfutils/PULL_REQUEST_TEMPLATE.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/articles/cloud-and-versioning.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/articles/index.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/articles/network-properties.html</loc></url>
@@ -28,11 +30,13 @@
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/flowpaths_to_linestrings.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/get_node.html</loc></url>
+<url><loc>https://lynker-spatial.github.io/hfutils/reference/get_streamorder.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/gpkg_get_version.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/gpkg_set_version.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/hf_attr_bounds.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/hf_check_attr_bounds.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.html</loc></url>
+<url><loc>https://lynker-spatial.github.io/hfutils/reference/hf_check_merge_invariants.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/hfutils-package.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/index.html</loc></url>
 <url><loc>https://lynker-spatial.github.io/hfutils/reference/layer_exists.html</loc></url>

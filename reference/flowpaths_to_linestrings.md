@@ -1,6 +1,6 @@
-# Convert MULITLINESTINGS to LINESTRINGS
+# Convert MULTILINESTRINGS to LINESTRINGS
 
-Convert MULITLINESTINGS to LINESTRINGS
+Convert MULTILINESTRINGS to LINESTRINGS
 
 ## Usage
 
@@ -17,3 +17,12 @@ flowpaths_to_linestrings(flowpaths)
 ## Value
 
 a \`sf\` object
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+fl <- flowpaths_to_linestrings(fl)
+} # }
+```

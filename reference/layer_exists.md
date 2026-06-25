@@ -21,3 +21,11 @@ layer_exists(gpkg, name)
 ## Value
 
 logical
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+layer_exists("hydrofabric.gpkg", "divides")
+} # }
+```

@@ -71,3 +71,14 @@ uses those variables to define partitions. Adopted from
 
 [`write_dataset`](https://arrow.apache.org/docs/r/reference/write_dataset.html),
 [`st_read_parquet`](https://lynker-spatial.github.io/hfutils/reference/st_read_parquet.md)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+divides |>
+  dplyr::group_by(vpuid) |>
+  write_sf_dataset(path = "divides_dataset/")
+} # }
+```

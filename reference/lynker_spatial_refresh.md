@@ -25,3 +25,12 @@ lynker_spatial_refresh(token, ..., client = lynker_spatial_client())
 ## Value
 
 A refreshed httr2 OAuth2 token.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+token <- lynker_spatial_token()
+token <- lynker_spatial_refresh(token)
+} # }
+```

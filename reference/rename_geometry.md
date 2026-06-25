@@ -21,3 +21,12 @@ rename_geometry(g, name = "geometry")
 ## Value
 
 sf object with renamed geometry
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+fl <- rename_geometry(fl, "geometry")
+} # }
+```

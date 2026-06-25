@@ -25,3 +25,13 @@ duckdb_connection(..., extensions = character(0), add_auth = TRUE)
 ## Value
 
 A DBI connection to a DuckDB instance.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+conn <- duckdb_connection(extensions = "httpfs")
+DBI::dbGetQuery(conn, "SELECT 1")
+DBI::dbDisconnect(conn, shutdown = TRUE)
+} # }
+```

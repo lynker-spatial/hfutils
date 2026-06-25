@@ -17,14 +17,14 @@ get_hydroseq(x, id = "flowpath_id", toid = "flowpath_toid")
 
 - id:
 
-  Character scalar. Column name in \`topology\` with unique node
-  identifiers. Defaults to \`"flowpath_id"\`.
+  Character scalar. Column name in \`x\` with unique node identifiers.
+  Defaults to \`"flowpath_id"\`.
 
 - toid:
 
-  Character scalar. Column name in \`topology\` with the \*downstream\*
-  node identifier for each row. Use \`NA\` or \`0\` for
-  outlets/terminals. Defaults to \`"flowpath_toid"\`.
+  Character scalar. Column name in \`x\` with the \*downstream\* node
+  identifier for each row. Use \`NA\` or \`0\` for outlets/terminals.
+  Defaults to \`"flowpath_toid"\`.
 
 ## Value
 

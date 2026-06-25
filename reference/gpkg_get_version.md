@@ -22,3 +22,12 @@ A named \`list\` with \`version\` (semver string), \`int_version\`
 (integer), \`license\` (SPDX id, or \`NULL\`), and \`provenance\`
 (parsed JSON, or \`NULL\`); or \`NULL\` if no version metadata is
 present.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+info <- gpkg_get_version("hydrofabric.gpkg")
+info$version
+} # }
+```

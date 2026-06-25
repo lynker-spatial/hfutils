@@ -14,8 +14,18 @@ add_lengthkm(x)
 - x:
 
   An \`sf\` object with LINE\* geometry. If \`x\` is not in a projected
-  CRS, \`sf::st_length()\` will compute ellipsoidal areas when possible.
+  CRS, \`sf::st_length()\` will compute ellipsoidal lengths when
+  possible.
 
 ## Value
 
 A numeric vector of lengths in kilometers.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+fl$lengthkm <- add_lengthkm(fl)
+} # }
+```

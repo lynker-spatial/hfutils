@@ -67,3 +67,14 @@ The dataset version is independent of the GeoPackage \*specification\*
 version held in \`PRAGMA user_version\`, which is left untouched. The
 function is idempotent: re-stamping replaces any prior entries it wrote
 rather than accumulating duplicates.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+gpkg_set_version("hydrofabric.gpkg", version = "2.2.0",
+  license = "ODbL-1.0",
+  provenance = list(software = "hydrofabric 0.1",
+    build_date = Sys.Date()))
+} # }
+```

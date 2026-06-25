@@ -36,12 +36,21 @@ object of class [`sf`](https://r-spatial.github.io/sf/reference/sf.html)
 
 ## Details
 
-Reference for the metadata used:
-<https://github.com/geopandas/geo-arrow-spec>. These are standard with
-the Python `GeoPandas` library. Adopted from
+Reference for the metadata used: <https://github.com/geoarrow/geoarrow>.
+These are standard with the Python `GeoPandas` library. Adopted from
 [wcjochem/sfarrow](https://github.com/wcjochem/sfarrow)
 
 ## See also
 
 [`read_parquet`](https://arrow.apache.org/docs/r/reference/read_parquet.html),
 [`st_read`](https://r-spatial.github.io/sf/reference/st_read.html)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+divides <- st_read_parquet("divides.parquet")
+divides <- st_read_parquet("divides.parquet",
+  col_select = c("divide_id", "geometry"))
+} # }
+```

@@ -21,3 +21,12 @@ get_node(x, position = "end")
 ## Value
 
 sf POINT
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+fl <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+outlets <- get_node(sf::st_geometry(fl), position = "end")
+} # }
+```

@@ -19,3 +19,12 @@ hf_attr_bounds()
 
 A data.frame of bounds (one row per attribute, plus per-domain rows for
 \`lat\`/\`lon\`).
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+bounds <- hf_attr_bounds()
+head(bounds)
+} # }
+```

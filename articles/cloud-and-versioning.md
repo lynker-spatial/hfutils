@@ -27,11 +27,12 @@ secret.
 token <- lynker_spatial_auth(libs = "gdal")
 
 as_ogr("/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg",
-       "divides")
+  "divides")
 
 # DuckDB over HTTP, with the token attached to the connection
 con <- duckdb_connection(extensions = "httpfs")
-tbl_http("https://.../flowpaths.parquet", conn = con)
+tbl_http("https://lynker-spatial.s3.amazonaws.com/v20.1/flowpaths.parquet",
+  conn = con)
 ```
 
 ## Dataset versioning & provenance

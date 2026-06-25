@@ -8,3 +8,12 @@ by sf
 ``` r
 OGRSQL()
 ```
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+con <- dbConnect(OGRSQL(), "hydrofabric.gpkg")
+as_ogr(con, "flowpaths")
+} # }
+```

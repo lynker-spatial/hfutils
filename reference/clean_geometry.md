@@ -78,3 +78,14 @@ clean_geometry(
 ## Value
 
 sf with the same ID column and fixed geometry; includes \`areasqkm\`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+divides   <- sf::read_sf("hydrofabric.gpkg", "divides")
+flowpaths <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
+cleaned <- clean_geometry(divides, flowlines = flowpaths,
+  fl_ID = "id", ID = "divide_id", crs = 5070)
+} # }
+```

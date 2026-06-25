@@ -58,3 +58,12 @@ Adopted from [wcjochem/sfarrow](https://github.com/wcjochem/sfarrow)
 ## See also
 
 [`write_parquet`](https://arrow.apache.org/docs/r/reference/write_parquet.html)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+divides <- sf::read_sf("hydrofabric.gpkg", "divides")
+st_write_parquet(divides, "divides.parquet", hf_version = "2.2")
+} # }
+```
