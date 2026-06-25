@@ -201,6 +201,74 @@ test_that("ngen stage detects a cycle in the fp->nexus->fp graph", {
   )
 })
 
+test_that("ngen slope_valid requires strictly positive slope, all-NA is info", {
+  base <- data.frame(flowpath_id = c("fp-1", "fp-2", "fp-3"),
+    flowpath_toid = "0", stringsAsFactors = FALSE)
+
+  ok_fp <- transform(base, slope = c(0.01, 0.5, 0.002))
+  expect_true(suppressMessages(hf_check_invariants("ngen", flowpaths = ok_fp,
+    strict = FALSE))$checks$slope_valid$ok)
+
+  # a zero, a negative, and an NA each make it fail
+  bad_fp <- transform(base, slope = c(0.01, 0, -1))
+  expect_false(suppressMessages(hf_check_invariants("ngen", flowpaths = bad_fp,
+    strict = FALSE))$checks$slope_valid$ok)
+
+  na_fp <- transform(base, slope = NA_real_)
+  res <- suppressMessages(hf_check_invariants("ngen", flowpaths = na_fp,
+    strict = FALSE))
+  expect_identical(res$checks$slope_valid$kind, "info")
+
+  # absent column -> no check emitted
+  expect_null(suppressMessages(hf_check_invariants("ngen", flowpaths = base,
+    strict = FALSE))$checks$slope_valid)
+})
+
+test_that("ngen So_valid checks flowpaths, flowlines, and the network table", {
+  fp <- data.frame(flowpath_id = c("fp-1", "fp-2"), flowpath_toid = "0",
+    So = c(0.003, 0.004), stringsAsFactors = FALSE)
+  expect_true(suppressMessages(hf_check_invariants("ngen", flowpaths = fp,
+    strict = FALSE))$checks$So_valid$ok)
+
+  fp_bad <- transform(fp, So = c(0.003, 0))
+  expect_false(suppressMessages(hf_check_invariants("ngen", flowpaths = fp_bad,
+    strict = FALSE))$checks$So_valid$ok)
+
+  # So carried only on the network attribute table is still validated
+  fp_no_so <- fp[, c("flowpath_id", "flowpath_toid")]
+  network  <- data.frame(flowpath_id = c("fp-1", "fp-2"), So = c(0.01, -1))
+  expect_false(suppressMessages(hf_check_invariants("ngen", flowpaths = fp_no_so,
+    network = network, strict = FALSE))$checks$So_valid$ok)
+})
+
+test_that("ngen lake_spatial_consistent flags reaches far from their lake", {
+  skip_if_not_installed("sf")
+  lakes <- sf::st_sf(
+    lake_id  = "L1",
+    geometry = sf::st_sfc(.sq(5000, 5000, r = 500), crs = 5070))
+
+  # fp-1 sits inside the lake (distance 0); fp-2 is ~70 km away but stamped L1
+  flowpaths <- sf::st_sf(
+    flowpath_id   = c("fp-1", "fp-2"),
+    flowpath_toid = "0",
+    lake_id       = c("L1", "L1"),
+    geometry = sf::st_sfc(.ls(5000, 5000, 5200, 5000),
+      .ls(75000, 75000, 75200, 75000), crs = 5070))
+
+  res <- suppressMessages(hf_check_invariants("ngen", flowpaths = flowpaths,
+    lakes = lakes, strict = FALSE))
+  expect_false(res$checks$lake_spatial_consistent$ok)
+
+  # drop the far reach -> the remaining stamp is plausible
+  ok <- suppressMessages(hf_check_invariants("ngen",
+    flowpaths = flowpaths[1, ], lakes = lakes, strict = FALSE))
+  expect_true(ok$checks$lake_spatial_consistent$ok)
+
+  # no lakes supplied -> check is not emitted
+  expect_null(suppressMessages(hf_check_invariants("ngen",
+    flowpaths = flowpaths, strict = FALSE))$checks$lake_spatial_consistent)
+})
+
 test_that("hf_check_attr_bounds flags out-of-range and skips absent/zero-valid", {
   df <- data.frame(
     smcmax_mean     = c(0.4, 0.95, 0.2),   # 0.95 > 0.9 -> 1 bad
