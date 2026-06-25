@@ -8,7 +8,7 @@ add_lengthkm(x)
 }
 \arguments{
 \item{x}{An `sf` object with LINE* geometry. If `x` is not in a projected
-CRS, `sf::st_length()` will compute ellipsoidal areas when possible.}
+CRS, `sf::st_length()` will compute ellipsoidal lengths when possible.}
 }
 \value{
 A numeric vector of lengths in kilometers.

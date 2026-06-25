@@ -12,8 +12,9 @@ lynker_spatial_auth(
 )
 }
 \arguments{
-\item{token}{An existing OAuth2 token. If NULL, then a new token is provisioned and returned.
-If the token is expired, then}
+\item{token}{An existing OAuth2 token. If `NULL`, a new token is provisioned
+and returned. If the supplied token is expired, it is refreshed via
+[lynker_spatial_refresh()] before use.}
 
 \item{...}{Unused}
 

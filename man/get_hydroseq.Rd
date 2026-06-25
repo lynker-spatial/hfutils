@@ -10,10 +10,10 @@ get_hydroseq(x, id = "flowpath_id", toid = "flowpath_toid")
 \item{x}{A data frame (or tibble) containing at least the identifier column
 given by `id` and the downstream pointer column given by `toid`.}
 
-\item{id}{Character scalar. Column name in `topology` with unique node identifiers.
+\item{id}{Character scalar. Column name in `x` with unique node identifiers.
 Defaults to `"flowpath_id"`.}
 
-\item{toid}{Character scalar. Column name in `topology` with the *downstream* node
+\item{toid}{Character scalar. Column name in `x` with the *downstream* node
 identifier for each row. Use `NA` or `0` for outlets/terminals.
 Defaults to `"flowpath_toid"`.}
 }

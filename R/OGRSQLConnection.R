@@ -53,9 +53,9 @@ setMethod("dbSendQuery", "OGRSQLConnection", function(conn, statement, ...) {
     message(
       sprintf(
         "-------------\nOGR debug ....\nSQL:\n%s\nnrows read:\n%i",
-        statement
-      ),
-      nrow(layer_data)
+        statement,
+        nrow(layer_data)
+      )
     )
   }
   if (inherits(layer_data, "try-error")) {

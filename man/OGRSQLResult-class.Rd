@@ -21,7 +21,7 @@
 OGRSQLResult objects are created by [dbSendQuery()] or [dbSendStatement()],
 and encapsulate the result of an SQL statement.
 They are a superclass of the [DBIResult-class] class.
-The "Usage" section lists the class methods overridden by \pkg{lazsf}.
+The "Usage" section lists the class methods overridden by \pkg{hfutils}.
 }
 \seealso{
 The corresponding generic functions

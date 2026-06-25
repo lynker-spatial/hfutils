@@ -158,7 +158,7 @@ add_areasqkm <- function(x) {
 #' Safely compute linestring length in km and return a plain numeric vector.
 #'
 #' @param x An `sf` object with LINE* geometry. If `x` is not in a projected
-#'   CRS, `sf::st_length()` will compute ellipsoidal areas when possible.
+#'   CRS, `sf::st_length()` will compute ellipsoidal lengths when possible.
 #'
 #' @return A numeric vector of lengths in kilometers.
 #'

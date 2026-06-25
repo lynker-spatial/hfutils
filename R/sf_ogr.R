@@ -89,20 +89,22 @@ as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = "gp
     tbls <- dbListTables(x)
     tbls <- tbls[!grepl(ignore_lyrs, tbls)]
 
-    if (length(tbls) == 1) {
+    if (length(tbls) == 0L) {
+      cli::cli_abort("No readable layers found in the data source.")
+    } else if (length(tbls) == 1L) {
       layer <- tbls
     } else {
-      layer <- NULL
-      print(tbls)
+      cli::cli_abort(c(
+        "Multiple layers found; please specify {.arg layer} explicitly:",
+        ">" = paste(tbls, collapse = ", ")
+      ))
     }
   }
 
-  if (!is.null(layer)) {
-    if (layer %in% dbListTables(x)) {
-      x <- tbl(x, layer)
-    } else {
-      cli::cli_abort("{.val {layer}} not in gpkg.")
-    }
+  if (layer %in% dbListTables(x)) {
+    x <- tbl(x, layer)
+  } else {
+    cli::cli_abort("{.val {layer}} not in gpkg.")
   }
 
   x

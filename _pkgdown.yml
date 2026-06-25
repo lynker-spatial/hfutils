@@ -111,6 +111,7 @@ reference:
   contents:
   - accumulate_downstream
   - get_hydroseq
+  - get_streamorder
   - add_measures
   - add_areasqkm
   - add_lengthkm
@@ -126,6 +127,7 @@ reference:
   - gpkg_set_version
   - gpkg_get_version
   - hf_check_invariants
+  - hf_check_merge_invariants
   - hf_check_attr_bounds
   - hf_attr_bounds
 

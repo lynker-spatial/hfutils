@@ -132,7 +132,7 @@ arrow_to_sf <- function(tbl, metadata) {
   primary_geom <- metadata$primary_column
 
   if (length(geom_cols) < 1) {
-    stop("Malformed file and geo metatdata.")
+    stop("Malformed file and geo metadata.")
   }
   if (!primary_geom %in% geom_cols) {
     primary_geom <- geom_cols[1]

@@ -99,9 +99,9 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #'
 #' @param x A data frame (or tibble) containing at least the identifier column
 #'   given by `id` and the downstream pointer column given by `toid`.
-#' @param id Character scalar. Column name in `topology` with unique node identifiers.
+#' @param id Character scalar. Column name in `x` with unique node identifiers.
 #'   Defaults to `"flowpath_id"`.
-#' @param toid Character scalar. Column name in `topology` with the *downstream* node
+#' @param toid Character scalar. Column name in `x` with the *downstream* node
 #'   identifier for each row. Use `NA` or `0` for outlets/terminals.
 #'   Defaults to `"flowpath_toid"`.
 #'
