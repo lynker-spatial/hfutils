@@ -217,3 +217,86 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   }
   unname(so[as.character(x[[id]])])
 }
+
+#' Compute mainstem level paths over a directed acyclic network
+#'
+#' Native replacement for `hydroloom::add_levelpaths` -- same topological
+#' approach as [get_hydroseq()] / [get_streamorder()] (igraph topo-sort), with no
+#' external dependency. A level path is a continuous mainstem from a headwater to
+#' an outlet: at each confluence the mainstem continues up the contributor with
+#' the largest `weight` (e.g. arbolate sum or total drainage area), and the other
+#' contributors begin new level paths. The id of a level path is the
+#' hydrosequence of its most-downstream (outlet) reach, matching the NHDPlus /
+#' hydroloom convention.
+#'
+#' @param x A data frame with the identifier column `id`, downstream pointer
+#'   `toid`, and a numeric `weight` column. Terminal/outlet rows use `NA`, `""`,
+#'   `"0"`, or a `toid` that is not a known `id`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#' @param weight Character scalar. Column name giving the mainstem weight; at each
+#'   confluence the mainstem follows the largest-weight upstream contributor.
+#'   Typically the arbolate sum (`accumulate_downstream` of `lengthkm`) or total
+#'   drainage area.
+#' @param hydroseq Optional column name of a precomputed hydrosequence to use for
+#'   level path ids. If `NULL` (default), it is computed with [get_hydroseq()].
+#' @returns Numeric vector of level path ids aligned to the rows of `x` (the
+#'   hydrosequence of each level path's outlet reach).
+#' @details The network must be acyclic (errors otherwise, like
+#'   [accumulate_downstream()]). Weight ties are broken by first occurrence;
+#'   hydroloom's `override_factor` (named-river continuity) is not modelled.
+#' @examples
+#' # 4 -> 3 -> 1 (mainstem, longer), 2 -> 1 (tributary); 1 -> outlet
+#' df <- data.frame(
+#'   flowpath_id   = c(1, 2, 3, 4),
+#'   flowpath_toid = c(0, 1, 1, 3),
+#'   arb_sum       = c(14, 2, 7, 4)
+#' )
+#' get_levelpath(df, weight = "arb_sum")
+#' # reaches 1,3,4 share one level path; reach 2 is its own
+#'
+#' @importFrom igraph graph_from_data_frame is_dag topo_sort as_ids
+#' @export
+get_levelpath <- function(x, id = "flowpath_id", toid = "flowpath_toid",
+                          weight, hydroseq = NULL) {
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  w   <- as.numeric(x[[weight]])
+  n   <- length(ids)
+
+  # integer index of each row's downstream row; NA = terminal/dangling outlet
+  di <- match(tos, ids)
+  di[is.na(tos) | tos == ""] <- NA_integer_
+
+  # hydrosequence supplies the level-path (outlet) ids
+  hs <- if (is.null(hydroseq)) {
+    get_hydroseq(data.frame(flowpath_id = ids,
+                            flowpath_toid = ifelse(is.na(di), "0", tos)))
+  } else {
+    as.numeric(x[[hydroseq]])
+  }
+
+  # main upstream branch of each node = its largest-weight contributor.
+  # order rows by (downstream row, -weight); the first per group is the main one.
+  has_dn  <- !is.na(di)
+  is_main <- logical(n)
+  o <- order(di, -w)            # terminals (di NA) sort last and are dropped
+  o <- o[has_dn[o]]
+  is_main[o[!duplicated(di[o])]] <- TRUE
+
+  # topological order (upstream-first); reverse for downstream-first assignment
+  g <- igraph::graph_from_data_frame(
+    data.frame(from = ids[has_dn], to = tos[has_dn]),
+    directed = TRUE, vertices = data.frame(name = ids))
+  if (!igraph::is_dag(g)) stop("Network contains cycles; cannot compute level paths.")
+  ord <- rev(match(igraph::as_ids(igraph::topo_sort(g, mode = "out")), ids))
+
+  # integer-indexed pass (no per-iteration name lookups): a reach continues its
+  # downstream level path iff it is that node's main branch, else it begins a new
+  # level path whose outlet (id) is its own hydrosequence.
+  lp <- rep(NA_real_, n)
+  for (r in ord) {
+    d <- di[r]
+    lp[r] <- if (!is.na(d) && is_main[r]) lp[d] else hs[r]
+  }
+  lp
+}
