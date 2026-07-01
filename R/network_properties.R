@@ -188,34 +188,40 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 #' @importFrom igraph graph_from_data_frame topo_sort as_ids
 #' @export
 get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
-  el <- as.data.frame(x)[, c(id, toid), drop = FALSE]
-  names(el) <- c("id", "toid")
-  el$id   <- as.character(el$id)
-  el$toid <- as.character(el$toid)
-  valid_id <- el$id
-  # route terminals (NA / "" / "0" / dangling) to a single outlet sentinel
-  el$toid[is.na(el$toid) | el$toid == "" | !(el$toid %in% valid_id)] <- "0"
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  n   <- length(ids)
 
-  # upstream contributors per node: ids grouped by the node they drain to
-  up <- split(el$id, el$toid)
+  # integer downstream index of each row; NA = terminal / dangling outlet
+  di <- match(tos, ids)
+  di[is.na(tos) | tos == ""] <- NA_integer_
 
-  # topological order, upstream before downstream (DAG; network_is_dag holds)
-  g    <- igraph::graph_from_data_frame(el[, c("id", "toid")])
-  ord  <- igraph::as_ids(igraph::topo_sort(g, mode = "out"))
-  ord  <- ord[ord %in% valid_id]                       # drop the "0" sentinel
+  # upstream contributors per node, INTEGER-indexed (length n)
+  pos    <- seq_len(n)
+  has_dn <- !is.na(di)
+  up     <- split(pos[has_dn], factor(di[has_dn], levels = seq_len(n)))
 
-  so <- stats::setNames(integer(length(valid_id)), valid_id)
-  for (nd in ord) {
-    contribs <- up[[nd]]
-    if (is.null(contribs)) {
-      so[nd] <- 1L
-      next
-    }       # headwater
+  # topological order (upstream-first), mapped to row positions
+  g <- igraph::graph_from_data_frame(
+    data.frame(from = ids[has_dn], to = tos[has_dn]),
+    directed = TRUE, vertices = data.frame(name = ids))
+  if (!igraph::is_dag(g)) stop("Network contains cycles; cannot compute stream order.")
+  ord <- match(igraph::as_ids(igraph::topo_sort(g, mode = "out")), ids)
+
+  # Strahler order via a single integer-indexed pass. The previous version kept
+  # `so` as a CHARACTER-named vector and did so[nd] / so[contribs] / up[[nd]]
+  # lookups by name inside the loop -- each an O(n) scan, making the whole thing
+  # O(n^2). It stalled mega-basins (~44 min on the Mississippi's 461k reaches;
+  # infeasible on Amazon). Positional indexing makes every access O(1).
+  so <- integer(n)                       # UNNAMED, indexed by row position
+  for (r in ord) {
+    contribs <- up[[r]]
+    if (!length(contribs)) { so[r] <- 1L; next }   # headwater
     ords <- so[contribs]
     m    <- max(ords)
-    so[nd] <- if (sum(ords == m) >= 2L) m + 1L else m
+    so[r] <- if (sum(ords == m) >= 2L) m + 1L else m
   }
-  unname(so[as.character(x[[id]])])
+  so
 }
 
 #' Compute mainstem level paths over a directed acyclic network

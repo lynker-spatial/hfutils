@@ -14,3 +14,15 @@ test_that("get_streamorder computes Strahler order", {
   expect_equal(get_streamorder(data.frame(
     flowpath_id = c("1", "2"), flowpath_toid = c("2", "tnx-9"))), c(1L, 1L))
 })
+
+test_that("get_streamorder is linear at scale (mega-basin guard, not O(n^2))", {
+  # 120k-reach chain: linear finishes in well under a second; the old
+  # character-named-vector version was O(n^2) and took minutes (it stalled the
+  # Mississippi's 461k reaches for ~44 min).
+  n  <- 120000L
+  df <- data.frame(flowpath_id = as.character(1:n),
+                   flowpath_toid = as.character(c(2:n, 0)))
+  t  <- system.time(so <- get_streamorder(df))[["elapsed"]]
+  expect_lt(t, 15)              # generous; linear is ~0.3s
+  expect_true(all(so == 1L))    # a single chain is entirely Strahler order 1
+})
