@@ -7,7 +7,7 @@ Description: Base-layer utilities for accessing, cleaning, summarizing, and
     network and topology algorithms (downstream accumulation, hydrosequence),
     staged pipeline invariant checks, and GeoPackage dataset-version and
     provenance metadata helpers used across the hydrofabric package suite.
-Version: 0.3.4
+Version: 0.3.6
 Authors@R: 
     c(person(given = "Mike", 
              family = "Johnson", 
