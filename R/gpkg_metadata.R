@@ -182,3 +182,149 @@ gpkg_get_version <- function(gpkg) {
     license     = if (is.na(lic)) NULL else lic,
     provenance  = if (!is.na(prov)) jsonlite::fromJSON(prov) else NULL)
 }
+
+# ---- GeoPackage in-place write primitives -----------------------------------
+# GeoPackage RTree/metadata triggers invoke SpatiaLite functions (ST_IsEmpty,
+# ST_MinX, ...) that are unavailable under the RSQLite driver, so any UPDATE/
+# DELETE on a spatial table aborts with "no such function". These helpers save,
+# drop, and restore a layer's triggers around every DML operation.
+
+.gpkg_save_drop_triggers <- function(con, layer) {
+  trigs <- DBI::dbGetQuery(con,
+    sprintf("SELECT name, sql FROM sqlite_master WHERE type='trigger' AND tbl_name='%s'",
+      layer))
+  for (nm in trigs$name)
+    DBI::dbExecute(con, sprintf('DROP TRIGGER IF EXISTS "%s"', nm))
+  trigs
+}
+
+.gpkg_restore_triggers <- function(con, trigs) {
+  for (tsql in trigs$sql)
+    if (!is.na(tsql) && nzchar(tsql)) DBI::dbExecute(con, tsql)
+}
+
+#' In-place update of a single non-geometry column in a GeoPackage layer
+#'
+#' Updates `col` for the rows whose `id_col` matches `id_vals`, via a temporary
+#' join table. Layer triggers are dropped for the write and restored afterward
+#' (they call SpatiaLite functions unavailable under RSQLite, which would abort
+#' the UPDATE). `id_vals` and `col_vals` are parallel vectors of equal length.
+#'
+#' @param gpkg Path to the GeoPackage.
+#' @param layer Target layer (table) name.
+#' @param id_col Name of the id column to match on.
+#' @param id_vals Ids identifying the rows to update.
+#' @param col Name of the (non-geometry) column to update.
+#' @param col_vals New values for `col`, parallel to `id_vals`.
+#' @return Invisibly `NULL`.
+#' @export
+gpkg_update_col <- function(gpkg, layer, id_col, id_vals, col, col_vals) {
+  upd <- data.frame(._id  = as.character(id_vals),
+    ._val = as.character(col_vals),
+    stringsAsFactors = FALSE)
+  con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
+  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  DBI::dbWriteTable(con, "._upd", upd, temporary = TRUE, overwrite = TRUE)
+  sql <- sprintf(
+    'UPDATE "%s" SET "%s" = (SELECT "._val" FROM "._upd" WHERE CAST("._upd"."._id" AS TEXT) = CAST("%s"."%s" AS TEXT)) WHERE CAST("%s" AS TEXT) IN (SELECT "._id" FROM "._upd")',
+    layer, col, layer, id_col, id_col)
+  DBI::dbBegin(con)
+  tryCatch(
+    {
+      trigs <- .gpkg_save_drop_triggers(con, layer)
+      DBI::dbExecute(con, sql)
+      .gpkg_restore_triggers(con, trigs)
+      DBI::dbCommit(con)
+    },
+    error = function(e) {
+      DBI::dbRollback(con)
+      stop(e)
+    })
+  invisible(NULL)
+}
+
+#' In-place geometry update for specific rows of a GeoPackage layer
+#'
+#' Writes the changed features to a temporary layer in the same GeoPackage, swaps
+#' the geometry column into `layer` via a keyed (indexed) SQL UPDATE, then drops
+#' the temp layer. Layer triggers are dropped/restored around the write (see
+#' [gpkg_update_col()]).
+#'
+#' @param gpkg Path to the GeoPackage.
+#' @param layer Target layer name.
+#' @param id_col Id column used to match changed rows.
+#' @param sf_changed An `sf` of the changed features (must carry `id_col`).
+#' @return Invisibly `NULL`.
+#' @export
+gpkg_update_geom <- function(gpkg, layer, id_col, sf_changed) {
+  tmp_lyr <- paste0("geom_upd_", format(Sys.time(), "%H%M%S%OS2"))
+  sf::st_write(sf_changed, gpkg, tmp_lyr, append = FALSE, quiet = TRUE)
+  con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
+  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  geom_main <- DBI::dbGetQuery(con,
+    sprintf("SELECT column_name FROM gpkg_geometry_columns WHERE table_name = '%s'", layer))[[1]]
+  geom_tmp <- DBI::dbGetQuery(con,
+    sprintf("SELECT column_name FROM gpkg_geometry_columns WHERE table_name = '%s'", tmp_lyr))[[1]]
+  DBI::dbBegin(con)
+  tryCatch(
+    {
+      DBI::dbExecute(con, sprintf(
+        'CREATE INDEX "idx_%s" ON "%s" (CAST("%s" AS TEXT))', tmp_lyr, tmp_lyr, id_col))
+      trigs <- .gpkg_save_drop_triggers(con, layer)
+      DBI::dbExecute(con, sprintf(
+        'UPDATE "%s" SET "%s" = (SELECT "%s" FROM "%s" WHERE CAST("%s"."%s" AS TEXT) = CAST("%s"."%s" AS TEXT)) WHERE CAST("%s" AS TEXT) IN (SELECT CAST("%s" AS TEXT) FROM "%s")',
+        layer, geom_main, geom_tmp, tmp_lyr, tmp_lyr, id_col, layer, id_col,
+        id_col, id_col, tmp_lyr))
+      .gpkg_restore_triggers(con, trigs)
+      DBI::dbExecute(con, sprintf("DELETE FROM gpkg_contents WHERE table_name = '%s'", tmp_lyr))
+      DBI::dbExecute(con, sprintf("DELETE FROM gpkg_geometry_columns WHERE table_name = '%s'", tmp_lyr))
+      DBI::dbExecute(con, sprintf('DROP TABLE "%s"', tmp_lyr))
+      DBI::dbCommit(con)
+    },
+    error = function(e) {
+      DBI::dbRollback(con)
+      stop(e)
+    })
+  invisible(NULL)
+}
+
+#' Run arbitrary SQL against a GeoPackage in a single transaction
+#'
+#' Each `...` item is either a SQL string (executed in order), a
+#' `list(table=, df=)` (written as a temporary table first), or a
+#' `list(drop_triggers_for=)` (drops that layer's triggers, restored at commit).
+#' All statements run in one transaction; any error rolls back.
+#'
+#' @param gpkg Path to the GeoPackage.
+#' @param ... SQL strings and/or the list forms described above.
+#' @return Invisibly `NULL`.
+#' @export
+gpkg_exec <- function(gpkg, ...) {
+  items  <- list(...)
+  con    <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
+  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  saved_trigs <- list()
+  DBI::dbBegin(con)
+  tryCatch(
+    {
+      for (item in items) {
+        if (is.character(item)) {
+          DBI::dbExecute(con, item)
+        } else if (!is.null(item[["drop_triggers_for"]])) {
+          lyr <- item[["drop_triggers_for"]]
+          if (is.null(saved_trigs[[lyr]]))
+            saved_trigs[[lyr]] <- .gpkg_save_drop_triggers(con, lyr)
+        } else {
+          DBI::dbWriteTable(con, item[["table"]], item[["df"]],
+            temporary = TRUE, overwrite = TRUE)
+        }
+      }
+      for (trigs in saved_trigs) .gpkg_restore_triggers(con, trigs)
+      DBI::dbCommit(con)
+    },
+    error = function(e) {
+      DBI::dbRollback(con)
+      stop(e)
+    })
+  invisible(NULL)
+}

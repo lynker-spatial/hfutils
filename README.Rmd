@@ -48,27 +48,28 @@ library(dplyr)
 
 #### Basic connection: Dataset
 
-```{r, eval = TRUE}
-gpkg <- "/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg"
+```{r, eval = FALSE}
+# point this at a hydrofabric GeoPackage (with flowpaths + divides layers)
+gpkg <- "reference_fabric.gpkg"
 hfutils::as_ogr(gpkg)
 ```
 
 #### Basic connection: Layer
 
-```{r, eval = TRUE}
+```{r, eval = FALSE}
 hfutils::as_ogr(gpkg, "divides")
 ```
 
 #### Lazy Eval
 
-```{r, eval = TRUE}
+```{r, eval = FALSE}
 hfutils::as_ogr(gpkg, "divides") |>
   select(divide_id, areasqkm)
 ```
 
 #### sf extraction
 
-```{r, eval = TRUE}
+```{r, eval = FALSE}
 hfutils::as_ogr(gpkg, "divides")  |>
   filter(vpuid == "01") |>
   st_as_sf()
@@ -76,7 +77,7 @@ hfutils::as_ogr(gpkg, "divides")  |>
 
 ### Network Properties
 
-```{r}
+```{r, eval = FALSE}
 ## Accumulate Downstream
 system.time({
   da <-  hfutils::as_ogr(gpkg, "flowpaths")  |>

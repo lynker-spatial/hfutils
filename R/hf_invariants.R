@@ -300,7 +300,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       flowpath_toid = ifelse(is.na(next_fp), "0", as.character(next_fp)),
       stringsAsFactors = FALSE)
     is_dag <- tryCatch(
-      .hf_network_is_dag(edge_df,
+      hf_network_is_dag(edge_df,
         id_col = "flowpath_id", toid_col = "flowpath_toid"),
       error = function(e) NA)
     if (isTRUE(is_dag)) {
@@ -319,7 +319,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
       flowpaths, divides, coverage_min)
   }
 
-  # -- slope_valid (ported from hfrefactor 2026-06) -------------------------
+  # -- slope_valid ----------------------------------------------------------
   # Channel routing needs a strictly positive slope on every flowpath. All-NA =
   # slope step not run for this build (info); once present, every value must > 0.
   if (!is.null(flowpaths) && "slope" %in% names(flowpaths)) {
@@ -393,17 +393,8 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 
 # ---- helpers -----------------------------------------------------------------
 
-.hf_network_is_dag <- function(flowpaths, id_col = "flowpath_id",
-                               toid_col = "flowpath_toid") {
-  ids   <- as.character(flowpaths[[id_col]])
-  toids <- as.character(flowpaths[[toid_col]])
-  keep  <- !is.na(toids) & toids != "0" & toids %in% ids
-  if (!any(keep)) return(TRUE)
-  edge_df <- data.frame(from = ids[keep], to = toids[keep],
-    stringsAsFactors = FALSE)
-  g <- igraph::graph_from_data_frame(edge_df, directed = TRUE)
-  igraph::is_dag(g)
-}
+# .hf_network_is_dag moved to network_properties.R as the exported, canonical
+# hf_network_is_dag() (single DAG checker for the package).
 
 .hf_ok <- function(ok, msg) list(ok = isTRUE(ok), msg = msg, kind = "check")
 

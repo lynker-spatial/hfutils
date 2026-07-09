@@ -30,21 +30,8 @@ get_node <- function(x, position = "end") {
   }
 }
 
-#' Test if flow network is acyclic
-#' @param fl sf object with flowlines
-#' @param ID character column name
-#' @param toID character column name
-#' @importFrom igraph  graph_from_data_frame is.dag
-#' @return logical
-#' @keywords internal
-#'
-network_is_dag <- function(fl, ID = "id", toID = "toid") {
-  fl |>
-    dplyr::select(dplyr::all_of(c(ID, toID))) |>
-    sf::st_drop_geometry() |>
-    igraph::graph_from_data_frame(directed = TRUE) |>
-    igraph::is.dag()
-}
+# network_is_dag (dplyr/ID-toID variant) removed -- consolidated into the single
+# canonical hf_network_is_dag() in network_properties.R (id_col/toid_col API).
 
 #' Add length and area measures to flowpaths/divides
 #' @param flowpaths sf LINESTRING
@@ -328,4 +315,37 @@ fast_validity_check <- function(x) {
   invalid <- sf::st_make_valid(dplyr::filter(x, !valid_flag)) |>
     sf::st_cast("POLYGON")
   dplyr::bind_rows(valid, invalid)
+}
+
+#' Format numeric identifiers without scientific notation
+#'
+#' `as.character()` on a round-number double id (e.g. `22000000`) yields
+#' `"2.2e+07"`, which then fails every downstream integer-string join and
+#' silently drops the record from the network (lineage loss). This formats
+#' numeric ids in plain-digit form, preserves a `".part"` split suffix verbatim
+#' (`".10"` must not round-trip through `as.numeric()` to `".1"`), re-normalizes
+#' an already-scientific string back to plain digits, and keeps `NA` as `NA`.
+#'
+#' @param v A vector of identifiers, numeric or character.
+#' @return A character vector of plain-digit ids, with `NA` preserved.
+#' @examples
+#' hf_fmt_id(22000000)      # "22000000", not "2.2e+07"
+#' hf_fmt_id("123.10")      # "123.10" (split suffix preserved)
+#' @export
+hf_fmt_id <- function(v) {
+  if (is.numeric(v)) {
+    out <- format(v, scientific = FALSE, trim = TRUE)
+    out[is.na(v)] <- NA_character_
+    return(out)
+  }
+  v <- as.character(v)
+  sci <- grepl("[eE]", v) & !is.na(v)
+  has  <- grepl("\\.", v) & !is.na(v) & !sci
+  base <- ifelse(sci, v, ifelse(has, sub("\\..*$", "", v), v))
+  suf  <- ifelse(has, sub("^[^.]*", "", v), "")
+  bn   <- suppressWarnings(as.numeric(base))
+  bf   <- format(bn, scientific = FALSE, trim = TRUE)
+  out  <- paste0(bf, suf)
+  out[is.na(bn) | is.na(v)] <- NA_character_
+  out
 }

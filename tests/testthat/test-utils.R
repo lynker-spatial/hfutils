@@ -52,13 +52,11 @@ test_that("layer_exists is FALSE for a missing file and TRUE for a present layer
   expect_false(layer_exists(f, "nope"))
 })
 
-test_that("network_is_dag distinguishes acyclic from cyclic networks", {
-  skip_if_not_installed("sf")
-  pts <- sf::st_sfc(sf::st_point(c(0, 0)), sf::st_point(c(1, 1)), crs = 5070)
-  dag <- sf::st_sf(id = c("1", "2"), toid = c("2", "0"), geometry = pts)
-  cyc <- sf::st_sf(id = c("1", "2"), toid = c("2", "1"), geometry = pts)
-  expect_true(hfutils:::network_is_dag(dag))
-  expect_false(hfutils:::network_is_dag(cyc))
+test_that("hf_network_is_dag distinguishes acyclic from cyclic networks", {
+  dag <- data.frame(flowpath_id = c("1", "2"), flowpath_toid = c("2", "0"))
+  cyc <- data.frame(flowpath_id = c("1", "2"), flowpath_toid = c("2", "1"))
+  expect_true(hf_network_is_dag(dag))
+  expect_false(hf_network_is_dag(cyc))
 })
 
 test_that("add_measures joins divide areas onto flowpaths by id", {

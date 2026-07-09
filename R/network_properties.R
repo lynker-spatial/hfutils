@@ -306,3 +306,156 @@ get_levelpath <- function(x, id = "flowpath_id", toid = "flowpath_toid",
   }
   lp
 }
+
+# ---- DAG / hydrosequence topology helpers -----------------------------------
+# Canonical, shared topology primitives (id_col/toid_col API). Terminal toids
+# ("0", NA, or values absent from id_col) are outlets, excluded from the edge
+# list. Used by hf_check_invariants() and by the hydrofabric build pipeline.
+
+#' Is a flowpath network a directed acyclic graph?
+#'
+#' @param flowpaths A data.frame/sf with id and downstream-id columns.
+#' @param id_col,toid_col Column names for the node id and its downstream id.
+#' @return `TRUE` if acyclic (or edge-free), `FALSE` if any cycle exists.
+#' @importFrom igraph graph_from_data_frame is_dag
+#' @export
+hf_network_is_dag <- function(flowpaths, id_col = "flowpath_id",
+                              toid_col = "flowpath_toid") {
+  ids   <- as.character(flowpaths[[id_col]])
+  toids <- as.character(flowpaths[[toid_col]])
+  keep  <- !is.na(toids) & toids != "0" & toids %in% ids
+  if (!any(keep)) return(TRUE)
+  edge_df <- data.frame(from = ids[keep], to = toids[keep],
+    stringsAsFactors = FALSE)
+  g <- igraph::graph_from_data_frame(edge_df, directed = TRUE)
+  igraph::is_dag(g)
+}
+
+#' Assert a flowpath network is a DAG, reporting any cycle nodes
+#'
+#' Unlike a strongly-connected-component test, `igraph::is_dag` also catches
+#' self-loop cycles (`a -> a`). `cycle_ids` reports every node in a cycle
+#' (multi-node SCCs plus self-loops) for diagnostics/repair.
+#'
+#' @param flowpaths A data.frame/sf with id and downstream-id columns.
+#' @param id_col,toid_col Column names for the node id and its downstream id.
+#' @return `list(is_dag, message, cycle_ids)`.
+#' @importFrom igraph graph_from_data_frame is_dag components
+#' @export
+hf_assert_network_dag <- function(flowpaths,
+                                  id_col   = "flowpath_id",
+                                  toid_col = "flowpath_toid") {
+  ids   <- as.character(flowpaths[[id_col]])
+  toids <- as.character(flowpaths[[toid_col]])
+  keep  <- !is.na(toids) & toids != "0" & toids %in% ids
+  if (!any(keep)) return(list(is_dag = TRUE, message = "DAG OK", cycle_ids = character(0)))
+  edge_df <- data.frame(from = ids[keep], to = toids[keep], stringsAsFactors = FALSE)
+  g       <- igraph::graph_from_data_frame(edge_df, directed = TRUE)
+  if (igraph::is_dag(g))
+    return(list(is_dag = TRUE, message = "DAG OK", cycle_ids = character(0)))
+  sccs      <- igraph::components(g, mode = "strong")
+  cyc       <- names(sccs$membership)[sccs$csize[sccs$membership] > 1L]
+  selfloops <- edge_df$from[edge_df$from == edge_df$to]
+  cyc       <- unique(c(cyc, selfloops))
+  list(is_dag    = FALSE,
+    message   = sprintf("%d node(s) in cycle(s)", length(cyc)),
+    cycle_ids = cyc)
+}
+
+#' Recompute hydrosequence for a flowpath network by topological sort
+#'
+#' NHD convention: lower `hydroseq` = more downstream (closer to outlet). Call
+#' after any topology-modifying operation (cycle break, toid reassignment) to
+#' keep `hydroseq` consistent with the current toid graph.
+#'
+#' @param flowpaths A data.frame/sf with id and downstream-id columns.
+#' @param id_col,toid_col Column names for the node id and its downstream id.
+#' @return `flowpaths` with an updated integer `hydroseq` column.
+#' @importFrom igraph graph_from_data_frame topo_sort
+#' @importFrom stats setNames
+#' @export
+hf_recompute_hydroseq <- function(flowpaths,
+                                  id_col   = "flowpath_id",
+                                  toid_col = "flowpath_toid") {
+  ids   <- as.character(flowpaths[[id_col]])
+  toids <- as.character(flowpaths[[toid_col]])
+
+  keep <- !is.na(toids) & toids != "0" & toids %in% ids
+  if (!any(keep)) {
+    flowpaths$hydroseq <- seq_len(nrow(flowpaths))
+    return(flowpaths)
+  }
+
+  edge_df <- data.frame(from = ids[keep], to = toids[keep], stringsAsFactors = FALSE)
+  g <- igraph::graph_from_data_frame(edge_df, directed = TRUE,
+    vertices = data.frame(name = ids))
+
+  topo_names <- tryCatch(
+    names(rev(igraph::topo_sort(g, mode = "out"))),
+    error = function(e) {
+      warning("hf_recompute_hydroseq: graph has cycles -- hydroseq not recomputed")
+      NULL
+    }
+  )
+  if (is.null(topo_names)) return(flowpaths)
+
+  remaining   <- setdiff(ids, topo_names)
+  ordered_ids <- c(topo_names, remaining)
+  hs_map      <- stats::setNames(seq_along(ordered_ids), ordered_ids)
+  flowpaths$hydroseq <- as.integer(hs_map[ids])
+  flowpaths
+}
+
+#' Break cycles in a flowpath network by severing one back-edge per SCC
+#'
+#' For each strongly-connected component with >1 member, the node receiving the
+#' most in-edges from OUTSIDE the SCC is its outlet; every other member whose
+#' toid points to that outlet (the back-edge completing the cycle) has its toid
+#' set to `"0"`, preserving as much downstream connectivity as possible while
+#' making the graph a DAG.
+#'
+#' @param flowpaths A data.frame/sf with id and downstream-id columns.
+#' @param id_col,toid_col Column names for the node id and its downstream id.
+#' @return `flowpaths` with `toid_col` rewritten to remove cycles.
+#' @importFrom igraph graph_from_data_frame components neighbors
+#' @export
+hf_break_cycles <- function(flowpaths,
+                            id_col   = "flowpath_id",
+                            toid_col = "flowpath_toid") {
+  ids   <- as.character(flowpaths[[id_col]])
+  toids <- as.character(flowpaths[[toid_col]])
+  keep  <- !is.na(toids) & toids != "0" & toids %in% ids
+  if (!any(keep)) return(flowpaths)
+
+  edge_df <- data.frame(from = ids[keep], to = toids[keep], stringsAsFactors = FALSE)
+  g    <- igraph::graph_from_data_frame(edge_df, directed = TRUE,
+    vertices = data.frame(name = ids))
+  sccs <- igraph::components(g, mode = "strong")
+
+  cycle_comps <- which(sccs$csize > 1L)
+  if (length(cycle_comps) == 0L) return(flowpaths)
+
+  toids_new <- toids
+  for (comp_id in cycle_comps) {
+    members <- names(sccs$membership)[sccs$membership == comp_id]
+    ext_in <- vapply(members, function(m) {
+      preds <- names(igraph::neighbors(g, m, mode = "in"))
+      sum(!preds %in% members)
+    }, integer(1L))
+    outlet <- members[which.max(ext_in)]
+    back_senders <- members[members != outlet & toids[match(members, ids)] == outlet]
+    if (length(back_senders) == 0L) {
+      interior <- members[which.min(ext_in)]
+      back_senders <- interior
+    }
+    for (bs in back_senders) {
+      idx <- match(bs, ids)
+      if (!is.na(idx)) toids_new[idx] <- "0"
+    }
+    message(sprintf("hf_break_cycles: severed %d back-edge(s) in SCC of %d node(s) [outlet: %s]",
+      length(back_senders), length(members), outlet))
+  }
+
+  flowpaths[[toid_col]] <- toids_new
+  flowpaths
+}
