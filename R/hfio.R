@@ -19,7 +19,7 @@
 #' @param crs Optional CRS to transform outputs to (e.g., EPSG code like `5070`,
 #'   an `sf::crs` object, or any input accepted by `sf::st_crs()`).
 #' @param verbose Logical; print progress messages. Default uses the environment
-#'   variable `hydrofab_verbose` (anything other than literal `"false"` is treated
+#'   variable `hfutils_verbose` (anything other than literal `"false"` is treated
 #'   as verbose).
 #'
 #' @return A named list with up to two elements:
@@ -70,7 +70,7 @@ read_hydrofabric <- function(gpkg = NULL,
                              flowpaths = NULL,
                              realization = c("all", "divides", "flowpaths"),
                              crs = NULL,
-                             verbose = Sys.getenv("hydrofab_verbose") != "false") {
+                             verbose = Sys.getenv("hfutils_verbose") != "false") {
 
   realization <- match.arg(realization)
 

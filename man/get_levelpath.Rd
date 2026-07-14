@@ -32,19 +32,19 @@ Numeric vector of level path ids aligned to the rows of `x` (the
   hydrosequence of each level path's outlet reach).
 }
 \description{
-Native replacement for `hydroloom::add_levelpaths` -- same topological
-approach as [get_hydroseq()] / [get_streamorder()] (igraph topo-sort), with no
-external dependency. A level path is a continuous mainstem from a headwater to
+Same topological approach as [get_hydroseq()] / [get_streamorder()] (igraph
+topo-sort). A level path is a continuous mainstem from a headwater to
 an outlet: at each confluence the mainstem continues up the contributor with
 the largest `weight` (e.g. arbolate sum or total drainage area), and the other
 contributors begin new level paths. The id of a level path is the
-hydrosequence of its most-downstream (outlet) reach, matching the NHDPlus /
-hydroloom convention.
+hydrosequence of its most-downstream (outlet) reach, matching the NHDPlus
+convention.
 }
 \details{
 The network must be acyclic (errors otherwise, like
   [accumulate_downstream()]). Weight ties are broken by first occurrence;
-  hydroloom's `override_factor` (named-river continuity) is not modelled.
+  named-river continuity (overriding the weight to hold a named mainstem
+  together through a confluence) is not modelled.
 }
 \examples{
 # 4 -> 3 -> 1 (mainstem, longer), 2 -> 1 (tributary); 1 -> outlet
@@ -57,3 +57,13 @@ get_levelpath(df, weight = "arb_sum")
 # reaches 1,3,4 share one level path; reach 2 is its own
 
 }
+\seealso{
+Other network properties: 
+\code{\link{accumulate_downstream}()},
+\code{\link{get_hydroseq}()},
+\code{\link{get_pathlength}()},
+\code{\link{get_pfafstetter}()},
+\code{\link{get_streamlevel}()},
+\code{\link{get_streamorder}()}
+}
+\concept{network properties}

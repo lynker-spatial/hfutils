@@ -33,3 +33,13 @@ df <- data.frame(
 get_hydroseq(df)
 
 }
+\seealso{
+Other network properties: 
+\code{\link{accumulate_downstream}()},
+\code{\link{get_levelpath}()},
+\code{\link{get_pathlength}()},
+\code{\link{get_pfafstetter}()},
+\code{\link{get_streamlevel}()},
+\code{\link{get_streamorder}()}
+}
+\concept{network properties}

@@ -61,3 +61,13 @@ accumulate_downstream(df, id = "flowpath_id", toid = "flowpath_toid", attr = "ar
 # node 3 gets 1.0 + 2.0 + 0.5 = 3.5, node 4 gets 3.5 + 0.0 = 3.5
 
 }
+\seealso{
+Other network properties: 
+\code{\link{get_hydroseq}()},
+\code{\link{get_levelpath}()},
+\code{\link{get_pathlength}()},
+\code{\link{get_pfafstetter}()},
+\code{\link{get_streamlevel}()},
+\code{\link{get_streamorder}()}
+}
+\concept{network properties}

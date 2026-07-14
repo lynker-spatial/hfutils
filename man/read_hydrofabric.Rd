@@ -10,7 +10,7 @@ read_hydrofabric(
   flowpaths = NULL,
   realization = c("all", "divides", "flowpaths"),
   crs = NULL,
-  verbose = Sys.getenv("hydrofab_verbose") != "false"
+  verbose = Sys.getenv("hfutils_verbose") != "false"
 )
 }
 \arguments{
@@ -31,7 +31,7 @@ are `NULL`. Default: `"all"`.}
 an `sf::crs` object, or any input accepted by `sf::st_crs()`).}
 
 \item{verbose}{Logical; print progress messages. Default uses the environment
-variable `hydrofab_verbose` (anything other than literal `"false"` is treated
+variable `hfutils_verbose` (anything other than literal `"false"` is treated
 as verbose).}
 }
 \value{

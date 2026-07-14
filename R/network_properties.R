@@ -47,6 +47,7 @@
 #' # node 3 gets 1.0 + 2.0 + 0.5 = 3.5, node 4 gets 3.5 + 0.0 = 3.5
 #'
 #' @importFrom igraph graph_from_data_frame is_dag topo_sort as_ids
+#' @family network properties
 #' @export
 
 accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid", attr) {
@@ -117,6 +118,7 @@ accumulate_downstream <- function(x, id   = "flowpath_id", toid = "flowpath_toid
 #' get_hydroseq(df)
 #'
 #' @importFrom igraph dfs graph_from_data_frame
+#' @family network properties
 #' @export
 
 get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
@@ -170,9 +172,8 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 
 #' Compute and add Strahler stream order to a directed acyclic network
 #'
-#' Native replacement for `hydroloom::add_streamorder` -- same topological
-#' approach as [get_hydroseq()] (igraph topo-sort), with no external dependency
-#' and no non-dendritic/divergence handling required. Leaves are order 1; at each
+#' Same topological approach as [get_hydroseq()] (igraph topo-sort), with no
+#' non-dendritic/divergence handling required. Leaves are order 1; at each
 #' node the order is the max of its upstream contributors, incremented by 1 when
 #' that max is shared by two or more of them (Strahler).
 #'
@@ -186,6 +187,7 @@ get_hydroseq <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 #' get_streamorder(data.frame(flowpath_id = c("1", "2", "3"),
 #'   flowpath_toid = c("3", "3", "0")))
 #' @importFrom igraph graph_from_data_frame topo_sort as_ids
+#' @family network properties
 #' @export
 get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   ids <- as.character(x[[id]])
@@ -226,14 +228,13 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 
 #' Compute mainstem level paths over a directed acyclic network
 #'
-#' Native replacement for `hydroloom::add_levelpaths` -- same topological
-#' approach as [get_hydroseq()] / [get_streamorder()] (igraph topo-sort), with no
-#' external dependency. A level path is a continuous mainstem from a headwater to
+#' Same topological approach as [get_hydroseq()] / [get_streamorder()] (igraph
+#' topo-sort). A level path is a continuous mainstem from a headwater to
 #' an outlet: at each confluence the mainstem continues up the contributor with
 #' the largest `weight` (e.g. arbolate sum or total drainage area), and the other
 #' contributors begin new level paths. The id of a level path is the
-#' hydrosequence of its most-downstream (outlet) reach, matching the NHDPlus /
-#' hydroloom convention.
+#' hydrosequence of its most-downstream (outlet) reach, matching the NHDPlus
+#' convention.
 #'
 #' @param x A data frame with the identifier column `id`, downstream pointer
 #'   `toid`, and a numeric `weight` column. Terminal/outlet rows use `NA`, `""`,
@@ -249,7 +250,8 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 #'   hydrosequence of each level path's outlet reach).
 #' @details The network must be acyclic (errors otherwise, like
 #'   [accumulate_downstream()]). Weight ties are broken by first occurrence;
-#'   hydroloom's `override_factor` (named-river continuity) is not modelled.
+#'   named-river continuity (overriding the weight to hold a named mainstem
+#'   together through a confluence) is not modelled.
 #' @examples
 #' # 4 -> 3 -> 1 (mainstem, longer), 2 -> 1 (tributary); 1 -> outlet
 #' df <- data.frame(
@@ -261,6 +263,7 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 #' # reaches 1,3,4 share one level path; reach 2 is its own
 #'
 #' @importFrom igraph graph_from_data_frame is_dag topo_sort as_ids
+#' @family network properties
 #' @export
 get_levelpath <- function(x, id = "flowpath_id", toid = "flowpath_toid",
                           weight, hydroseq = NULL) {
@@ -305,6 +308,296 @@ get_levelpath <- function(x, id = "flowpath_id", toid = "flowpath_toid",
     lp[r] <- if (!is.na(d) && is_main[r]) lp[d] else hs[r]
   }
   lp
+}
+
+#' Compute downstream path length to the network outlet over a DAG
+#'
+#' Uses the same topological approach as [get_levelpath()] / [get_hydroseq()]
+#' (igraph topo-sort). Path length is the distance along the network from the
+#' *downstream end* (outlet) of each reach to the terminal outlet of the
+#' network: the sum of the lengths of every reach strictly downstream. It does
+#' **not** include the reach's own length, so terminal (outlet) reaches are `0`
+#' and the value increases upstream, matching the NHDPlus `PathLength` attribute.
+#'
+#' @param x A data frame with the identifier column `id`, downstream pointer
+#'   `toid`, and a numeric `length` column. Terminal/outlet rows use `NA`, `""`,
+#'   `"0"`, or a `toid` that is not a known `id`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#' @param length Character scalar. Column name giving each reach's own length
+#'   (e.g. `"lengthkm"`); the returned path length is in the same units.
+#' @returns Numeric vector of path lengths aligned to the rows of `x` (`0` at
+#'   terminal reaches, increasing upstream).
+#' @details The network must be acyclic (errors otherwise, like
+#'   [accumulate_downstream()]). The downstream path from any reach is unique in
+#'   a dendritic network; the single downstream-first pass finalizes each
+#'   downstream reach's path length before it is read, so the whole traversal is
+#'   O(E) after one topological sort.
+#' @examples
+#' # 1 -> 2 -> 3 (outlet); each reach 5 km long
+#' df <- data.frame(
+#'   flowpath_id   = c("1", "2", "3"),
+#'   flowpath_toid = c("2", "3", "0"),
+#'   lengthkm      = c(5, 5, 5)
+#' )
+#' get_pathlength(df, length = "lengthkm")
+#' # reach 3 (outlet) = 0; reach 2 = 5 (length of 3); reach 1 = 10 (len 2 + len 3)
+#'
+#' @importFrom igraph graph_from_data_frame is_dag topo_sort as_ids
+#' @family network properties
+#' @export
+get_pathlength <- function(x, id = "flowpath_id", toid = "flowpath_toid",
+                           length = "lengthkm") {
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  len <- as.numeric(x[[length]])
+  n   <- nrow(x)                         # avoid shadowing base::length via `length`
+
+  # integer index of each row's downstream row; NA = terminal/dangling outlet
+  di <- match(tos, ids)
+  di[is.na(tos) | tos == "" | tos == "0"] <- NA_integer_
+
+  # topological order (upstream-first); reverse for a downstream-first pass so
+  # each reach's downstream path length is finalized before we read it
+  has_dn <- !is.na(di)
+  g <- igraph::graph_from_data_frame(
+    data.frame(from = ids[has_dn], to = tos[has_dn]),
+    directed = TRUE, vertices = data.frame(name = ids))
+  if (!igraph::is_dag(g)) stop("Network contains cycles; cannot compute path length.")
+  ord <- rev(match(igraph::as_ids(igraph::topo_sort(g, mode = "out")), ids))
+
+  # integer-indexed pass: distance from a reach's outlet to the network terminus
+  # is the downstream reach's own length plus that reach's path length.
+  pl <- numeric(n)                       # 0 at terminals
+  for (r in ord) {
+    d <- di[r]
+    if (!is.na(d)) pl[r] <- pl[d] + len[d]
+  }
+  pl
+}
+
+#' Compute stream level over a directed acyclic network
+#'
+#' Uses the same topological approach as [get_levelpath()] (igraph topo-sort),
+#' operating on the *level-path* graph rather than the reach graph. Stream level
+#' counts the number of level-path steps from a reach to the network terminus:
+#' the mainstem level path that drains out of the network is level `1`, every
+#' level path that empties into a level-`1` path is level `2`, and so on
+#' (the NHDPlus `StreamLeve` attribute). All reaches on a level path share its
+#' level.
+#'
+#' @param x A data frame with the identifier column `id`, downstream pointer
+#'   `toid`, and a precomputed `levelpath` column (e.g. from [get_levelpath()]).
+#'   Terminal/outlet rows use `NA`, `""`, `"0"`, or a `toid` that is not a known
+#'   `id`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#' @param levelpath Character scalar. Column name of the level-path id each reach
+#'   belongs to. Default `"levelpath"`.
+#' @returns Integer vector of stream levels aligned to the rows of `x` (`1` on the
+#'   terminal mainstem, increasing up each tributary level path).
+#' @details The level-path network must be acyclic (errors otherwise). A level
+#'   path is a contiguous mainstem, so it empties into exactly one downstream
+#'   level path; the level is a single downstream-first pass over that coarser
+#'   graph, mirroring [get_pathlength()] / [get_levelpath()].
+#' @examples
+#' # mainstem 4 -> 3 -> 1 (level path A), tributary 2 -> 1 (level path B)
+#' df <- data.frame(
+#'   flowpath_id   = c("1", "2", "3", "4"),
+#'   flowpath_toid = c("0", "1", "1", "3"),
+#'   levelpath     = c("A", "B", "A", "A")
+#' )
+#' get_streamlevel(df)
+#' # reaches on A (1,3,4) = 1; tributary 2 (level path B) = 2
+#'
+#' @importFrom igraph graph_from_data_frame is_dag topo_sort as_ids
+#' @family network properties
+#' @export
+get_streamlevel <- function(x, id = "flowpath_id", toid = "flowpath_toid",
+                            levelpath = "levelpath") {
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  lp  <- as.character(x[[levelpath]])
+
+  # downstream row index of each reach; NA = terminal/dangling outlet
+  di <- match(tos, ids)
+  di[is.na(tos) | tos == "" | tos == "0"] <- NA_integer_
+
+  # level-path edges: a reach whose downstream reach is on a *different* level
+  # path is that level path's outlet. Terminal reaches yield no edge, so their
+  # level path drains out of the network.
+  has_dn        <- !is.na(di)
+  dn_lp         <- rep(NA_character_, length(ids))
+  dn_lp[has_dn] <- lp[di[has_dn]]
+  cross         <- has_dn & lp != dn_lp
+  edges         <- unique(data.frame(from = lp[cross], to = dn_lp[cross],
+                                     stringsAsFactors = FALSE))
+
+  ulp <- unique(lp)
+  g <- igraph::graph_from_data_frame(edges, directed = TRUE,
+    vertices = data.frame(name = ulp))
+  if (!igraph::is_dag(g)) stop("Level-path network contains cycles; cannot compute stream level.")
+  ord <- rev(match(igraph::as_ids(igraph::topo_sort(g, mode = "out")), ulp))
+
+  # downstream level path of each level path (NA = drains out of the network)
+  dn_of <- rep(NA_integer_, length(ulp))
+  dn_of[match(edges$from, ulp)] <- match(edges$to, ulp)
+
+  # downstream-first pass: terminal level paths are 1, each step upstream +1
+  lvl <- integer(length(ulp))
+  for (r in ord) {
+    d <- dn_of[r]
+    lvl[r] <- if (is.na(d)) 1L else lvl[d] + 1L
+  }
+
+  lvl[match(lp, ulp)]
+}
+
+#' Compute Pfafstetter basin codes over a directed acyclic network
+#'
+#' Assigns hierarchical Pfafstetter codes (the NHDPlus basin-coding scheme).
+#' At each level the basin's mainstem is found, its four largest tributaries (by
+#' total drainage area) are given even digits `2,4,6,8` ordered downstream to
+#' upstream, and the five mainstem inter-basins between those junctions take odd
+#' digits `1,3,5,7,9`. Each of the nine sub-basins is then subdivided the same
+#' way, appending a digit per level, down to `max_level`.
+#'
+#' @param x A data frame with `id`, downstream pointer `toid`, `total_da`
+#'   (total upstream drainage area), `topo_sort` (a hydrosequence; smaller is
+#'   more downstream, e.g. from [get_hydroseq()]), and `levelpath` (e.g. from
+#'   [get_levelpath()]). Terminal/outlet rows use `NA`, `""`, `"0"`, or an
+#'   unknown `toid`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#' @param total_da,topo_sort,levelpath Column names for total drainage area,
+#'   hydrosequence, and level-path id. Defaults `"total_da_sqkm"`,
+#'   `"topo_sort"`, `"levelpath"`.
+#' @param max_level Integer. Number of Pfafstetter levels (digits) to assign.
+#'   Default `2`.
+#' @returns Numeric vector of `max_level`-digit Pfafstetter codes aligned to the
+#'   rows of `x`. Reaches whose sub-basin is deeper than `max_level` levels are
+#'   `NA`.
+#' @details Requires the drainage-area, hydrosequence, and level-path columns to
+#'   be precomputed (see [accumulate_downstream()], [get_hydroseq()],
+#'   [get_levelpath()]); this keeps the coding independent of how those were
+#'   derived. Ties in the four-largest-tributary cut are resolved by keeping all
+#'   tied tributaries.
+#' @examples
+#' \dontrun{
+#' x$total_da_sqkm <- accumulate_downstream(x, attr = "areasqkm")
+#' x$topo_sort     <- get_hydroseq(x)
+#' x$levelpath     <- get_levelpath(x, weight = "total_da_sqkm")
+#' x$pfaf          <- get_pfafstetter(x, max_level = 2)
+#' }
+#' @importFrom stats setNames ave
+#' @family network properties
+#' @export
+get_pfafstetter <- function(x, id = "flowpath_id", toid = "flowpath_toid",
+                            total_da = "total_da_sqkm", topo_sort = "topo_sort",
+                            levelpath = "levelpath", max_level = 2) {
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  da  <- as.numeric(x[[total_da]])
+  ts  <- as.numeric(x[[topo_sort]])
+  lp  <- as.character(x[[levelpath]])
+  N   <- length(ids)
+  tos[is.na(tos) | tos == ""] <- "0"
+
+  ipos <- stats::setNames(seq_len(N), ids)                 # id -> row index
+
+  # level-path outlet id: within each level path, the id of its most-downstream
+  # (minimum topo_sort) reach. Reaches sharing an outlet share a level path.
+  ord0      <- order(lp, ts)
+  firstlp   <- !duplicated(lp[ord0])
+  lp_out_of <- stats::setNames(ids[ord0][firstlp], lp[ord0][firstlp])
+  lp_outlet <- unname(lp_out_of[lp])                       # per reach
+
+  acc <- vector("list", 0L)                                # (members, code) rows
+
+  # recursive nine-way subdivision of one basin whose mainstem is `ms_ids`
+  pfaf9 <- function(ms_ids, pre_pfaf, assigned_even) {
+    if (pre_pfaf >= 10^(max_level - 1)) return(invisible())
+    ms_lp <- lp[ipos[[ms_ids[1]]]]
+
+    trib <- which(tos %in% ms_ids & lp != ms_lp)           # tributary outlets
+    if (length(assigned_even)) trib <- trib[!ids[trib] %in% assigned_even]
+    if (length(ms_ids) == 1L && length(trib) == 0L) return(invisible())
+
+    if (length(trib)) {
+      k   <- min(4L, length(trib))
+      thr <- sort(da[trib], decreasing = TRUE)[k]
+      t4  <- trib[da[trib] >= thr]
+      t4  <- t4[order(ts[ipos[tos[t4]]])]                  # downstream junction first
+    } else t4 <- integer(0)
+    jt <- ts[ipos[tos[t4]]]                                # junction topo_sorts
+    nt <- length(jt)
+
+    ms_ts_all <- ts[ipos[ms_ids]]
+    members   <- vector("list", 9L)
+    odd_d     <- c(1L, 3L, 5L, 7L, 9L)
+    for (s in 1:5) {                                       # odd digits: interbasins
+      if (s > nt + 1L) { members[[odd_d[s]]] <- character(0); next }
+      if (s == 1L)                        m <- ms_ts_all <= jt[1]
+      else if (s == 5L || s == nt + 1L)   m <- ms_ts_all >  jt[s - 1]
+      else                                m <- ms_ts_all >  jt[s - 1] & ms_ts_all <= jt[s]
+      members[[odd_d[s]]] <- ms_ids[m]
+    }
+    even_d <- c(2L, 4L, 6L, 8L)
+    for (k in seq_len(min(4L, nt))) {                      # even digits: tributaries
+      members[[even_d[k]]] <- ids[lp_outlet == lp_outlet[t4[k]]]
+    }
+
+    codes <- (1:9) + pre_pfaf * 10
+    if (all(lengths(members) == 0L)) members[[1]] <- ms_ids   # degenerate mainstem
+
+    all_new <- character(0)
+    for (p in 1:9) {
+      mm <- members[[p]]
+      if (!length(mm)) next
+      acc[[length(acc) + 1L]] <<- list(m = mm, c = codes[p])
+      all_new <- c(all_new, mm)
+    }
+    if (all(all_new %in% ms_ids)) return(invisible())       # base case: nothing to recurse
+
+    even_members <- unlist(members[even_d], use.names = FALSE)
+    for (p in 1:9) {
+      mm <- members[[p]]
+      if (length(mm)) pfaf9(mm, codes[p], even_members)
+    }
+    invisible()
+  }
+
+  root_lp <- lp[which.min(ts)]                             # outlet's level path
+  pfaf9(ids[lp == root_lp], pre_pfaf = 0, assigned_even = character(0))
+  if (!length(acc)) return(rep(NA_real_, N))
+
+  member <- unlist(lapply(acc, function(a) a$m), use.names = FALSE)
+  code   <- unlist(lapply(acc, function(a) rep(a$c, length(a$m))), use.names = FALSE)
+  level  <- nchar(as.character(code))                      # digit count == level
+  ok     <- level <= max_level                            # ignore any over-deep codes
+  member <- member[ok]; code <- code[ok]; level <- level[ok]
+
+  # per (member, level) keep only the largest code, then pivot to one column
+  # per level and back/forward-fill so every coded reach carries a full code.
+  key    <- paste(member, level, sep = "\r")
+  mx     <- stats::ave(code, key, FUN = max)
+  keep   <- code == mx
+  member <- member[keep]; level <- level[keep]; code <- code[keep]
+  dedup  <- !duplicated(paste(member, level, sep = "\r"))
+  member <- member[dedup]; level <- level[dedup]; code <- code[dedup]
+
+  mu <- unique(member)
+  M  <- matrix(NA_real_, nrow = length(mu), ncol = max_level)
+  M[cbind(match(member, mu), level)] <- code
+  if (max_level >= 2L) {
+    for (i in 2:max_level) {                               # forward: append 1
+      na_i <- is.na(M[, i]) & !is.na(M[, i - 1])
+      M[na_i, i] <- 1 + M[na_i, i - 1] * 10
+    }
+    for (i in (max_level - 1):1) {                         # backward: drop last digit
+      na_i <- is.na(M[, i])
+      M[na_i, i] <- floor(M[na_i, i + 1] / 10)
+    }
+  }
+  code_of <- stats::setNames(M[, max_level], mu)
+  unname(code_of[ids])
 }
 
 # ---- DAG / hydrosequence topology helpers -----------------------------------

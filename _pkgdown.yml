@@ -49,15 +49,10 @@ navbar:
     stack:
       text: Stack
       menu:
-        - text: "Architecture overview"
-          href: https://lynker-spatial.github.io/hfpublish/articles/architecture.html
-        - text: -------
         - text: "hfsubset — subset"
           href: https://lynker-spatial.github.io/hfsubset
         - text: "hydrofabric — build"
           href: https://lynker-spatial.github.io/hydrofabric
-        - text: "hfpublish — publish"
-          href: https://lynker-spatial.github.io/hfpublish
     lynker:
       text: Lynker Spatial
       href: https://www.lynker-spatial.com/
@@ -80,6 +75,9 @@ reference:
   - as_ogr
   - layer_exists
   - OGRSQL
+  - gpkg_exec
+  - gpkg_update_col
+  - gpkg_update_geom
 
 - title: Cloud & GeoParquet
   desc: >
@@ -112,12 +110,21 @@ reference:
   - accumulate_downstream
   - get_hydroseq
   - get_streamorder
+  - get_levelpath
+  - get_pathlength
+  - get_streamlevel
+  - get_pfafstetter
   - add_measures
   - add_areasqkm
   - add_lengthkm
   - get_node
   - node_geometry
   - rename_geometry
+  - hf_network_is_dag
+  - hf_assert_network_dag
+  - hf_recompute_hydroseq
+  - hf_break_cycles
+  - hf_fmt_id
 
 - title: Versioning & quality assurance
   desc: >

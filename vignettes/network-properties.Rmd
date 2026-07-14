@@ -1,8 +1,8 @@
 ---
-title: "Network properties: accumulation and hydrosequence"
+title: "Network properties: accumulation, ordering, and coding"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Network properties: accumulation and hydrosequence}
+  %\VignetteIndexEntry{Network properties: accumulation, ordering, and coding}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,9 +17,10 @@ library(hfutils)
 
 A hydrofabric flow network is a **directed acyclic graph (DAG)**: every feature
 (`id`) points to exactly one downstream feature (`toid`), and terminal
-features point to `0` (or `NA`). `hfutils` provides two topology primitives that
-operate on this structure — both are character-safe, so identifiers such as
-`"fp-123"` or scientific-notation strings round-trip cleanly.
+features point to `0` (or `NA`). `hfutils` provides a family of topology
+functions that operate on this structure — all are character-safe, so
+identifiers such as `"fp-123"` or scientific-notation strings round-trip
+cleanly, and each returns a vector aligned to the input rows.
 
 ## Downstream accumulation
 
@@ -68,6 +69,53 @@ outlet, which makes it a convenient sort key for downstream traversal.
 df$hydroseq <- get_hydroseq(df)
 df[order(-df$hydroseq), c("flowpath_id", "flowpath_toid", "hydroseq")]
 ```
+
+## Derived network attributes
+
+The rest of the family builds the standard NHDPlus-style routing attributes on
+top of the same topological pass. Take a small basin — a mainstem `4 → 3 → 1`
+with a tributary `2 → 1` draining to the outlet `1`:
+
+```{r}
+net <- data.frame(
+  flowpath_id   = c("1", "2", "3", "4"),
+  flowpath_toid = c("0", "1", "1", "3"),
+  lengthkm      = c(4, 2, 3, 5)
+)
+
+net$arbolate  <- accumulate_downstream(net, attr = "lengthkm")   # arbolate sum
+net$order     <- get_streamorder(net)                            # Strahler order
+net$levelpath <- get_levelpath(net, weight = "arbolate")         # mainstem grouping
+net$pathlen   <- get_pathlength(net, length = "lengthkm")        # distance to outlet
+net$level     <- get_streamlevel(net, levelpath = "levelpath")   # stream level
+net
+```
+
+- **`get_streamorder()`** — Strahler order: leaves are `1`, and order increases
+  only where two equal-order streams meet (so the confluence at `1` is order 2).
+- **`get_levelpath()`** — groups reaches into continuous mainstems, following the
+  largest-`weight` contributor at each confluence (here the arbolate sum, so
+  `1`, `3`, `4` share a level path and the tributary `2` is its own).
+- **`get_pathlength()`** — distance along the network from each reach's outlet to
+  the network terminus (`0` at the outlet, summing downstream lengths going up).
+- **`get_streamlevel()`** — how many level-path steps a reach is from the
+  terminus: the mainstem is `1`, the tributary `2`.
+
+### Pfafstetter codes
+
+`get_pfafstetter()` assigns hierarchical [Pfafstetter](https://en.wikipedia.org/wiki/Pfafstetter_Coding_System)
+basin codes. It needs total drainage area, a hydrosequence, and level paths
+precomputed, then subdivides each basin's mainstem by its four largest
+tributaries, recursing `max_level` digits deep:
+
+```{r, eval = FALSE}
+net$total_da_sqkm <- accumulate_downstream(net, attr = "areasqkm")
+net$topo_sort     <- get_hydroseq(net)
+net$pfaf          <- get_pfafstetter(net, max_level = 2)
+```
+
+The result is most meaningful on a full basin, where each digit narrows the
+location within the drainage hierarchy.
 
 ## In practice
 

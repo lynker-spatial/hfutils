@@ -17,9 +17,8 @@ a known `id`.}
 Integer vector of stream orders aligned to the rows of `x`.
 }
 \description{
-Native replacement for `hydroloom::add_streamorder` -- same topological
-approach as [get_hydroseq()] (igraph topo-sort), with no external dependency
-and no non-dendritic/divergence handling required. Leaves are order 1; at each
+Same topological approach as [get_hydroseq()] (igraph topo-sort), with no
+non-dendritic/divergence handling required. Leaves are order 1; at each
 node the order is the max of its upstream contributors, incremented by 1 when
 that max is shared by two or more of them (Strahler).
 }
@@ -28,3 +27,13 @@ that max is shared by two or more of them (Strahler).
 get_streamorder(data.frame(flowpath_id = c("1", "2", "3"),
   flowpath_toid = c("3", "3", "0")))
 }
+\seealso{
+Other network properties: 
+\code{\link{accumulate_downstream}()},
+\code{\link{get_hydroseq}()},
+\code{\link{get_levelpath}()},
+\code{\link{get_pathlength}()},
+\code{\link{get_pfafstetter}()},
+\code{\link{get_streamlevel}()}
+}
+\concept{network properties}

@@ -1,3 +1,17 @@
+# hfutils 0.4.0
+
+Completes the topological network-property family.
+
+* New `get_pathlength()` — distance along the network from each reach's outlet
+  to the terminal outlet (the NHDPlus `PathLength` attribute).
+* New `get_streamlevel()` — stream level, the number of level-path steps from a
+  reach to the network terminus (the NHDPlus `StreamLeve` attribute).
+* New `get_pfafstetter()` — hierarchical Pfafstetter basin codes, verified
+  against a full 746-reach reference basin.
+* These join `accumulate_downstream()`, `get_hydroseq()`, `get_streamorder()`,
+  and `get_levelpath()`; all are character-safe and return a vector aligned to
+  the input rows, and now cross-reference each other in their help pages.
+
 # hfutils 0.3.4
 
 Correctness and quality pass on the base layer.
