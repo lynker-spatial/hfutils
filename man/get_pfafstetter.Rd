@@ -65,6 +65,7 @@ Other network properties:
 \code{\link{get_levelpath}()},
 \code{\link{get_pathlength}()},
 \code{\link{get_streamlevel}()},
-\code{\link{get_streamorder}()}
+\code{\link{get_streamorder}()},
+\code{\link{upstream_index}()}
 }
 \concept{network properties}

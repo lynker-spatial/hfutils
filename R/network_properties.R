@@ -226,6 +226,129 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   so
 }
 
+#' Nested-set upstream index over a rooted-tree network
+#'
+#' Assigns each node two integers that turn "everything upstream of X" into an
+#' O(1) range filter, with no traversal at query time. A depth-first pre-order
+#' walk from each outlet numbers the nodes so that every node and all of its
+#' upstream contributors occupy one contiguous block:
+#'
+#' \describe{
+#'   \item{`upstream_id`}{The pre-order position of the node.}
+#'   \item{`num_upstreams`}{The count of nodes strictly upstream (its up-tree
+#'     size, excluding itself).}
+#' }
+#'
+#' The nodes strictly upstream of a node with `upstream_id == u` and
+#' `num_upstreams == k` are exactly those whose `upstream_id` lies in the
+#' half-open interval `(u, u + k]` (this is the *nested set model*).
+#'
+#' @param x A data frame with the identifier column `id` and downstream pointer
+#'   `toid`. Terminal/outlet rows use `NA`, `""`, `"0"`, or a `toid` that is not
+#'   a known `id`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#'
+#' @return A data frame aligned to the rows of `x` with integer columns
+#'   `upstream_id` and `num_upstreams`, plus attributes `n_outlets`,
+#'   `n_divergences`, and `n_bad`.
+#'
+#' @details
+#' The index is exact only on a rooted tree: each node must have a single
+#' downstream. A node appearing more than once (two downstreams) is a divergence
+#' the index cannot represent; it is counted in the `n_divergences` attribute and
+#' warned about. The network must also be acyclic (errors otherwise, like
+#' [accumulate_downstream()], which computes `num_upstreams` here as the up-tree
+#' size). At each confluence the largest-upstream branch is expanded first so the
+#' main stem receives a contiguous run of ids (ties broken by row order); the
+#' ordering never affects the nested-set property itself, only which block a
+#' branch lands in. `upstream_id` is a position in one traversal of one network,
+#' so it changes when the topology changes and is not a persistent key.
+#'
+#' @examples
+#' # two headwaters (1,2) join at 3 -> outlet 4
+#' idx <- upstream_index(data.frame(
+#'   flowpath_id   = c("1", "2", "3", "4"),
+#'   flowpath_toid = c("3", "3", "4", "0")))
+#' # nodes strictly upstream of 4 (upstream_id u, num_upstreams k -> (u, u+k]):
+#' u <- idx$upstream_id[4]; k <- idx$num_upstreams[4]
+#' which(idx$upstream_id > u & idx$upstream_id <= u + k)
+#'
+#' @family network properties
+#' @export
+upstream_index <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  n   <- length(ids)
+  if (n == 0L) {
+    out <- data.frame(upstream_id = integer(0), num_upstreams = integer(0))
+    attr(out, "n_outlets") <- 0L; attr(out, "n_divergences") <- 0L
+    attr(out, "n_bad") <- 0L
+    return(out)
+  }
+
+  # downstream row index; NA = terminal (NA/""/"0" or a toid that is not an id)
+  di <- match(tos, ids)
+  di[is.na(tos) | tos == "" | tos == "0"] <- NA_integer_
+
+  # Divergence guard: a functional (single-downstream) graph has each id once.
+  # A duplicated id is a node with two downstreams -- a divergence the nested-set
+  # encoding cannot represent.
+  dup_id <- sum(duplicated(ids))
+  if (dup_id > 0L)
+    warning(sprintf(paste0("upstream_index: %d duplicate id(s) -- the network is ",
+      "not a tree (a node with two downstreams); upstream ranges may be incorrect"),
+      dup_id), call. = FALSE)
+
+  # num_upstreams: accumulate a unit attribute downstream (up-tree size incl.
+  # self), reusing the shared accumulator (its is_dag() check catches cycles).
+  acc <- data.frame(.id = ids, .toid = ids[di], .one = 1, stringsAsFactors = FALSE)
+  subtree_size <- as.integer(round(
+    accumulate_downstream(acc, id = ".id", toid = ".toid", attr = ".one")))
+  num_upstreams <- subtree_size - 1L
+
+  # children (inverse network), integer-indexed length-n list; roots = terminals
+  children <- vector("list", n)
+  sp <- split(seq_len(n), di)                    # NA (terminal) groups dropped
+  if (length(sp)) children[as.integer(names(sp))] <- sp
+  roots <- which(is.na(di))
+
+  # Iterative pre-order DFS. Expand the largest-upstream child first (rank rk) so
+  # the main stem is contiguous; positional integer indexing keeps it O(n).
+  ord_key <- order(subtree_size, seq_len(n))
+  rk <- integer(n); rk[ord_key] <- seq_len(n)
+  upstream_id <- integer(n)
+  stack <- integer(n); top <- 0L
+  if (length(roots)) { r <- roots[order(rk[roots])]; m <- length(r); stack[seq_len(m)] <- r; top <- m }
+  counter <- 0L
+  while (top > 0L) {
+    cur <- stack[top]; top <- top - 1L
+    counter <- counter + 1L
+    upstream_id[cur] <- counter
+    kids <- children[[cur]]
+    if (length(kids)) {
+      kids <- kids[order(rk[kids])]; m <- length(kids)
+      stack[(top + 1L):(top + m)] <- kids; top <- top + m
+    }
+  }
+
+  # Self-check: every node must sit inside its downstream's interval. On an
+  # acyclic single-downstream graph this always holds; a failure is an internal
+  # error, not a data defect.
+  hp <- which(!is.na(di)); p <- di[hp]
+  n_bad <- sum(!(upstream_id[hp] > upstream_id[p] &
+    upstream_id[hp] <= upstream_id[p] + num_upstreams[p]))
+  if (n_bad > 0L)
+    warning(sprintf(paste0("upstream_index: internal error -- %d node(s) fall ",
+      "outside their downstream's interval; the index is invalid"), n_bad),
+      call. = FALSE)
+
+  out <- data.frame(upstream_id = upstream_id, num_upstreams = num_upstreams)
+  attr(out, "n_outlets")     <- length(roots)
+  attr(out, "n_divergences") <- dup_id
+  attr(out, "n_bad")         <- n_bad
+  out
+}
+
 #' Compute mainstem level paths over a directed acyclic network
 #'
 #' Same topological approach as [get_hydroseq()] / [get_streamorder()] (igraph
