@@ -65,6 +65,7 @@ Other network properties:
 \code{\link{get_pathlength}()},
 \code{\link{get_pfafstetter}()},
 \code{\link{get_streamlevel}()},
-\code{\link{get_streamorder}()}
+\code{\link{get_streamorder}()},
+\code{\link{merge_groups}()}
 }
 \concept{network properties}

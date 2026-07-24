@@ -349,6 +349,65 @@ upstream_index <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   out
 }
 
+#' Group a network into contiguous same-order runs for partitioning
+#'
+#' Walks the nodes in nested-set pre-order ([upstream_index()]) and starts a new
+#' group whenever the run breaks: either the current node does not flow directly
+#' into the previous node (a confluence / branch boundary) or, when `order` is
+#' supplied, its stream order differs. The result is a set of contiguous runs of
+#' constant stream order along each mainstem, the building block a size-budgeted
+#' tiler or partitioner merges up to a target chunk size (each group is a
+#' contiguous `upstream_id` range, so a partition is always a set of complete
+#' sub-networks). Adapted from the nested-set partitioning in
+#' \href{https://github.com/joshcu/upstream-index}{joshcu/upstream-index}.
+#'
+#' @param x A data frame with the identifier column `id` and downstream pointer
+#'   `toid`. Terminal/outlet rows use `NA`, `""`, `"0"`, or a `toid` that is not
+#'   a known `id`.
+#' @param id,toid Column names. Default `"flowpath_id"` / `"flowpath_toid"`.
+#' @param order Optional column name of a stream order (e.g. Strahler); when
+#'   given, a run also breaks where the order changes. `NULL` breaks only on
+#'   connectivity (pure mainstem runs).
+#' @param upstream_id Optional column name of a precomputed `upstream_id`
+#'   ([upstream_index()]); computed internally when `NULL`.
+#' @returns Integer vector of group ids aligned to the rows of `x`.
+#' @examples
+#' # a mainstem 4 -> 3 -> 1 with a tributary 2 -> 1, all order 1
+#' x <- data.frame(
+#'   flowpath_id   = c("1", "2", "3", "4"),
+#'   flowpath_toid = c("0", "1", "1", "3"),
+#'   ord           = c(1, 1, 1, 1))
+#' merge_groups(x, order = "ord")
+#' @family network properties
+#' @export
+merge_groups <- function(x, id = "flowpath_id", toid = "flowpath_toid",
+                         order = NULL, upstream_id = NULL) {
+  ids <- as.character(x[[id]])
+  tos <- as.character(x[[toid]])
+  n   <- length(ids)
+  if (n == 0L) return(integer(0))
+
+  u <- if (is.null(upstream_id)) upstream_index(x, id = id, toid = toid)$upstream_id
+       else as.integer(x[[upstream_id]])
+  o <- order(u)                                   # pre-order sequence
+  ids_o <- ids[o]; tos_o <- tos[o]
+
+  # A run continues while the current node flows directly into the previous node
+  connected <- c(FALSE, tos_o[-1] == ids_o[-n])
+  connected[is.na(connected)] <- FALSE
+  keep <- connected
+  # ... and (optionally) shares its stream order
+  if (!is.null(order)) {
+    ord_o     <- x[[order]][o]
+    same_ord  <- c(FALSE, ord_o[-1] == ord_o[-n])
+    same_ord[is.na(same_ord)] <- FALSE
+    keep <- keep & same_ord
+  }
+  grp_o <- cumsum(!keep)                           # new group wherever the run breaks
+  out <- integer(n); out[o] <- grp_o
+  out
+}
+
 #' Compute mainstem level paths over a directed acyclic network
 #'
 #' Same topological approach as [get_hydroseq()] / [get_streamorder()] (igraph

@@ -66,3 +66,40 @@ test_that("upstream_index is linear at scale", {
   expect_equal(attr(idx, "n_bad"), 0L)
   expect_equal(max(idx$num_upstreams), n - 1L)        # outlet sees the whole chain
 })
+
+test_that("merge_groups makes contiguous same-order runs", {
+  # mainstem 4 -> 3 -> 1 (order 1), tributary 2 -> 1 (order 1)
+  x <- data.frame(
+    flowpath_id   = c("1", "2", "3", "4"),
+    flowpath_toid = c("0", "1", "1", "3"),
+    ord           = c(1, 1, 1, 1))
+  g <- merge_groups(x, order = "ord")
+  # mainstem 1,3,4 form one run; tributary 2 is its own group
+  expect_equal(g[x$flowpath_id == "2"], g[x$flowpath_id == "2"])  # defined
+  expect_equal(length(unique(g)), 2L)
+  expect_true(g["3" == x$flowpath_id] == g["4" == x$flowpath_id])
+  expect_true(g["3" == x$flowpath_id] == g["1" == x$flowpath_id])
+  expect_false(g["2" == x$flowpath_id] == g["1" == x$flowpath_id])
+
+  # each group is a contiguous upstream_id range (a complete set of sub-networks)
+  u <- upstream_index(x)$upstream_id
+  for (grp in unique(g)) {
+    r <- sort(u[g == grp])
+    expect_equal(r, seq(min(r), max(r)))
+  }
+})
+
+test_that("merge_groups breaks a run where stream order changes", {
+  # linear chain 3 -> 2 -> 1, but order jumps at node 2
+  x <- data.frame(
+    flowpath_id   = c("1", "2", "3"),
+    flowpath_toid = c("0", "1", "2"),
+    ord           = c(2, 2, 1))
+  g <- merge_groups(x, order = "ord")
+  # 1,2 share order 2; 3 is order 1 -> new group at 3
+  expect_equal(g[x$flowpath_id == "1"], g[x$flowpath_id == "2"])
+  expect_false(g[x$flowpath_id == "3"] == g[x$flowpath_id == "2"])
+  # without the order break the whole chain is one group
+  g2 <- merge_groups(x)
+  expect_equal(length(unique(g2)), 1L)
+})
