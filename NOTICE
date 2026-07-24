@@ -1,5 +1,5 @@
 hfutils
-Copyright 2025-2026 Mike Johnson and Lynker Spatial
+Copyright 2025-2026 Mike Johnson
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,4 +17,15 @@ limitations under the License.
 
 Authors:
   Mike Johnson <mjohnson@lynker.com>
+
+Contributors:
   Justin Singh-Mohudpur
+
+-------------------------------------------------------------------------------
+
+Trademarks:
+  "Lynker Spatial" and the Lynker Spatial logo are trademarks of Lynker Spatial.
+  The Apache License, Version 2.0 granted for this software does not grant
+  permission to use these marks (see Apache-2.0 section 6). "hfutils" is used
+  here as a common, descriptive term for the software and is not claimed as a
+  trademark in this release. See TRADEMARKS.md.

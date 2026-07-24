@@ -20,11 +20,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Mike Johnson \email{mjohnson@lynker.com}
+\strong{Maintainer}: Mike Johnson \email{mjohnson@lynker.com} [copyright holder]
 
-Authors:
+Other contributors:
 \itemize{
-  \item Justin Singh-Mohudpur
+  \item Justin Singh-Mohudpur [contributor]
 }
 
 }
