@@ -1,3 +1,15 @@
+# hfutils 0.4.1
+
+* New `upstream_index()`: a nested-set upstream index (`upstream_id` and
+  `num_upstreams`) over a rooted-tree network, so everything upstream of a node
+  is an O(1) integer range filter (`upstream_id` in `(u, u + k]`) with no
+  traversal. Reuses `accumulate_downstream()` for the count (inheriting its
+  acyclic check) and flags divergences or cycles rather than mis-indexing.
+* New `merge_groups()`: groups a network into contiguous same-order runs over
+  the `upstream_index()` pre-order. Each group is a contiguous `upstream_id`
+  range, so a size-budgeted tiler or partitioner can merge groups into balanced
+  chunks that are always complete sub-networks.
+
 # hfutils 0.4.0
 
 Completes the topological network-property family.
