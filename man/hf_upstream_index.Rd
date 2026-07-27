@@ -14,33 +14,24 @@ hf_upstream_index(
 )
 }
 \arguments{
-\item{flowpaths}{A data frame with `flowpath_id` and `flowpath_toid`.}
+\item{flowpaths}{Data frame with `flowpath_id` and `flowpath_toid`.}
 
-\item{nexus}{A data frame with `nexus_id` and `nexus_toid`, or `NULL` (then
-every `flowpath_toid` that is not itself a flowpath is a terminal).}
+\item{nexus}{Data frame with `nexus_id` and `nexus_toid`, or `NULL` (a
+`flowpath_toid` that is not a flowpath is then a terminal).}
 
 \item{fp_id, fp_toid}{Flowpath id / downstream column names.}
 
 \item{nex_id, nex_toid}{Nexus id / downstream column names.}
 }
 \value{
-A data frame with `flowpath_id`, `upstream_id`, and `num_upstreams`
-  aligned to the rows of `flowpaths`, plus attributes `n_outlets`,
-  `n_divergences`, and `n_bad`. Filter any layer's rows to the network
-  upstream of a flowpath with `upstream_id` in `(u, u + k]`.
+A data frame with `flowpath_id`, `upstream_id`, `num_upstreams`
+  aligned to `flowpaths` (attributes `n_outlets`, `n_divergences`, `n_bad`).
 }
 \description{
-Resolves the hydrofabric `flowpath -> nexus -> flowpath` topology into a
-direct flowpath graph and computes the nested-set index over it
-([upstream_index()]). This is the schema-aware wrapper that
-[write_hydrofabric()] and downstream indexers share, so the index is computed
-one way everywhere a hydrofabric is written (per-VPU, merged, or subset).
-}
-\details{
-The index is exact only on a rooted tree. A nexus with two distinct
-downstreams is a divergence that the `flowpath -> nexus -> flowpath`
-resolution collapses, so it is detected here (the primitive would already see
-a tree); a duplicated `flowpath_id` is caught by [upstream_index()].
+Resolves the `flowpath -> nexus -> flowpath` topology to a direct flowpath
+graph and runs [upstream_index()] over it. Shared by [write_hydrofabric()] so
+a hydrofabric is indexed the same way however it is written. A divergent nexus
+(two downstreams) is flagged; the index is exact only on a rooted tree.
 }
 \examples{
 fp  <- data.frame(flowpath_id = c("1","2","3"), flowpath_toid = c("nex-9","0","nex-9"))

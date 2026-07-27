@@ -30,15 +30,11 @@ connectivity (pure mainstem runs).}
 Integer vector of group ids aligned to the rows of `x`.
 }
 \description{
-Walks the nodes in nested-set pre-order ([upstream_index()]) and starts a new
-group whenever the run breaks: either the current node does not flow directly
-into the previous node (a confluence / branch boundary) or, when `order` is
-supplied, its stream order differs. The result is a set of contiguous runs of
-constant stream order along each mainstem, the building block a size-budgeted
-tiler or partitioner merges up to a target chunk size (each group is a
-contiguous `upstream_id` range, so a partition is always a set of complete
-sub-networks). Adapted from the nested-set partitioning in
-\href{https://github.com/joshcu/upstream-index}{joshcu/upstream-index}.
+Walks the nodes in nested-set pre-order ([upstream_index()]) and breaks a run
+where the current node does not flow directly into the previous one, or (with
+`order`) where stream order changes. Each group is a contiguous `upstream_id`
+range, so a size-budgeted tiler can merge groups into complete sub-networks.
+Adapted from \href{https://github.com/joshcu/upstream-index}{joshcu/upstream-index}.
 }
 \examples{
 # a mainstem 4 -> 3 -> 1 with a tributary 2 -> 1, all order 1

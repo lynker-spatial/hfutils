@@ -252,16 +252,14 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 #'   `n_divergences`, and `n_bad`.
 #'
 #' @details
-#' The index is exact only on a rooted tree: each node must have a single
-#' downstream. A node appearing more than once (two downstreams) is a divergence
-#' the index cannot represent; it is counted in the `n_divergences` attribute and
-#' warned about. The network must also be acyclic (errors otherwise, like
-#' [accumulate_downstream()], which computes `num_upstreams` here as the up-tree
-#' size). At each confluence the largest-upstream branch is expanded first so the
-#' main stem receives a contiguous run of ids (ties broken by row order); the
-#' ordering never affects the nested-set property itself, only which block a
-#' branch lands in. `upstream_id` is a position in one traversal of one network,
-#' so it changes when the topology changes and is not a persistent key.
+#' Exact only on a rooted tree (single downstream per node). A node with two
+#' downstreams is a divergence the index cannot represent: counted in
+#' `n_divergences` and warned. The network must be acyclic (errors otherwise,
+#' like [accumulate_downstream()], which supplies `num_upstreams`). Confluences
+#' expand the largest-upstream branch first so main stems stay contiguous; this
+#' affects only which block a branch lands in, never the nested-set property.
+#' `upstream_id` is build-specific and changes with topology, so it is not a
+#' persistent key.
 #'
 #' @examples
 #' # two headwaters (1,2) join at 3 -> outlet 4
@@ -350,15 +348,11 @@ upstream_index <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
 
 #' Group a network into contiguous same-order runs for partitioning
 #'
-#' Walks the nodes in nested-set pre-order ([upstream_index()]) and starts a new
-#' group whenever the run breaks: either the current node does not flow directly
-#' into the previous node (a confluence / branch boundary) or, when `order` is
-#' supplied, its stream order differs. The result is a set of contiguous runs of
-#' constant stream order along each mainstem, the building block a size-budgeted
-#' tiler or partitioner merges up to a target chunk size (each group is a
-#' contiguous `upstream_id` range, so a partition is always a set of complete
-#' sub-networks). Adapted from the nested-set partitioning in
-#' \href{https://github.com/joshcu/upstream-index}{joshcu/upstream-index}.
+#' Walks the nodes in nested-set pre-order ([upstream_index()]) and breaks a run
+#' where the current node does not flow directly into the previous one, or (with
+#' `order`) where stream order changes. Each group is a contiguous `upstream_id`
+#' range, so a size-budgeted tiler can merge groups into complete sub-networks.
+#' Adapted from \href{https://github.com/joshcu/upstream-index}{joshcu/upstream-index}.
 #'
 #' @param x A data frame with the identifier column `id` and downstream pointer
 #'   `toid`. Terminal/outlet rows use `NA`, `""`, `"0"`, or a `toid` that is not
@@ -409,26 +403,18 @@ merge_groups <- function(x, id = "flowpath_id", toid = "flowpath_toid",
 
 #' Nested-set upstream index for a hydrofabric (flowpath + nexus grain)
 #'
-#' Resolves the hydrofabric `flowpath -> nexus -> flowpath` topology into a
-#' direct flowpath graph and computes the nested-set index over it
-#' ([upstream_index()]). This is the schema-aware wrapper that
-#' [write_hydrofabric()] and downstream indexers share, so the index is computed
-#' one way everywhere a hydrofabric is written (per-VPU, merged, or subset).
+#' Resolves the `flowpath -> nexus -> flowpath` topology to a direct flowpath
+#' graph and runs [upstream_index()] over it. Shared by [write_hydrofabric()] so
+#' a hydrofabric is indexed the same way however it is written. A divergent nexus
+#' (two downstreams) is flagged; the index is exact only on a rooted tree.
 #'
-#' The index is exact only on a rooted tree. A nexus with two distinct
-#' downstreams is a divergence that the `flowpath -> nexus -> flowpath`
-#' resolution collapses, so it is detected here (the primitive would already see
-#' a tree); a duplicated `flowpath_id` is caught by [upstream_index()].
-#'
-#' @param flowpaths A data frame with `flowpath_id` and `flowpath_toid`.
-#' @param nexus A data frame with `nexus_id` and `nexus_toid`, or `NULL` (then
-#'   every `flowpath_toid` that is not itself a flowpath is a terminal).
+#' @param flowpaths Data frame with `flowpath_id` and `flowpath_toid`.
+#' @param nexus Data frame with `nexus_id` and `nexus_toid`, or `NULL` (a
+#'   `flowpath_toid` that is not a flowpath is then a terminal).
 #' @param fp_id,fp_toid Flowpath id / downstream column names.
 #' @param nex_id,nex_toid Nexus id / downstream column names.
-#' @returns A data frame with `flowpath_id`, `upstream_id`, and `num_upstreams`
-#'   aligned to the rows of `flowpaths`, plus attributes `n_outlets`,
-#'   `n_divergences`, and `n_bad`. Filter any layer's rows to the network
-#'   upstream of a flowpath with `upstream_id` in `(u, u + k]`.
+#' @returns A data frame with `flowpath_id`, `upstream_id`, `num_upstreams`
+#'   aligned to `flowpaths` (attributes `n_outlets`, `n_divergences`, `n_bad`).
 #' @examples
 #' fp  <- data.frame(flowpath_id = c("1","2","3"), flowpath_toid = c("nex-9","0","nex-9"))
 #' nex <- data.frame(nexus_id = "nex-9", nexus_toid = "2")

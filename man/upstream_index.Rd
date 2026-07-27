@@ -36,16 +36,14 @@ The nodes strictly upstream of a node with `upstream_id == u` and
 half-open interval `(u, u + k]` (this is the *nested set model*).
 
 
-The index is exact only on a rooted tree: each node must have a single
-downstream. A node appearing more than once (two downstreams) is a divergence
-the index cannot represent; it is counted in the `n_divergences` attribute and
-warned about. The network must also be acyclic (errors otherwise, like
-[accumulate_downstream()], which computes `num_upstreams` here as the up-tree
-size). At each confluence the largest-upstream branch is expanded first so the
-main stem receives a contiguous run of ids (ties broken by row order); the
-ordering never affects the nested-set property itself, only which block a
-branch lands in. `upstream_id` is a position in one traversal of one network,
-so it changes when the topology changes and is not a persistent key.
+Exact only on a rooted tree (single downstream per node). A node with two
+downstreams is a divergence the index cannot represent: counted in
+`n_divergences` and warned. The network must be acyclic (errors otherwise,
+like [accumulate_downstream()], which supplies `num_upstreams`). Confluences
+expand the largest-upstream branch first so main stems stay contiguous; this
+affects only which block a branch lands in, never the nested-set property.
+`upstream_id` is build-specific and changes with topology, so it is not a
+persistent key.
 }
 \examples{
 # two headwaters (1,2) join at 3 -> outlet 4

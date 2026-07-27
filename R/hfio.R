@@ -268,13 +268,9 @@ write_hydrofabric <- function(network_list,
     enforce_cols <- function(data, layer_key, layer_name) TRUE
   }
 
-  # ---- nested-set upstream index (a property of THIS file's network) ----
-  # When the list is a complete hydrofabric (a flowpath and a nexus layer),
-  # compute the nested-set index for its own scope and stamp upstream_id /
-  # num_upstreams on every layer keyed by flowpath_id. This makes any gpkg
-  # written here (per-VPU, merged, or subset) carry a correct-scope O(1) upstream
-  # index. Attribute-only (no geometry touched); skipped when the topology layers
-  # are absent or the network is not acyclic.
+  # Stamp the nested-set upstream index on every flowpath-keyed layer when the
+  # list is a complete hydrofabric, so the written gpkg carries a correct-scope
+  # O(1) upstream index (see .hf_stamp_upstream_index). Attribute-only.
   network_list <- .hf_stamp_upstream_index(network_list, say)
 
   # ---- partition by type ----
