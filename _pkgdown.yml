@@ -4,7 +4,7 @@ development:
   mode: auto
 
 home:
-  title: hfutils — core utilities for the hydrofabric stack
+  title: "hfutils: core utilities for the hydrofabric stack"
   description: >
     Base-layer access, cleaning, network/topology, versioning, and quality
     checks for the Lynker Spatial hydrofabric.
@@ -49,9 +49,9 @@ navbar:
     stack:
       text: Stack
       menu:
-        - text: "hfsubset — subset"
+        - text: "hfsubset: subset"
           href: https://lynker-spatial.github.io/hfsubset
-        - text: "hydrofabric — build"
+        - text: "hydrofabric: build"
           href: https://lynker-spatial.github.io/hydrofabric
     lynker:
       text: Lynker Spatial

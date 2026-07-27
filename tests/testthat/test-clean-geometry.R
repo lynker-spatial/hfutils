@@ -1,4 +1,4 @@
-## clean_geometry() — DEM-derived catchment repair.
+## clean_geometry(): DEM-derived catchment repair.
 
 test_that("single-part catchments pass through with areas, ids preserved", {
   skip_if_not_installed("sf")
