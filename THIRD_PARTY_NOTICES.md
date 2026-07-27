@@ -4,8 +4,8 @@
 That license applies to Lynker Spatial's own code in this repository.
 
 This package **depends on** third-party R packages that carry their own
-licenses. Those packages are **not redistributed** with this source — they are
-installed separately from CRAN (or their upstream source) by the end user — so
+licenses. Those packages are **not redistributed** with this source; they are
+installed separately from CRAN (or their upstream source) by the end user, so
 their licenses govern the user's use of those packages, independent of the
 Apache-2.0 grant here. Several are copyleft (GPL/LGPL); using `hfutils` requires
 installing them and complying with their terms.
@@ -18,7 +18,7 @@ no constraint to the Apache-2.0 grant on Lynker Spatial's code.
 | License family | Packages |
 |---|---|
 | **GPL-2 / GPL-3 (≥)** | `igraph` (GPL ≥2), `terra` (GPL ≥3), `lwgeom` (GPL-2), `units` (GPL-2) |
-| **GPL-2 \| MIT (dual)** | `sf` — may be used under MIT |
+| **GPL-2 \| MIT (dual)** | `sf`, may be used under MIT |
 | **LGPL (≥2.1)** | `DBI`, `RSQLite` |
 | **MIT** | `cli`, `dbplyr`, `dplyr`, `duckdb`, `glue`, `httr2`, `jsonlite`, `rlang`, `rmapshaper`, `yyjsonr` |
 | **Apache-2.0** | `arrow` |

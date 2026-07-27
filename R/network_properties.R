@@ -210,12 +210,11 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   if (!igraph::is_dag(g)) stop("Network contains cycles; cannot compute stream order.")
   ord <- match(igraph::as_ids(igraph::topo_sort(g, mode = "out")), ids)
 
-  # Strahler order via a single integer-indexed pass. The previous version kept
-  # `so` as a CHARACTER-named vector and did so[nd] / so[contribs] / up[[nd]]
-  # lookups by name inside the loop -- each an O(n) scan, making the whole thing
-  # O(n^2). It stalled mega-basins (~44 min on the Mississippi's 461k reaches;
-  # infeasible on Amazon). Positional indexing makes every access O(1).
-  so <- integer(n)                       # UNNAMED, indexed by row position
+  # Strahler order via a single integer-indexed pass. Name-based lookups
+  # (so[nd] / up[[nd]] on character-named vectors) are an O(n) scan each, which
+  # makes the loop O(n^2) and infeasible on mega-basins; positional integer
+  # indexing keeps every access O(1).
+  so <- integer(n)                       # unnamed, indexed by row position
   for (r in ord) {
     contribs <- up[[r]]
     if (!length(contribs)) { so[r] <- 1L; next }   # headwater

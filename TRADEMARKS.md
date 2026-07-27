@@ -12,7 +12,7 @@ This policy explains what you may and may not do with Lynker Spatial's brand.
 ## What the software license already lets you do
 
 The Apache-2.0 license lets you use, modify, fork, and redistribute the
-`hfutils` software — including for commercial purposes. Nothing here takes that
+`hfutils` software, including for commercial purposes. Nothing here takes that
 away.
 
 ## What this policy covers (brand use)

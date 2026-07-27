@@ -4,7 +4,7 @@
 
 Tests use [testthat](https://testthat.r-lib.org/) and run against small,
 self-contained fixtures (the `sf::nc` sample and synthetic flow networks built
-in `tests/testthat/helper-fixtures.R`) — no network access, cloud
+in `tests/testthat/helper-fixtures.R`), no network access, cloud
 authentication, or external command-line tools are required.
 
 Run the suite with:
@@ -28,8 +28,8 @@ external services:
 
 These functions are validated through integration use rather than unit tests;
 their error-guard paths (e.g. malformed tokens) *are* unit-tested. Everything
-else — I/O, geometry cleaning, network/topology algorithms, versioning, and the
-staged invariant checks — is expected to stay well covered, so please add or
+else, I/O, geometry cleaning, network/topology algorithms, versioning, and the
+staged invariant checks, is expected to stay well covered, so please add or
 extend tests alongside any change to those areas.
 
 ### Conventions

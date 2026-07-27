@@ -2,11 +2,11 @@
 
 Completes the topological network-property family.
 
-* New `get_pathlength()` — distance along the network from each reach's outlet
+* New `get_pathlength()`: distance along the network from each reach's outlet
   to the terminal outlet (the NHDPlus `PathLength` attribute).
-* New `get_streamlevel()` — stream level, the number of level-path steps from a
+* New `get_streamlevel()`: stream level, the number of level-path steps from a
   reach to the network terminus (the NHDPlus `StreamLeve` attribute).
-* New `get_pfafstetter()` — hierarchical Pfafstetter basin codes, verified
+* New `get_pfafstetter()`: hierarchical Pfafstetter basin codes, verified
   against a full 746-reach reference basin.
 * These join `accumulate_downstream()`, `get_hydroseq()`, `get_streamorder()`,
   and `get_levelpath()`; all are character-safe and return a vector aligned to
@@ -16,7 +16,7 @@ Completes the topological network-property family.
 
 Correctness and quality pass on the base layer.
 
-* `tbl_http()` no longer errors on its default call — the malformed
+* `tbl_http()` no longer errors on its default call; the malformed
   `read_func` default is fixed and validated with `match.arg()`.
 * `get_hydroseq()` is now character-safe: non-numeric identifiers (`"fp-"`,
   scientific-notation strings) round-trip instead of being coerced to `NA`.
@@ -24,7 +24,7 @@ Correctness and quality pass on the base layer.
   (`hf_dm`) is only consulted when a caller supplies it, so the default call no
   longer fails looking for an object hfutils does not ship.
 * Fixed `union_polygons()` erroring (`object '.' not found`) in its
-  disjoint-MULTIPOLYGON dedup branch — it used the magrittr `.` pronoun under a
+  disjoint-MULTIPOLYGON dedup branch; it used the magrittr `.` pronoun under a
   native `|>` pipe. This path fires exactly when a group unions to disjoint
   parts; now regression-tested.
 * Removed divergent duplicate definitions of `rename_geometry()`,
@@ -55,7 +55,7 @@ Correctness and quality pass on the base layer.
 * **Attribute-integrity invariants.** `hf_check_merge_invariants()` and the
   per-stage `hf_check_invariants()` (aggregated/ngen) now guard
   `mainstem_id_populated` and `hydroseq_valid` via shared `.hf_mainstem_check()`
-  / `.hf_hydroseq_check()` helpers — catching carried/recomputed columns that
+  / `.hf_hydroseq_check()` helpers, catching carried/recomputed columns that
   are silently dropped or mis-mapped (the class behind two Stage-4 regressions
   in `hydrofabric`). Tests cover dropped / duplicate / clean at the per-stage
   and merge entry points.
@@ -63,10 +63,10 @@ Correctness and quality pass on the base layer.
   `client.version` (was an undeclared, unguarded `packageVersion("hfsubsetR")`
   that errored on any machine without that sibling package installed).
 * `tbl_http()` forwards named reader options through `...` to the DuckDB read
-  function (e.g. `union_by_name = TRUE` → `union_by_name=true`); previously
+  function (e.g. `union_by_name = TRUE` -> `union_by_name=true`); previously
   `...` was accepted but silently dropped.
 * `lynker_spatial_auth()` documents per-library behavior and adds `"arrow"` as
-  an opt-in target — arrow authenticates lynker-spatial via the S3 credential
+  an opt-in target; arrow authenticates lynker-spatial via the S3 credential
   chain (it has no HTTP-header filesystem for the bearer token).
 * `\dontrun{}` examples on every exported function; spell-check setup
   (`Language`, `inst/WORDLIST`, `tests/spelling.R`); `styler` + a documented
@@ -74,12 +74,12 @@ Correctness and quality pass on the base layer.
 
 # hfutils 0.3.3
 
-* Add `gpkg_set_version()` / `gpkg_get_version()` — stamp and read a dataset
+* Add `gpkg_set_version()` / `gpkg_get_version()`: stamp and read a dataset
   version (machine integer `Mmmpp` + human semver) into the standard GeoPackage
   metadata extension tables, with an optional build-provenance JSON entry and an
   SPDX license. Idempotent; leaves the GeoPackage spec version (`user_version`)
   untouched.
-* Add `hf_check_invariants()` — shared staged pipeline invariant checks
+* Add `hf_check_invariants()`: shared staged pipeline invariant checks
   (`refactored` / `reconciled` / `aggregated` / `ngen`) so every layer of the
   stack can use one implementation.
 * `accumulate_downstream()` now builds its topological-sort graph via

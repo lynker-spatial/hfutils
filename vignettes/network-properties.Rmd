@@ -18,7 +18,7 @@ library(hfutils)
 A hydrofabric flow network is a **directed acyclic graph (DAG)**: every feature
 (`id`) points to exactly one downstream feature (`toid`), and terminal
 features point to `0` (or `NA`). `hfutils` provides a family of topology
-functions that operate on this structure — all are character-safe, so
+functions that operate on this structure, all are character-safe, so
 identifiers such as `"fp-123"` or scientific-notation strings round-trip
 cleanly, and each returns a vector aligned to the input rows.
 
@@ -73,8 +73,8 @@ df[order(-df$hydroseq), c("flowpath_id", "flowpath_toid", "hydroseq")]
 ## Derived network attributes
 
 The rest of the family builds the standard NHDPlus-style routing attributes on
-top of the same topological pass. Take a small basin — a mainstem `4 → 3 → 1`
-with a tributary `2 → 1` draining to the outlet `1`:
+top of the same topological pass. Take a small basin, a mainstem `4 -> 3 -> 1`
+with a tributary `2 -> 1` draining to the outlet `1`:
 
 ```{r}
 net <- data.frame(
@@ -91,14 +91,14 @@ net$level     <- get_streamlevel(net, levelpath = "levelpath")   # stream level
 net
 ```
 
-- **`get_streamorder()`** — Strahler order: leaves are `1`, and order increases
+- **`get_streamorder()`**, Strahler order: leaves are `1`, and order increases
   only where two equal-order streams meet (so the confluence at `1` is order 2).
-- **`get_levelpath()`** — groups reaches into continuous mainstems, following the
+- **`get_levelpath()`**, groups reaches into continuous mainstems, following the
   largest-`weight` contributor at each confluence (here the arbolate sum, so
   `1`, `3`, `4` share a level path and the tributary `2` is its own).
-- **`get_pathlength()`** — distance along the network from each reach's outlet to
+- **`get_pathlength()`**, distance along the network from each reach's outlet to
   the network terminus (`0` at the outlet, summing downstream lengths going up).
-- **`get_streamlevel()`** — how many level-path steps a reach is from the
+- **`get_streamlevel()`**, how many level-path steps a reach is from the
   terminus: the mainstem is `1`, the tributary `2`.
 
 ### Pfafstetter codes
