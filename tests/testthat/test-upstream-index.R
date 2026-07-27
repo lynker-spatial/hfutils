@@ -103,3 +103,21 @@ test_that("merge_groups breaks a run where stream order changes", {
   g2 <- merge_groups(x)
   expect_equal(length(unique(g2)), 1L)
 })
+
+test_that("hf_upstream_index resolves fp->nexus->fp and indexes", {
+  # 1->nex9->? , 3->nex9->2 ; nexus 9 drains to flowpath 2 (outlet)
+  fp  <- data.frame(flowpath_id = c("1","2","3"),
+                    flowpath_toid = c("nex-9","0","nex-9"))
+  nex <- data.frame(nexus_id = "nex-9", nexus_toid = "2")
+  idx <- hf_upstream_index(fp, nex)
+  expect_equal(nrow(idx), 3L)
+  expect_equal(attr(idx, "n_outlets"), 1L)
+  expect_equal(idx$num_upstreams[idx$flowpath_id == "2"], 2L)   # outlet sees 1,3
+  expect_equal(idx$num_upstreams[idx$flowpath_id == "1"], 0L)   # headwater
+})
+
+test_that("hf_upstream_index flags a divergent nexus", {
+  fp  <- data.frame(flowpath_id = c("1","2","3"), flowpath_toid = c("nex-9","0","0"))
+  nex <- data.frame(nexus_id = c("nex-9","nex-9"), nexus_toid = c("2","3"))
+  expect_warning(hf_upstream_index(fp, nex), "divergence")
+})

@@ -66,6 +66,7 @@ Other network properties:
 \code{\link{get_pathlength}()},
 \code{\link{get_streamlevel}()},
 \code{\link{get_streamorder}()},
+\code{\link{hf_upstream_index}()},
 \code{\link{merge_groups}()},
 \code{\link{upstream_index}()}
 }

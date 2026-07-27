@@ -268,6 +268,15 @@ write_hydrofabric <- function(network_list,
     enforce_cols <- function(data, layer_key, layer_name) TRUE
   }
 
+  # ---- nested-set upstream index (a property of THIS file's network) ----
+  # When the list is a complete hydrofabric (a flowpath and a nexus layer),
+  # compute the nested-set index for its own scope and stamp upstream_id /
+  # num_upstreams on every layer keyed by flowpath_id. This makes any gpkg
+  # written here (per-VPU, merged, or subset) carry a correct-scope O(1) upstream
+  # index. Attribute-only (no geometry touched); skipped when the topology layers
+  # are absent or the network is not acyclic.
+  network_list <- .hf_stamp_upstream_index(network_list, say)
+
   # ---- partition by type ----
   is_sf <- vapply(network_list, function(x) inherits(x, "sf"), logical(1))
   sf_layers   <- network_list[is_sf]
@@ -355,3 +364,48 @@ write_hydrofabric <- function(network_list,
 
 # small helper for `%||%`
 `%||%` <- function(a, b) if (is.null(a) || (is.character(a) && identical(a, ""))) b else a
+
+# Stamp the nested-set upstream index onto every flowpath-keyed layer in a
+# hydrofabric network_list. Schema-detected (finds the flowpath and nexus layers
+# by their id/toid columns), attribute-only, and a no-op when the topology is
+# absent or the network is not acyclic. Shared by write_hydrofabric so per-VPU,
+# merged, and subset writes all carry a correct-scope index.
+.hf_stamp_upstream_index <- function(network_list, say = function(fn, msg) NULL) {
+  .find <- function(nl, cols) {
+    for (nm in names(nl)) {
+      x <- nl[[nm]]
+      if (is.data.frame(x) && all(cols %in% names(x))) return(nm)
+    }
+    NULL
+  }
+  fp_nm <- .find(network_list, c("flowpath_id", "flowpath_toid"))
+  if (is.null(fp_nm)) return(network_list)
+  nex_nm <- .find(network_list, c("nexus_id", "nexus_toid"))
+
+  fp  <- network_list[[fp_nm]]
+  nex <- if (!is.null(nex_nm)) network_list[[nex_nm]] else NULL
+  if (inherits(fp, "sf")) fp <- sf::st_drop_geometry(fp)
+  if (!is.null(nex) && inherits(nex, "sf")) nex <- sf::st_drop_geometry(nex)
+
+  tbl <- tryCatch(hf_upstream_index(fp, nex), error = function(e) {
+    say(cli::cli_alert_warning, glue::glue("upstream index skipped: {conditionMessage(e)}"))
+    NULL
+  })
+  if (is.null(tbl) || nrow(tbl) == 0L) return(network_list)
+
+  lu_u <- stats::setNames(tbl$upstream_id,   tbl$flowpath_id)
+  lu_n <- stats::setNames(tbl$num_upstreams, tbl$flowpath_id)
+  n_stamped <- 0L
+  for (nm in names(network_list)) {
+    x <- network_list[[nm]]
+    if (!is.data.frame(x) || !("flowpath_id" %in% names(x))) next
+    key <- as.character(x$flowpath_id)
+    x$upstream_id   <- as.integer(unname(lu_u[key]))
+    x$num_upstreams <- as.integer(unname(lu_n[key]))
+    network_list[[nm]] <- x
+    n_stamped <- n_stamped + 1L
+  }
+  say(cli::cli_alert_info, glue::glue(
+    "Upstream index: {nrow(tbl)} flowpaths across {attr(tbl, 'n_outlets')} outlet(s), stamped on {n_stamped} layer(s)"))
+  network_list
+}

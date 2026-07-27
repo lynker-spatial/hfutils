@@ -407,6 +407,81 @@ merge_groups <- function(x, id = "flowpath_id", toid = "flowpath_toid",
   out
 }
 
+#' Nested-set upstream index for a hydrofabric (flowpath + nexus grain)
+#'
+#' Resolves the hydrofabric `flowpath -> nexus -> flowpath` topology into a
+#' direct flowpath graph and computes the nested-set index over it
+#' ([upstream_index()]). This is the schema-aware wrapper that
+#' [write_hydrofabric()] and downstream indexers share, so the index is computed
+#' one way everywhere a hydrofabric is written (per-VPU, merged, or subset).
+#'
+#' The index is exact only on a rooted tree. A nexus with two distinct
+#' downstreams is a divergence that the `flowpath -> nexus -> flowpath`
+#' resolution collapses, so it is detected here (the primitive would already see
+#' a tree); a duplicated `flowpath_id` is caught by [upstream_index()].
+#'
+#' @param flowpaths A data frame with `flowpath_id` and `flowpath_toid`.
+#' @param nexus A data frame with `nexus_id` and `nexus_toid`, or `NULL` (then
+#'   every `flowpath_toid` that is not itself a flowpath is a terminal).
+#' @param fp_id,fp_toid Flowpath id / downstream column names.
+#' @param nex_id,nex_toid Nexus id / downstream column names.
+#' @returns A data frame with `flowpath_id`, `upstream_id`, and `num_upstreams`
+#'   aligned to the rows of `flowpaths`, plus attributes `n_outlets`,
+#'   `n_divergences`, and `n_bad`. Filter any layer's rows to the network
+#'   upstream of a flowpath with `upstream_id` in `(u, u + k]`.
+#' @examples
+#' fp  <- data.frame(flowpath_id = c("1","2","3"), flowpath_toid = c("nex-9","0","nex-9"))
+#' nex <- data.frame(nexus_id = "nex-9", nexus_toid = "2")
+#' hf_upstream_index(fp, nex)
+#' @family network properties
+#' @export
+hf_upstream_index <- function(flowpaths, nexus = NULL,
+                              fp_id = "flowpath_id", fp_toid = "flowpath_toid",
+                              nex_id = "nexus_id", nex_toid = "nexus_toid") {
+  id <- as.character(flowpaths[[fp_id]])
+  n  <- length(id)
+  if (n == 0L) {
+    out <- data.frame(flowpath_id = character(0), upstream_id = integer(0),
+      num_upstreams = integer(0), stringsAsFactors = FALSE)
+    attr(out, "n_outlets") <- 0L; attr(out, "n_bad") <- 0L
+    attr(out, "n_divergences") <- 0L
+    return(out)
+  }
+
+  # Resolve flowpath -> nexus -> flowpath into a direct flowpath graph; a toid
+  # that is not a real flowpath is a terminal.
+  nexmap <- if (!is.null(nexus) && nrow(nexus))
+    stats::setNames(as.character(nexus[[nex_toid]]), as.character(nexus[[nex_id]])) else
+    character(0)
+  ds <- unname(nexmap[as.character(flowpaths[[fp_toid]])])
+  ds[!(ds %in% id)] <- NA_character_
+
+  # A nexus with two distinct downstreams is a divergence the resolution above
+  # collapses, so detect it here (the primitive would already see a tree).
+  dup_nex <- 0L
+  if (!is.null(nexus) && nrow(nexus)) {
+    nt <- unique(data.frame(i = as.character(nexus[[nex_id]]),
+      t = as.character(nexus[[nex_toid]]), stringsAsFactors = FALSE))
+    dup_nex <- sum(table(nt$i) > 1L)
+  }
+  if (dup_nex > 0L)
+    warning(sprintf(paste0("hf_upstream_index: %d nexus(es) have two distinct ",
+      "downstreams (divergence); upstream range queries may be incorrect"),
+      dup_nex), call. = FALSE)
+
+  ix <- upstream_index(
+    data.frame(flowpath_id = id, ds_fp = ds, stringsAsFactors = FALSE),
+    id = "flowpath_id", toid = "ds_fp")
+
+  out <- data.frame(flowpath_id = id, upstream_id = ix$upstream_id,
+    num_upstreams = ix$num_upstreams, stringsAsFactors = FALSE)
+  n_div_prim <- attr(ix, "n_divergences"); if (is.null(n_div_prim)) n_div_prim <- 0L
+  attr(out, "n_outlets")     <- attr(ix, "n_outlets")
+  attr(out, "n_bad")         <- attr(ix, "n_bad")
+  attr(out, "n_divergences") <- n_div_prim + dup_nex
+  out
+}
+
 #' Compute mainstem level paths over a directed acyclic network
 #'
 #' Same topological approach as [get_hydroseq()] / [get_streamorder()] (igraph
