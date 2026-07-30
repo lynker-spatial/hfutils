@@ -33,14 +33,36 @@ test_that("get_node and node_geometry extract line endpoints as points", {
   expect_true(all(sf::st_geometry_type(ng) == "POINT"))
 })
 
-test_that("union_polygons keeps the largest part for a disjoint group", {
+# This test previously asserted the opposite: that a disjoint group is reduced to
+# its largest part, with a warning. That behaviour silently deleted ground, so the
+# assertion has been inverted deliberately -- a group whose members are disjoint
+# is a multipart catchment, not an error, and its area must survive.
+test_that("union_polygons keeps every part of a disjoint group", {
   skip_if_not_installed("sf")
   nc <- nc_divides(50L)
   g <- rbind(sf::st_sf(grp = "a", geometry = sf::st_geometry(nc[1, ])),
     sf::st_sf(grp = "a", geometry = sf::st_geometry(nc[50, ])))
-  expect_warning(out <- union_polygons(g, "grp"), "disjoint MULTIPOLYGON")
+  before <- sum(as.numeric(sf::st_area(g)))
+  out <- union_polygons(g, "grp")
   expect_equal(nrow(out), 1L)
-  expect_true(all(sf::st_geometry_type(out) == "POLYGON"))
+  expect_true(all(sf::st_geometry_type(out) == "MULTIPOLYGON"))
+  expect_equal(sum(as.numeric(sf::st_area(out))), before, tolerance = 1e-6)
+})
+
+test_that("union_polygons dissolves adjacent members without creating overlap", {
+  skip_if_not_installed("sf")
+  sq <- function(x0) sf::st_polygon(list(cbind(c(x0, x0+1, x0+1, x0, x0),
+                                               c(0, 0, 1, 1, 0))))
+  g <- sf::st_sf(grp = rep(c("a", "b"), each = 2),
+                 geometry = sf::st_sfc(sq(0), sq(1), sq(2), sq(3), crs = 5070))
+  out <- union_polygons(g, "grp")
+  expect_equal(nrow(out), 2L)
+  s <- sum(as.numeric(sf::st_area(out)))
+  u <- as.numeric(sf::st_area(sf::st_union(sf::st_geometry(out))))
+  # A tiling input must come out tiling: sum == union means zero overlap between
+  # the dissolved groups. The terra round-trip this replaced did not hold here.
+  expect_equal(s, u, tolerance = 1e-6)
+  expect_equal(s, sum(as.numeric(sf::st_area(g))), tolerance = 1e-6)
 })
 
 test_that("layer_exists is FALSE for a missing file and TRUE for a present layer", {

@@ -1,3 +1,23 @@
+# hfutils 0.4.2
+
+* `union_polygons()` is now an exact dissolve. It previously routed geometry
+  through `terra::makeValid() |> terra::aggregate()`, which perturbed shared
+  boundaries enough that neighbouring groups came out overlapping: on one CONUS
+  VPU the summed area of the result exceeded the summed area of its inputs by
+  20 km2, entirely overlap between adjacent groups. Downstream cleanup then
+  existed to remove that overlap. Grouped `sf::st_union()` over already-valid
+  inputs preserves the input tiling exactly -- measured on 61,061 real divides
+  in 23,910 groups: overlap 20 km2 -> 0.000000 km2, area delta -0.0005 km2, and
+  21s instead of ~65s.
+* `union_polygons()` no longer casts its result to `POLYGON` and keeps only the
+  largest part per group. A group whose members are genuinely disjoint is a
+  multipart catchment, not an error, and discarding the smaller parts silently
+  deleted ground. Output is `MULTIPOLYGON`. This path was latent rather than
+  active in current data, but it is the same defect that had to be fixed
+  separately downstream.
+* `union_polygons()` repairs input geometry only where `sf::st_is_valid()`
+  reports a problem, so valid input passes through untouched.
+
 # hfutils 0.4.1
 
 * New `upstream_index()`: a nested-set upstream index (`upstream_id` and

@@ -164,11 +164,11 @@ add_lengthkm <- function(x) {
 }
 
 
-#' Fast polygon union by ID
+#' Dissolve polygons by ID
 #'
-#' Significantly faster than `sf::st_union()`/`dplyr::summarise()` for
-#' unioning large polygon datasets by a grouping column, by leveraging
-#' `terra`'s `aggregate()` with a round-trip through `terra::vect()`.
+#' Dissolves a polygon layer by a grouping column, returning one feature per
+#' group. Single-member groups short-circuit to their own geometry, so the cost
+#' is paid only on groups that genuinely need unioning.
 #'
 #' @param poly An `sf` POLYGON/MULTIPOLYGON object with an attribute column
 #'   used for grouping.
@@ -180,55 +180,69 @@ add_lengthkm <- function(x) {
 #' If any resulting geometries are geometry collections, they are extracted to
 #' POLYGON using `sf::st_collection_extract()`.
 #'
+#' The dissolve is **area-conserving and cannot introduce overlap**. Two earlier
+#' behaviours are deliberately gone:
+#'
+#' * It no longer casts the result to `POLYGON` and keeps only the largest part
+#'   per group. A group whose members are genuinely disjoint is a multipart
+#'   catchment, not an error, and discarding the smaller parts silently deleted
+#'   ground. Output is `MULTIPOLYGON`, which is lossless.
+#' * It no longer routes geometry through `terra::makeValid()` before
+#'   aggregating. That round-trip perturbed shared boundaries enough that
+#'   neighbouring groups came out overlapping — on one CONUS VPU the summed area
+#'   of the result exceeded the summed area of its inputs by 20 km2, all of it
+#'   overlap between adjacent groups, which downstream cleanup then had to
+#'   remove. Grouped `sf::st_union()` of already-valid inputs preserves the
+#'   input tiling exactly.
+#'
+#' Invalid input geometry is repaired per group with `sf::st_make_valid()` only
+#' when `sf::st_is_valid()` says it is needed, so valid inputs are untouched.
+#'
 #' @examples
 #' \dontrun{
 #' out <- union_polygons(counties_sf, "state_fips")
 #' }
 #'
 #' @export
-#' @importFrom terra vect makeValid aggregate
 #' @importFrom sf st_as_sf st_collection_extract st_geometry_type st_area
-#' @importFrom dplyr select mutate group_by ungroup slice_max
+#'   st_union st_geometry st_is_valid st_make_valid st_sfc st_crs st_cast
+#' @importFrom dplyr select
 #' @importFrom rlang sym !!
 
 union_polygons <- function(poly, ID) {
   id_sym <- rlang::sym(ID)
+  poly   <- dplyr::select(poly, !!id_sym)
 
-  poly <- dplyr::select(poly, !!id_sym) |>
-    terra::vect() |>
-    terra::makeValid() |>
-    terra::aggregate(by = ID) |>
-    sf::st_as_sf() |>
-    dplyr::select(!!id_sym)
+  ids <- as.character(poly[[ID]])
+  g   <- sf::st_geometry(poly)
+
+  # Repair only what is actually broken; a valid input must pass through
+  # untouched, because perturbing valid geometry is what created the overlap
+  # this function used to hand downstream.
+  bad <- !suppressWarnings(sf::st_is_valid(g))
+  bad[is.na(bad)] <- TRUE
+  if (any(bad)) g[bad] <- sf::st_make_valid(g[bad])
+
+  keys <- unique(ids)
+  idx  <- split(seq_along(ids), factor(ids, levels = keys))
+
+  out <- lapply(idx, function(ii) {
+    u <- if (length(ii) == 1L) g[[ii]] else sf::st_union(g[ii])[[1L]]
+    u
+  })
+
+  poly <- sf::st_sf(
+    stats::setNames(list(keys), ID),
+    geometry = sf::st_sfc(out, crs = sf::st_crs(poly)),
+    stringsAsFactors = FALSE)
 
   if (any(grepl("COLLECTION", sf::st_geometry_type(poly)))) {
     poly <- sf::st_collection_extract(poly, "POLYGON")
   }
 
-  # terra::aggregate wraps all output in MULTIPOLYGON regardless of part count.
-  # Cast to POLYGON; genuinely disjoint members produce duplicate IDs -- keep the
-  # largest polygon part per group and discard orphan fragments.
-  if (any(sf::st_geometry_type(poly) == "MULTIPOLYGON")) {
-    cast <- sf::st_cast(poly, "POLYGON", warn = FALSE)
-    dupes <- cast[[ID]][duplicated(cast[[ID]])]
-    if (length(dupes) > 0L) {
-      warning(sprintf(
-        paste0("union_polygons: %d group(s) produced disjoint MULTIPOLYGON ",
-               "after union (e.g. %s) -- keeping largest polygon part per group"),
-        length(unique(dupes)), paste(head(unique(dupes), 3), collapse = ", ")))
-      # Compute area before the pipe: the magrittr `.` pronoun is not bound
-      # under the native `|>` pipe used here.
-      cast$tmp_area_ <- as.numeric(sf::st_area(cast))
-      cast <- cast |>
-        dplyr::group_by(!!id_sym) |>
-        dplyr::slice_max(.data$tmp_area_, n = 1L, with_ties = FALSE) |>
-        dplyr::ungroup() |>
-        dplyr::select(-"tmp_area_")
-    }
-    poly <- cast
-  }
-
-  poly
+  # Normalise to MULTIPOLYGON: lossless, and one row per ID regardless of how
+  # many disjoint parts a group has.
+  suppressWarnings(sf::st_cast(poly, "MULTIPOLYGON"))
 }
 
 #' Fast linestring union by ID
