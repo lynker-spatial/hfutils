@@ -14,6 +14,8 @@ authors:
     href: https://github.com/mikejohnson51
   Justin Singh-Mohudpur:
     href: https://github.com/program--
+  Lynker Spatial:
+    href: https://www.lynker-spatial.com/
   footer:
     roles: [aut, cre]
     text: "Developed by"
@@ -114,6 +116,9 @@ reference:
   - get_pathlength
   - get_streamlevel
   - get_pfafstetter
+  - upstream_index
+  - hf_upstream_index
+  - merge_groups
   - add_measures
   - add_areasqkm
   - add_lengthkm
