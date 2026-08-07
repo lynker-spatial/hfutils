@@ -51,7 +51,7 @@ test_that("union_polygons keeps every part of a disjoint group", {
 
 test_that("union_polygons dissolves adjacent members without creating overlap", {
   skip_if_not_installed("sf")
-  sq <- function(x0) sf::st_polygon(list(cbind(c(x0, x0+1, x0+1, x0, x0),
+  sq <- function(x0) sf::st_polygon(list(cbind(c(x0, x0 + 1, x0 + 1, x0, x0),
                                                c(0, 0, 1, 1, 0))))
   g <- sf::st_sf(grp = rep(c("a", "b"), each = 2),
                  geometry = sf::st_sfc(sq(0), sq(1), sq(2), sq(3), crs = 5070))

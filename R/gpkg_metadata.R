@@ -226,7 +226,11 @@ gpkg_update_col <- function(gpkg, layer, id_col, id_vals, col, col_vals) {
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   DBI::dbWriteTable(con, "._upd", upd, temporary = TRUE, overwrite = TRUE)
   sql <- sprintf(
-    'UPDATE "%s" SET "%s" = (SELECT "._val" FROM "._upd" WHERE CAST("._upd"."._id" AS TEXT) = CAST("%s"."%s" AS TEXT)) WHERE CAST("%s" AS TEXT) IN (SELECT "._id" FROM "._upd")',
+    paste0(
+      'UPDATE "%s" SET "%s" = (SELECT "._val" FROM "._upd" ',
+      'WHERE CAST("._upd"."._id" AS TEXT) = CAST("%s"."%s" AS TEXT)) ',
+      'WHERE CAST("%s" AS TEXT) IN (SELECT "._id" FROM "._upd")'
+    ),
     layer, col, layer, id_col, id_col)
   DBI::dbBegin(con)
   tryCatch(
@@ -272,7 +276,11 @@ gpkg_update_geom <- function(gpkg, layer, id_col, sf_changed) {
         'CREATE INDEX "idx_%s" ON "%s" (CAST("%s" AS TEXT))', tmp_lyr, tmp_lyr, id_col))
       trigs <- .gpkg_save_drop_triggers(con, layer)
       DBI::dbExecute(con, sprintf(
-        'UPDATE "%s" SET "%s" = (SELECT "%s" FROM "%s" WHERE CAST("%s"."%s" AS TEXT) = CAST("%s"."%s" AS TEXT)) WHERE CAST("%s" AS TEXT) IN (SELECT CAST("%s" AS TEXT) FROM "%s")',
+        paste0(
+          'UPDATE "%s" SET "%s" = (SELECT "%s" FROM "%s" ',
+          'WHERE CAST("%s"."%s" AS TEXT) = CAST("%s"."%s" AS TEXT)) ',
+          'WHERE CAST("%s" AS TEXT) IN (SELECT CAST("%s" AS TEXT) FROM "%s")'
+        ),
         layer, geom_main, geom_tmp, tmp_lyr, tmp_lyr, id_col, layer, id_col,
         id_col, id_col, tmp_lyr))
       .gpkg_restore_triggers(con, trigs)

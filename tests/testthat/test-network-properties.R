@@ -105,8 +105,12 @@ test_that("get_pathlength matches an independent downstream walk on a random DAG
   # independent reference: walk each reach's unique downstream path to the
   # terminus, summing the length of every reach below it (excluding itself)
   ref <- vapply(seq_len(n), function(i) {
-    tot <- 0; d <- toid[i]
-    while (d != 0L) { tot <- tot + x$lengthkm[d]; d <- toid[d] }
+    tot <- 0
+    d <- toid[i]
+    while (d != 0L) {
+      tot <- tot + x$lengthkm[d]
+      d <- toid[d]
+    }
     tot
   }, numeric(1))
 
