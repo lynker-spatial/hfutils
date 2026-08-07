@@ -53,6 +53,12 @@ nrow(hf$divides)
 GeoPackage), a `realization` argument to read only `"divides"` or
 `"flowpaths"`, and a `crs` argument to transform outputs on the way out.
 
+When the layers you hand `write_hydrofabric()` carry a flowpath topology, it
+also stamps a nested-set upstream index (`upstream_id` / `num_upstreams`) onto
+every flowpath-keyed layer, so the written file supports O(1) upstream range
+queries without a traversal. See `vignette("network-properties")` for how to
+query it.
+
 ```{r}
 fp_only <- read_hydrofabric(tmp, realization = "flowpaths", crs = 5070,
   verbose = FALSE)

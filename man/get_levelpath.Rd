@@ -44,7 +44,7 @@ convention.
 The network must be acyclic (errors otherwise, like
   [accumulate_downstream()]). Weight ties are broken by first occurrence;
   named-river continuity (overriding the weight to hold a named mainstem
-  together through a confluence) is not modelled.
+  together through a confluence) is not modeled.
 }
 \examples{
 # 4 -> 3 -> 1 (mainstem, longer), 2 -> 1 (tributary); 1 -> outlet

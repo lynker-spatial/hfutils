@@ -34,9 +34,27 @@ get_node <- function(x, position = "end") {
 # canonical hf_network_is_dag() in network_properties.R (id_col/toid_col API).
 
 #' Add length and area measures to flowpaths/divides
+#'
+#' @description
+#' Computes `lengthkm` on flowpaths and `areasqkm` on divides, then joins each
+#' divide's incremental `areasqkm` onto its flowpath. Any `areasqkm` already on
+#' `flowpaths` is dropped first, so the returned value always comes from
+#' `divides`. The geometry column of both layers is renamed to `"geometry"`.
+#'
+#' @details
+#' The divide-to-flowpath join prefers an explicit `flowpath_id` column on
+#' `divides`, which the current schema requires because `divide_id` and
+#' `flowpath_id` use different namespaces (`cat-*` vs `fp-*`). When `divides`
+#' carries no `flowpath_id`, the join falls back to the legacy 1:1 convention
+#' that `divide_id == flowpath_id`. Picking the wrong key here matches nothing
+#' and silently zeroes `areasqkm`, along with any total area accumulated from
+#' it, so a fabric whose divides lack `flowpath_id` under the current schema
+#' should be repaired rather than passed through this fallback.
+#'
 #' @param flowpaths sf LINESTRING
 #' @param divides sf POLYGON
 #' @return named list of updated flowpaths and divides
+#' @seealso [add_lengthkm()], [add_areasqkm()]
 #' @examples
 #' \dontrun{
 #' fps <- sf::read_sf("hydrofabric.gpkg", "flowpaths")
@@ -181,7 +199,7 @@ add_lengthkm <- function(x) {
 #' POLYGON using `sf::st_collection_extract()`.
 #'
 #' The dissolve is **area-conserving and cannot introduce overlap**. Two earlier
-#' behaviours are deliberately gone:
+#' behaviors are deliberately gone:
 #'
 #' * It no longer casts the result to `POLYGON` and keeps only the largest part
 #'   per group. A group whose members are genuinely disjoint is a multipart
@@ -189,7 +207,7 @@ add_lengthkm <- function(x) {
 #'   ground. Output is `MULTIPOLYGON`, which is lossless.
 #' * It no longer routes geometry through `terra::makeValid()` before
 #'   aggregating. That round-trip perturbed shared boundaries enough that
-#'   neighbouring groups came out overlapping — on one CONUS VPU the summed area
+#'   neighboring groups came out overlapping: on one CONUS VPU the summed area
 #'   of the result exceeded the summed area of its inputs by 20 km2, all of it
 #'   overlap between adjacent groups, which downstream cleanup then had to
 #'   remove. Grouped `sf::st_union()` of already-valid inputs preserves the

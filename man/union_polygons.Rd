@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{union_polygons}
 \alias{union_polygons}
-\title{Fast polygon union by ID}
+\title{Dissolve polygons by ID}
 \usage{
 union_polygons(poly, ID)
 }
@@ -16,14 +16,32 @@ used for grouping.}
 An `sf` polygon layer unioned by `ID` (column preserved).
 }
 \description{
-Significantly faster than `sf::st_union()`/`dplyr::summarise()` for
-unioning large polygon datasets by a grouping column, by leveraging
-`terra`'s `aggregate()` with a round-trip through `terra::vect()`.
+Dissolves a polygon layer by a grouping column, returning one feature per
+group. Single-member groups short-circuit to their own geometry, so the cost
+is paid only on groups that genuinely need unioning.
 }
 \section{Notes}{
 
 If any resulting geometries are geometry collections, they are extracted to
 POLYGON using `sf::st_collection_extract()`.
+
+The dissolve is **area-conserving and cannot introduce overlap**. Two earlier
+behaviors are deliberately gone:
+
+* It no longer casts the result to `POLYGON` and keeps only the largest part
+  per group. A group whose members are genuinely disjoint is a multipart
+  catchment, not an error, and discarding the smaller parts silently deleted
+  ground. Output is `MULTIPOLYGON`, which is lossless.
+* It no longer routes geometry through `terra::makeValid()` before
+  aggregating. That round-trip perturbed shared boundaries enough that
+  neighboring groups came out overlapping: on one CONUS VPU the summed area
+  of the result exceeded the summed area of its inputs by 20 km2, all of it
+  overlap between adjacent groups, which downstream cleanup then had to
+  remove. Grouped `sf::st_union()` of already-valid inputs preserves the
+  input tiling exactly.
+
+Invalid input geometry is repaired per group with `sf::st_make_valid()` only
+when `sf::st_is_valid()` says it is needed, so valid inputs are untouched.
 }
 
 \examples{

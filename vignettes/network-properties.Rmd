@@ -109,21 +109,67 @@ precomputed, then subdivides each basin's mainstem by its four largest
 tributaries, recursing `max_level` digits deep:
 
 ```{r, eval = FALSE}
-net$total_da_sqkm <- accumulate_downstream(net, attr = "areasqkm")
+# on a real fabric this is accumulated catchment area; `arbolate` stands in here
+net$total_da_sqkm <- net$arbolate
 net$topo_sort     <- get_hydroseq(net)
 net$pfaf          <- get_pfafstetter(net, max_level = 2)
 ```
 
 The result is most meaningful on a full basin, where each digit narrows the
-location within the drainage hierarchy.
+location within the drainage hierarchy. On a four-reach toy network there are
+no tributaries large enough to subdivide, so every code comes back `NA`.
+
+## Upstream queries and partitioning
+
+`upstream_index()` assigns each feature a *nested set* pair, `upstream_id` (its
+depth-first pre-order position) and `num_upstreams` (how many features sit
+strictly above it). Together these turn "everything upstream of X" into an
+integer range test rather than a graph traversal:
+
+```{r}
+idx <- upstream_index(net)
+cbind(net["flowpath_id"], idx)
+```
+
+Everything upstream of a feature with `upstream_id == u` and
+`num_upstreams == k` is exactly the half-open range `(u, u + k]`:
+
+```{r}
+u <- idx$upstream_id[net$flowpath_id == "1"]
+k <- idx$num_upstreams[net$flowpath_id == "1"]
+net$flowpath_id[idx$upstream_id > u & idx$upstream_id <= u + k]
+```
+
+Because the walk expands the largest-upstream branch first, a mainstem stays
+contiguous. Note that `upstream_id` is build-specific: it changes whenever the
+topology changes, so it is an index, not a persistent key.
+
+For a hydrofabric whose flowpaths route through nexuses, `hf_upstream_index()`
+resolves the `flowpath -> nexus -> flowpath` hops first and then indexes the
+resulting flowpath graph. `write_hydrofabric()` calls it for you, so a written
+GeoPackage carries the index already.
+
+`merge_groups()` builds on the same pre-order to cut the network into
+*contiguous* runs, breaking wherever a feature does not flow directly into its
+predecessor or (with `order`) wherever the given order column changes. Each
+group is a contiguous `upstream_id` range, so a size-budgeted partitioner can
+merge whole groups and always end up with complete sub-networks:
+
+```{r}
+merge_groups(net, order = "levelpath")
+```
+
+The mainstem `4 -> 3 -> 1` forms one group; the tributary `2` is its own.
 
 ## In practice
 
-Both functions accept a data frame, tibble, or `sf` object. A typical pattern
-reads a layer lazily, filters to a VPU, materializes it, and accumulates:
+Every function above accepts a data frame, tibble, or `sf` object. A typical
+pattern reads a layer lazily, filters to a VPU, materializes it, and
+accumulates:
 
 ```{r, eval = FALSE}
 library(dplyr)
+library(sf)
 
 da <- as_ogr("conus_nextgen.gpkg", "flowpaths") |>
   filter(vpuid == "01") |>

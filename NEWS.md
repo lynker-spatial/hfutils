@@ -1,8 +1,32 @@
 # hfutils 0.4.2
 
+* `as_ogr()` now ignores the two tables QGIS writes into a GeoPackage when a
+  style or a project is saved to it (`layer_styles`, `qgis_projects`). They are
+  a QGIS extension rather than part of the GeoPackage spec, so they were being
+  counted as user layers: a styled single-layer fabric stopped auto-resolving
+  and began erroring as ambiguous.
+* The `as_ogr()` `ignore_lyrs` pattern is now anchored (`^gpkg_`, `^rtree_`,
+  `^sqlite_`). Unanchored, it silently dropped any real layer whose name merely
+  contained one of those fragments, such as `flowpaths_gpkg_v2`. The default is
+  also defined once and shared by the generic and both methods, which
+  previously carried three separate copies of the literal.
+* New `hf_upstream_index()`: applies the `upstream_index()` nested set at
+  hydrofabric grain, resolving `flowpath -> nexus -> flowpath` hops into a
+  direct flowpath graph before indexing. A `flowpath_toid` that is already a
+  flowpath is followed directly, so networks written without a nexus layer
+  index correctly rather than resolving every node to an isolated terminal. A
+  divergent nexus (two distinct downstreams) is counted in `n_divergences` and
+  warned, since the nested set cannot represent it.
+* `write_hydrofabric()` now stamps `upstream_id` and `num_upstreams` onto every
+  flowpath-keyed layer whenever the written list carries a flowpath topology,
+  so a written GeoPackage supports O(1) upstream range queries. The step is
+  attribute-only and is skipped without failing the write when the topology is
+  absent or not acyclic. The index is scoped to whatever topology is written,
+  so per-VPU, merged, and subset writes each get a correct index; the values
+  are build-specific and are not persistent keys.
 * `union_polygons()` is now an exact dissolve. It previously routed geometry
   through `terra::makeValid() |> terra::aggregate()`, which perturbed shared
-  boundaries enough that neighbouring groups came out overlapping: on one CONUS
+  boundaries enough that neighboring groups came out overlapping: on one CONUS
   VPU the summed area of the result exceeded the summed area of its inputs by
   20 km2, entirely overlap between adjacent groups. Downstream cleanup then
   existed to remove that overlap. Grouped `sf::st_union()` over already-valid

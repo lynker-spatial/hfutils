@@ -1,38 +1,39 @@
+---
+output: github_document
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<!-- badges: start -->
 
-[![License: Apache License (\>=
-2)](https://img.shields.io/badge/License-Apache%20License%20%28%3E%3D%202%29-blue.svg)](https://choosealicense.com/licenses/apache-2.0/)
+
+<!-- badges: start -->
+[![License: Apache License (>= 2)](https://img.shields.io/badge/License-Apache%20License%20%28%3E%3D%202%29-blue.svg)](https://choosealicense.com/licenses/apache-2.0/)
 [![LifeCycle](https://img.shields.io/badge/lifecycle-experimental-orange)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/lynker-spatial/hfutils/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lynker-spatial/hfutils/actions/workflows/R-CMD-check.yaml)
-[![Codecov test
-coverage](https://codecov.io/gh/lynker-spatial/hfutils/graph/badge.svg)](https://app.codecov.io/gh/lynker-spatial/hfutils)
-[![Dependencies](https://img.shields.io/badge/dependencies-16/49-red?style=flat)](#)
+[![Codecov test coverage](https://codecov.io/gh/lynker-spatial/hfutils/graph/badge.svg)](https://app.codecov.io/gh/lynker-spatial/hfutils)
+[![Dependencies](https://img.shields.io/badge/dependencies-18/72-red?style=flat)](#)
 [![Website](https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/lynker-spatial/hfutils/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 # Hydrofabric Utilities <img src="man/figures/logo.png" align="right" height="120" alt="hfutils logo" />
 
-`hfutils` provides the base utilities needed for hydrofabric I/O +
-navigation; geometry modification + cleaning; and authentication to the
-Lynker Spatial cloud. Collectively, it provides the building blocks from
-which reference fabrics and geoprocessed fabrics can be created.
+`hfutils` provides the base utilities needed for hydrofabric I/O + navigation; geometry modification + cleaning; and authentication to the Lynker Spatial cloud. Collectively, it provides the building blocks from which reference fabrics and geoprocessed fabrics can be created.
+
 
 ## Installation
 
-You can install the development version of `hfutils` from
-[GitHub](https://github.com/) with:
+You can install the development version of `hfutils` from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("lynker-spatial/hfutils")
 ```
 
+
 ``` r
 library(hfutils)
 library(dplyr)
+library(sf)
 ```
 
 ## Basic Use
@@ -41,19 +42,28 @@ library(dplyr)
 
 #### Basic connection: Dataset
 
+
 ``` r
 # point this at a hydrofabric GeoPackage (with flowpaths + divides layers)
 gpkg <- "reference_fabric.gpkg"
+
+# With a single user layer, that layer is selected automatically. A source
+# holding several layers is ambiguous, so as_ogr() lists them and asks you
+# to name one.
 hfutils::as_ogr(gpkg)
+#> Error: Multiple layers found; please specify `layer` explicitly:
+#> > divides, flowpaths
 ```
 
 #### Basic connection: Layer
+
 
 ``` r
 hfutils::as_ogr(gpkg, "divides")
 ```
 
 #### Lazy Eval
+
 
 ``` r
 hfutils::as_ogr(gpkg, "divides") |>
@@ -62,6 +72,7 @@ hfutils::as_ogr(gpkg, "divides") |>
 
 #### sf extraction
 
+
 ``` r
 hfutils::as_ogr(gpkg, "divides")  |>
   filter(vpuid == "01") |>
@@ -69,6 +80,7 @@ hfutils::as_ogr(gpkg, "divides")  |>
 ```
 
 ### Network Properties
+
 
 ``` r
 ## Accumulate Downstream
@@ -94,5 +106,4 @@ head(hs)
 
 ### Questions?
 
-Please reach out via an issue or PR if you have comments, concerns, or
-questions!
+Please reach out via an issue or PR if you have comments, concerns, or questions!
