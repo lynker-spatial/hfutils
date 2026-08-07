@@ -40,8 +40,10 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
-          # Fail CI if Codecov upload fails on non-PR pushes
-          fail_ci_if_error: ${{ github.event_name != 'pull_request' && true || false }}
+          # A telemetry upload should not red the build. CODECOV_TOKEN is not
+          # set on this repo, so v4 falls back to tokenless upload, which
+          # Codecov rate-limits.
+          fail_ci_if_error: false
           file: ./cobertura.xml
           plugin: noop
           disable_search: true
