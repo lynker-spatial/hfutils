@@ -17,13 +17,24 @@ test_that("upstream_index range query equals the graph walk", {
   expect_equal(length(unique(idx$upstream_id)), 7L)   # valid pre-order labelling
 
   # brute-force upstream walk over the id -> toid graph
-  ids <- x$flowpath_id; di <- match(x$flowpath_toid, ids)
+  ids <- x$flowpath_id
+  di <- match(x$flowpath_toid, ids)
   children <- split(seq_along(ids), factor(di, levels = seq_along(ids)))
-  walk <- function(r) { acc <- integer(0); stk <- children[[r]]
-    while (length(stk)) { h <- stk[1]; stk <- stk[-1]; acc <- c(acc, h); stk <- c(stk, children[[h]]) }; acc }
+  walk <- function(r) {
+    acc <- integer(0)
+    stk <- children[[r]]
+    while (length(stk)) {
+      h <- stk[1]
+      stk <- stk[-1]
+      acc <- c(acc, h)
+      stk <- c(stk, children[[h]])
+    }
+    acc
+  }
 
   for (r in seq_along(ids)) {
-    u <- idx$upstream_id[r]; k <- idx$num_upstreams[r]
+    u <- idx$upstream_id[r]
+    k <- idx$num_upstreams[r]
     rng <- which(idx$upstream_id > u & idx$upstream_id <= u + k)
     expect_setequal(rng, walk(r))
     expect_equal(k, length(walk(r)))
@@ -106,8 +117,8 @@ test_that("merge_groups breaks a run where stream order changes", {
 
 test_that("hf_upstream_index resolves fp->nexus->fp and indexes", {
   # 1->nex9->? , 3->nex9->2 ; nexus 9 drains to flowpath 2 (outlet)
-  fp  <- data.frame(flowpath_id = c("1","2","3"),
-                    flowpath_toid = c("nex-9","0","nex-9"))
+  fp  <- data.frame(flowpath_id = c("1", "2", "3"),
+                    flowpath_toid = c("nex-9", "0", "nex-9"))
   nex <- data.frame(nexus_id = "nex-9", nexus_toid = "2")
   idx <- hf_upstream_index(fp, nex)
   expect_equal(nrow(idx), 3L)
@@ -116,8 +127,36 @@ test_that("hf_upstream_index resolves fp->nexus->fp and indexes", {
   expect_equal(idx$num_upstreams[idx$flowpath_id == "1"], 0L)   # headwater
 })
 
+test_that("hf_upstream_index follows direct flowpath links when nexus is NULL", {
+  # A nexus-less network links flowpath -> flowpath directly. Resolving only
+  # through the nexus map made every node a terminal, so the index came back
+  # degenerate (all num_upstreams 0) and write_hydrofabric() stamped that.
+  fp  <- data.frame(flowpath_id = c("1", "2", "3"),
+                    flowpath_toid = c("2", "3", "0"))
+  idx <- hf_upstream_index(fp)
+
+  expect_equal(attr(idx, "n_outlets"), 1L)
+  expect_equal(idx$num_upstreams, c(0L, 1L, 2L))
+  # identical to running the primitive over the same topology
+  ref <- upstream_index(fp)
+  expect_equal(idx$upstream_id, ref$upstream_id)
+  expect_equal(idx$num_upstreams, ref$num_upstreams)
+})
+
+test_that("hf_upstream_index mixes direct links and nexus hops", {
+  # 1 -> nex-9 -> 2, 4 -> nex-9 -> 2, and 3 -> 2 directly; 2 is the outlet
+  fp  <- data.frame(flowpath_id = c("1", "2", "3", "4"),
+                    flowpath_toid = c("nex-9", "0", "2", "nex-9"))
+  nex <- data.frame(nexus_id = "nex-9", nexus_toid = "2")
+  idx <- hf_upstream_index(fp, nex)
+
+  expect_equal(attr(idx, "n_outlets"), 1L)
+  expect_equal(idx$num_upstreams[idx$flowpath_id == "2"], 3L)   # sees 1, 3, 4
+  expect_equal(idx$num_upstreams[idx$flowpath_id == "3"], 0L)
+})
+
 test_that("hf_upstream_index flags a divergent nexus", {
-  fp  <- data.frame(flowpath_id = c("1","2","3"), flowpath_toid = c("nex-9","0","0"))
-  nex <- data.frame(nexus_id = c("nex-9","nex-9"), nexus_toid = c("2","3"))
+  fp  <- data.frame(flowpath_id = c("1", "2", "3"), flowpath_toid = c("nex-9", "0", "0"))
+  nex <- data.frame(nexus_id = c("nex-9", "nex-9"), nexus_toid = c("2", "3"))
   expect_warning(hf_upstream_index(fp, nex), "divergence")
 })

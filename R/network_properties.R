@@ -217,7 +217,10 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   so <- integer(n)                       # unnamed, indexed by row position
   for (r in ord) {
     contribs <- up[[r]]
-    if (!length(contribs)) { so[r] <- 1L; next }   # headwater
+    if (!length(contribs)) {                       # headwater
+      so[r] <- 1L
+      next
+    }
     ords <- so[contribs]
     m    <- max(ords)
     so[r] <- if (sum(ords == m) >= 2L) m + 1L else m
@@ -278,8 +281,9 @@ upstream_index <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   n   <- length(ids)
   if (n == 0L) {
     out <- data.frame(upstream_id = integer(0), num_upstreams = integer(0))
-    attr(out, "n_outlets") <- 0L; attr(out, "n_divergences") <- 0L
-    attr(out, "n_bad") <- 0L
+    attr(out, "n_outlets")     <- 0L
+    attr(out, "n_divergences") <- 0L
+    attr(out, "n_bad")         <- 0L
     return(out)
   }
 
@@ -312,26 +316,36 @@ upstream_index <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   # Iterative pre-order DFS. Expand the largest-upstream child first (rank rk) so
   # the main stem is contiguous; positional integer indexing keeps it O(n).
   ord_key <- order(subtree_size, seq_len(n))
-  rk <- integer(n); rk[ord_key] <- seq_len(n)
+  rk <- integer(n)
+  rk[ord_key] <- seq_len(n)
   upstream_id <- integer(n)
-  stack <- integer(n); top <- 0L
-  if (length(roots)) { r <- roots[order(rk[roots])]; m <- length(r); stack[seq_len(m)] <- r; top <- m }
+  stack <- integer(n)
+  top <- 0L
+  if (length(roots)) {
+    r <- roots[order(rk[roots])]
+    top <- length(r)
+    stack[seq_len(top)] <- r
+  }
   counter <- 0L
   while (top > 0L) {
-    cur <- stack[top]; top <- top - 1L
+    cur <- stack[top]
+    top <- top - 1L
     counter <- counter + 1L
     upstream_id[cur] <- counter
     kids <- children[[cur]]
     if (length(kids)) {
-      kids <- kids[order(rk[kids])]; m <- length(kids)
-      stack[(top + 1L):(top + m)] <- kids; top <- top + m
+      kids <- kids[order(rk[kids])]
+      m <- length(kids)
+      stack[(top + 1L):(top + m)] <- kids
+      top <- top + m
     }
   }
 
   # Self-check: every node must sit inside its downstream's interval. On an
   # acyclic single-downstream graph this always holds; a failure is an internal
   # error, not a data defect.
-  hp <- which(!is.na(di)); p <- di[hp]
+  hp <- which(!is.na(di))
+  p  <- di[hp]
   n_bad <- sum(!(upstream_id[hp] > upstream_id[p] &
     upstream_id[hp] <= upstream_id[p] + num_upstreams[p]))
   if (n_bad > 0L)
@@ -383,7 +397,8 @@ merge_groups <- function(x, id = "flowpath_id", toid = "flowpath_toid",
   u <- if (is.null(upstream_id)) upstream_index(x, id = id, toid = toid)$upstream_id
        else as.integer(x[[upstream_id]])
   o <- order(u)                                   # pre-order sequence
-  ids_o <- ids[o]; tos_o <- tos[o]
+  ids_o <- ids[o]
+  tos_o <- tos[o]
 
   # A run continues while the current node flows directly into the previous node
   connected <- c(FALSE, tos_o[-1] == ids_o[-n])
@@ -397,7 +412,8 @@ merge_groups <- function(x, id = "flowpath_id", toid = "flowpath_toid",
     keep <- keep & same_ord
   }
   grp_o <- cumsum(!keep)                           # new group wherever the run breaks
-  out <- integer(n); out[o] <- grp_o
+  out <- integer(n)
+  out[o] <- grp_o
   out
 }
 
@@ -429,7 +445,8 @@ hf_upstream_index <- function(flowpaths, nexus = NULL,
   if (n == 0L) {
     out <- data.frame(flowpath_id = character(0), upstream_id = integer(0),
       num_upstreams = integer(0), stringsAsFactors = FALSE)
-    attr(out, "n_outlets") <- 0L; attr(out, "n_bad") <- 0L
+    attr(out, "n_outlets") <- 0L
+    attr(out, "n_bad")     <- 0L
     attr(out, "n_divergences") <- 0L
     return(out)
   }
@@ -439,7 +456,13 @@ hf_upstream_index <- function(flowpaths, nexus = NULL,
   nexmap <- if (!is.null(nexus) && nrow(nexus))
     stats::setNames(as.character(nexus[[nex_toid]]), as.character(nexus[[nex_id]])) else
     character(0)
-  ds <- unname(nexmap[as.character(flowpaths[[fp_toid]])])
+  raw_to <- as.character(flowpaths[[fp_toid]])
+  ds     <- unname(nexmap[raw_to])
+  # A toid that is already a flowpath is a direct link, not a nexus hop. Without
+  # this the nexus map is the only path to a downstream, so a nexus-less network
+  # (nexus = NULL) would resolve every node to a terminal and index as isolated.
+  direct <- raw_to %in% id
+  ds[direct] <- raw_to[direct]
   ds[!(ds %in% id)] <- NA_character_
 
   # A nexus with two distinct downstreams is a divergence the resolution above
@@ -461,7 +484,8 @@ hf_upstream_index <- function(flowpaths, nexus = NULL,
 
   out <- data.frame(flowpath_id = id, upstream_id = ix$upstream_id,
     num_upstreams = ix$num_upstreams, stringsAsFactors = FALSE)
-  n_div_prim <- attr(ix, "n_divergences"); if (is.null(n_div_prim)) n_div_prim <- 0L
+  n_div_prim <- attr(ix, "n_divergences")
+  if (is.null(n_div_prim)) n_div_prim <- 0L
   attr(out, "n_outlets")     <- attr(ix, "n_outlets")
   attr(out, "n_bad")         <- attr(ix, "n_bad")
   attr(out, "n_divergences") <- n_div_prim + dup_nex
@@ -493,7 +517,7 @@ hf_upstream_index <- function(flowpaths, nexus = NULL,
 #' @details The network must be acyclic (errors otherwise, like
 #'   [accumulate_downstream()]). Weight ties are broken by first occurrence;
 #'   named-river continuity (overriding the weight to hold a named mainstem
-#'   together through a confluence) is not modelled.
+#'   together through a confluence) is not modeled.
 #' @examples
 #' # 4 -> 3 -> 1 (mainstem, longer), 2 -> 1 (tributary); 1 -> outlet
 #' df <- data.frame(
@@ -775,7 +799,10 @@ get_pfafstetter <- function(x, id = "flowpath_id", toid = "flowpath_toid",
     members   <- vector("list", 9L)
     odd_d     <- c(1L, 3L, 5L, 7L, 9L)
     for (s in 1:5) {                                       # odd digits: interbasins
-      if (s > nt + 1L) { members[[odd_d[s]]] <- character(0); next }
+      if (s > nt + 1L) {
+        members[[odd_d[s]]] <- character(0)
+        next
+      }
       if (s == 1L)                        m <- ms_ts_all <= jt[1]
       else if (s == 5L || s == nt + 1L)   m <- ms_ts_all >  jt[s - 1]
       else                                m <- ms_ts_all >  jt[s - 1] & ms_ts_all <= jt[s]
@@ -814,16 +841,22 @@ get_pfafstetter <- function(x, id = "flowpath_id", toid = "flowpath_toid",
   code   <- unlist(lapply(acc, function(a) rep(a$c, length(a$m))), use.names = FALSE)
   level  <- nchar(as.character(code))                      # digit count == level
   ok     <- level <= max_level                            # ignore any over-deep codes
-  member <- member[ok]; code <- code[ok]; level <- level[ok]
+  member <- member[ok]
+  code   <- code[ok]
+  level  <- level[ok]
 
   # per (member, level) keep only the largest code, then pivot to one column
   # per level and back/forward-fill so every coded reach carries a full code.
   key    <- paste(member, level, sep = "\r")
   mx     <- stats::ave(code, key, FUN = max)
   keep   <- code == mx
-  member <- member[keep]; level <- level[keep]; code <- code[keep]
+  member <- member[keep]
+  level  <- level[keep]
+  code   <- code[keep]
   dedup  <- !duplicated(paste(member, level, sep = "\r"))
-  member <- member[dedup]; level <- level[dedup]; code <- code[dedup]
+  member <- member[dedup]
+  level  <- level[dedup]
+  code   <- code[dedup]
 
   mu <- unique(member)
   M  <- matrix(NA_real_, nrow = length(mu), ncol = max_level)
