@@ -9,7 +9,7 @@
 #' @importFrom dbplyr sql
 #' @importFrom sf st_layers sf_extSoftVersion
 #' @importFrom glue glue
-#' @importFrom dplyr tbl select mutate rename if_any filter everything distinct collect any_of `%>%` pull
+#' @importFrom dplyr tbl select mutate rename if_any filter everything distinct collect any_of pull
 NULL
 
 # Quiet R CMD check NOTEs for non-standard-evaluation (dplyr/magrittr) symbols

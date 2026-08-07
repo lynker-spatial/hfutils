@@ -46,6 +46,10 @@ finding fails the build. The active linter set, and the exceptions the package
 takes deliberately, are documented inline in `.lintr`; `styler` is the
 formatter of record and owns indentation.
 
+CI installs the current lintr, so an older local copy can report zero lints on
+code CI rejects: new linters arrive in minor releases. Run
+`update.packages("lintr")` before trusting a clean local run.
+
 Spelling runs as part of the test suite and fails on an unrecognized word.
 Genuine technical terms (`arbolate`, `NHDPlus`, `Strahler`, and so on) belong
 in `inst/WORDLIST`; add them there rather than rewording the documentation. The

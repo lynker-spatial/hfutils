@@ -98,12 +98,16 @@ clean_geometry <- function(catchments,
   catchments <- catchments[!sf::st_is_empty(catchments), , drop = FALSE]
 
   polygons <- suppressWarnings({
-    catchments |>
+    parts <- catchments |>
       sf::st_cast("MULTIPOLYGON") |>
       sf::st_cast("POLYGON") |>
       fast_validity_check() |>
-      dplyr::add_count(!!sym(ID), name = "part_count") %>%
-      dplyr::mutate(areasqkm = add_areasqkm(.)) |>
+      dplyr::add_count(!!sym(ID), name = "part_count")
+    # Assigned rather than piped into mutate(): add_areasqkm() needs the whole
+    # object, and the magrittr `.` pronoun that would supply it is not
+    # available under the native pipe.
+    parts$areasqkm <- add_areasqkm(parts)
+    parts |>
       dplyr::mutate(tmpID = dplyr::row_number()) |>
       rename_geometry("geometry")
   })

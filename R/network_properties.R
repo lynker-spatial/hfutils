@@ -772,7 +772,10 @@ get_pfafstetter <- function(x, id = "flowpath_id", toid = "flowpath_toid",
   lp_out_of <- stats::setNames(ids[ord0][firstlp], lp[ord0][firstlp])
   lp_outlet <- unname(lp_out_of[lp])                       # per reach
 
-  acc <- vector("list", 0L)                                # (members, code) rows
+  # (members, code) rows. An environment rather than a plain list because the
+  # recursion below appends to it from a nested scope.
+  acc <- new.env(parent = emptyenv())
+  acc$rows <- vector("list", 0L)
 
   # recursive nine-way subdivision of one basin whose mainstem is `ms_ids`
   pfaf9 <- function(ms_ids, pre_pfaf, assigned_even) {
@@ -817,7 +820,7 @@ get_pfafstetter <- function(x, id = "flowpath_id", toid = "flowpath_toid",
     for (p in 1:9) {
       mm <- members[[p]]
       if (!length(mm)) next
-      acc[[length(acc) + 1L]] <<- list(m = mm, c = codes[p])
+      acc$rows[[length(acc$rows) + 1L]] <- list(m = mm, c = codes[p])
       all_new <- c(all_new, mm)
     }
     if (all(all_new %in% ms_ids)) return(invisible())       # base case: nothing to recurse
@@ -832,10 +835,10 @@ get_pfafstetter <- function(x, id = "flowpath_id", toid = "flowpath_toid",
 
   root_lp <- lp[which.min(ts)]                             # outlet's level path
   pfaf9(ids[lp == root_lp], pre_pfaf = 0, assigned_even = character(0))
-  if (!length(acc)) return(rep(NA_real_, N))
+  if (!length(acc$rows)) return(rep(NA_real_, N))
 
-  member <- unlist(lapply(acc, function(a) a$m), use.names = FALSE)
-  code   <- unlist(lapply(acc, function(a) rep(a$c, length(a$m))), use.names = FALSE)
+  member <- unlist(lapply(acc$rows, function(a) a$m), use.names = FALSE)
+  code   <- unlist(lapply(acc$rows, function(a) rep(a$c, length(a$m))), use.names = FALSE)
   level  <- nchar(as.character(code))                      # digit count == level
   ok     <- level <= max_level                            # ignore any over-deep codes
   member <- member[ok]
