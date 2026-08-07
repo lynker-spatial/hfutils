@@ -11,10 +11,12 @@ Version: 0.4.2
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
-             role = c("aut", "cre", "cph"),
+             role = c("aut", "cre"),
              email = "mjohnson@lynker.com"),
              person(given = "Justin", family = "Singh-Mohudpur",
-             role = c("ctb")))
+             role = c("ctb")),
+             person(given = "Lynker Spatial",
+             role = c("cph", "fnd")))
 Maintainer: Mike Johnson <mjohnson@lynker.com>
 BugReports: https://github.com/lynker-spatial/hfutils/issues
 URL: https://github.com/lynker-spatial/hfutils, https://lynker-spatial.github.io/hfutils/

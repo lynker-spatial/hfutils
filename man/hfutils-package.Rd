@@ -20,11 +20,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Mike Johnson \email{mjohnson@lynker.com} [copyright holder]
+\strong{Maintainer}: Mike Johnson \email{mjohnson@lynker.com}
 
 Other contributors:
 \itemize{
   \item Justin Singh-Mohudpur [contributor]
+  \item Lynker Spatial [copyright holder, funder]
 }
 
 }
