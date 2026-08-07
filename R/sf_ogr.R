@@ -2,6 +2,21 @@
 #' @include OGRSQLDriver.R
 NULL
 
+# Tables that are data-source plumbing rather than user layers. Anchored so a
+# layer whose name merely contains one of these (`flowpaths_gpkg_v2`) is not
+# silently dropped; the QGIS tables are matched exactly because they are fixed
+# names, not prefixes.
+#
+#   gpkg_*         GeoPackage spec tables (incl. GDAL's gpkg_ogr_contents)
+#   rtree_*        spatial index
+#   sqlite_*       SQLite internals (sqlite_sequence, sqlite_stat1, ...)
+#   layer_styles   QGIS "save style to GeoPackage"
+#   qgis_projects  QGIS "save project to GeoPackage"
+#
+# Single definition shared by the generic and both methods so the three
+# signatures cannot drift apart.
+.hf_ignore_lyrs <- "^gpkg_|^rtree_|^sqlite_|^layer_styles$|^qgis_projects$"
+
 #' OGRSQL
 #' OGRSQL driver, use to [dbConnect()] to a data source readable by sf
 #' @examples
@@ -55,7 +70,13 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
 #' @inheritParams sf::read_sf
 #' @param x the data source (file path, url, or database connection)
 #' @param query SQL query to pass in directly
-#' @param ignore_lyrs pattern for layers to be ignored description
+#' @param ignore_lyrs Regular expression matching tables that are data-source
+#'   plumbing rather than user layers, excluded when `layer` is not given. The
+#'   default drops GeoPackage spec tables (`^gpkg_`), spatial indexes
+#'   (`^rtree_`), SQLite internals (`^sqlite_`), and the two tables QGIS writes
+#'   into a GeoPackage when you save a style or a project to it
+#'   (`layer_styles`, `qgis_projects`). Patterns are anchored, so a layer whose
+#'   name merely contains one of these is not dropped.
 #' @return a 'tbl_OGRSQLConnection'
 #' @examples
 #' \dontrun{
@@ -65,20 +86,20 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
 #' }
 #' @export
 
-as_ogr <- function(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
+as_ogr <- function(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs) {
   UseMethod("as_ogr")
 }
 
 #' @name as_ogr
 #' @export
-as_ogr.character <- function(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
+as_ogr.character <- function(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs) {
   db <- dbConnect(OGRSQL(), x)
   as_ogr(db, layer, ..., query = query, ignore_lyrs = ignore_lyrs)
 }
 
 #' @name as_ogr
 #' @export
-as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
+as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs) {
 
   if (!is.na(query)) {
     if (!missing(layer)) message("'layer' argument ignored, using 'query'")

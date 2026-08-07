@@ -6,11 +6,11 @@
 \alias{as_ogr.OGRSQLConnection}
 \title{Delayed read for vector resources}
 \usage{
-as_ogr(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+as_ogr(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs)
 
-\method{as_ogr}{character}(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+\method{as_ogr}{character}(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs)
 
-\method{as_ogr}{OGRSQLConnection}(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+\method{as_ogr}{OGRSQLConnection}(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs)
 }
 \arguments{
 \item{x}{the data source (file path, url, or database connection)}
@@ -28,7 +28,13 @@ use the \code{query} argument.}
 
 \item{query}{SQL query to pass in directly}
 
-\item{ignore_lyrs}{pattern for layers to be ignored description}
+\item{ignore_lyrs}{Regular expression matching tables that are data-source
+plumbing rather than user layers, excluded when `layer` is not given. The
+default drops GeoPackage spec tables (`^gpkg_`), spatial indexes
+(`^rtree_`), SQLite internals (`^sqlite_`), and the two tables QGIS writes
+into a GeoPackage when you save a style or a project to it
+(`layer_styles`, `qgis_projects`). Patterns are anchored, so a layer whose
+name merely contains one of these is not dropped.}
 }
 \value{
 a 'tbl_OGRSQLConnection'
