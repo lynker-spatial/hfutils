@@ -2,19 +2,17 @@
 #' @include OGRSQLDriver.R
 NULL
 
-# Tables that are data-source plumbing rather than user layers. Anchored so a
-# layer whose name merely contains one of these (`flowpaths_gpkg_v2`) is not
-# silently dropped; the QGIS tables are matched exactly because they are fixed
-# names, not prefixes.
+# Data-source plumbing, not user layers. Prefixes are anchored so a real layer
+# containing one of these fragments (flowpaths_gpkg_v2) survives; the QGIS
+# tables are fixed names, so they match exactly.
 #
 #   gpkg_*         GeoPackage spec tables (incl. GDAL's gpkg_ogr_contents)
 #   rtree_*        spatial index
 #   sqlite_*       SQLite internals (sqlite_sequence, sqlite_stat1, ...)
-#   layer_styles   QGIS "save style to GeoPackage"
-#   qgis_projects  QGIS "save project to GeoPackage"
+#   layer_styles   QGIS style saved into the GeoPackage
+#   qgis_projects  QGIS project saved into the GeoPackage
 #
-# Single definition shared by the generic and both methods so the three
-# signatures cannot drift apart.
+# Shared by the generic and both methods so the defaults cannot drift.
 .hf_ignore_lyrs <- "^gpkg_|^rtree_|^sqlite_|^layer_styles$|^qgis_projects$"
 
 #' OGRSQL

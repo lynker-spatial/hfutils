@@ -577,7 +577,7 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
     # local area (accumulation never loses own area), and (c) be > 0 wherever the
     # flowpath has a real catchment (areasqkm > 0). A catchment-less connector
     # (areasqkm == 0) fed only by other catchment-less reaches legitimately has
-    # total_dasqkm == 0 -- NOT a failure (previously these were wrongly flagged).
+    # total_dasqkm == 0, which is valid.
     n_bad <- sum(is.na(da) |
       (!is.na(area) & da < area - 1e-6) |
       (!is.na(area) & area > 0 & da <= 0))

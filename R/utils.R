@@ -69,12 +69,9 @@ add_measures <- function(flowpaths, divides) {
   divides$areasqkm <- add_areasqkm(divides)
   flowpaths$areasqkm <- NULL
   div_tab <- sf::st_drop_geometry(divides)
-  # Join incremental catchment area onto flowpaths. Prefer the explicit
-  # divide->flowpath link (`flowpath_id` on divides), required by the current
-  # schema where divide_id != flowpath_id (e.g. cat-* vs fp-*); joining on
-  # divide_id there matches nothing and silently zeroes areasqkm (and any
-  # downstream-accumulated total area). Fall back to the legacy 1:1 convention
-  # (divide_id == flowpath_id) when divides carry no flowpath_id.
+  # Prefer the explicit divide->flowpath link, else the legacy 1:1
+  # divide_id == flowpath_id convention. The wrong key matches nothing and
+  # silently zeroes areasqkm; see @details.
   if ("flowpath_id" %in% names(div_tab)) {
     flowpaths <- dplyr::left_join(
       flowpaths, dplyr::select(div_tab, flowpath_id, areasqkm),
@@ -234,9 +231,8 @@ union_polygons <- function(poly, ID) {
   ids <- as.character(poly[[ID]])
   g   <- sf::st_geometry(poly)
 
-  # Repair only what is actually broken; a valid input must pass through
-  # untouched, because perturbing valid geometry is what created the overlap
-  # this function used to hand downstream.
+  # Repair only invalid geometry. Perturbing valid input shifts shared
+  # boundaries, which makes adjacent groups overlap.
   bad <- !suppressWarnings(sf::st_is_valid(g))
   bad[is.na(bad)] <- TRUE
   if (any(bad)) g[bad] <- sf::st_make_valid(g[bad])

@@ -203,11 +203,9 @@ gpkg_get_version <- function(gpkg) {
     if (!is.na(tsql) && nzchar(tsql)) DBI::dbExecute(con, tsql)
 }
 
-# Fully remove a layer written by sf/GDAL. Dropping the feature table alone is
-# not enough: a spatial layer also owns an R-tree index (four `rtree_<layer>_
-# <geom>*` shadow tables plus their triggers) and rows in the GeoPackage
-# catalog tables. Left behind, those accumulate in the file on every call.
-# GLOB rather than LIKE because `_` is a single-character wildcard in LIKE.
+# Remove a layer and everything GDAL created with it: the feature table, its
+# four rtree_* index shadow tables, the triggers on both, and its rows in the
+# GeoPackage catalog tables. GLOB, not LIKE: `_` is a LIKE wildcard.
 .gpkg_drop_layer <- function(con, layer) {
   trg <- DBI::dbGetQuery(con, sprintf(
     "SELECT name FROM sqlite_master WHERE type='trigger'
@@ -294,9 +292,8 @@ gpkg_update_col <- function(gpkg, layer, id_col, id_vals, col, col_vals) {
 #' @return Invisibly `NULL`.
 #' @export
 gpkg_update_geom <- function(gpkg, layer, id_col, sf_changed) {
-  # A clock-derived name collides when two calls land in the same centisecond,
-  # and %OS2 puts a "." in the identifier; tempfile() gives a unique, plain
-  # token without disturbing the caller's RNG state.
+  # tempfile() gives a collision-free token with no "." to quote in SQL, and
+  # leaves the caller's RNG untouched.
   tmp_lyr <- paste0("geom_upd_", basename(tempfile("")))
   sf::st_write(sf_changed, gpkg, tmp_lyr, append = FALSE, quiet = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)

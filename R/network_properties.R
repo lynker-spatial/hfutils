@@ -210,10 +210,8 @@ get_streamorder <- function(x, id = "flowpath_id", toid = "flowpath_toid") {
   if (!igraph::is_dag(g)) stop("Network contains cycles; cannot compute stream order.")
   ord <- match(igraph::as_ids(igraph::topo_sort(g, mode = "out")), ids)
 
-  # Strahler order via a single integer-indexed pass. Name-based lookups
-  # (so[nd] / up[[nd]] on character-named vectors) are an O(n) scan each, which
-  # makes the loop O(n^2) and infeasible on mega-basins; positional integer
-  # indexing keeps every access O(1).
+  # Strahler order in one pass. Index by row position, not by name: a lookup
+  # on a character-named vector is an O(n) scan, making the loop O(n^2).
   so <- integer(n)                       # unnamed, indexed by row position
   for (r in ord) {
     contribs <- up[[r]]
@@ -458,9 +456,8 @@ hf_upstream_index <- function(flowpaths, nexus = NULL,
     character(0)
   raw_to <- as.character(flowpaths[[fp_toid]])
   ds     <- unname(nexmap[raw_to])
-  # A toid that is already a flowpath is a direct link, not a nexus hop. Without
-  # this the nexus map is the only path to a downstream, so a nexus-less network
-  # (nexus = NULL) would resolve every node to a terminal and index as isolated.
+  # A toid that is already a flowpath is a direct link, not a nexus hop.
+  # A network with no nexus layer routes entirely this way.
   direct <- raw_to %in% id
   ds[direct] <- raw_to[direct]
   ds[!(ds %in% id)] <- NA_character_
