@@ -195,6 +195,24 @@ read_hydrofabric <- function(gpkg = NULL,
 
 #' Write a hydrofabric GeoPackage (mixed sf + non-sf)
 #'
+#' @description
+#' Writes a named list of layers to a single GeoPackage, mixing `sf` layers and
+#' plain attribute tables. The write is atomic: layers are staged in a temporary
+#' GeoPackage and only moved into place once every layer has been written.
+#'
+#' @details
+#' When the list carries a flowpath topology (a layer with `flowpath_id` and
+#' `flowpath_toid`), a nested-set upstream index is computed with
+#' [hf_upstream_index()] and stamped onto every flowpath-keyed layer as the
+#' integer columns `upstream_id` and `num_upstreams`, so the written GeoPackage
+#' supports O(1) upstream range queries. A nexus layer (`nexus_id` /
+#' `nexus_toid`), if present, is used to resolve `flowpath -> nexus -> flowpath`
+#' hops. The step is attribute-only and is skipped without failing the write
+#' when the topology is absent or not acyclic. Because the index is derived from
+#' whatever topology is in `network_list`, per-VPU, merged, and subset writes
+#' each get a correct index for their own scope; the values are build-specific
+#' and are not persistent keys.
+#'
 #' @param network_list named list of layers (may include `sf` and plain data.frames)
 #' @param outfile path to `.gpkg` (".gpkg" appended if missing)
 #' @param verbose logical, show progress via `cli`
@@ -291,7 +309,7 @@ write_hydrofabric <- function(network_list,
       obj <- sf_layers[[nm]]
       nm_out <- layer_names[[nm]]
       enforce_cols(obj, switch(nm_out,
-        flowpaths = "flowlines", # your dm key -> layer mapping
+        flowpaths = "flowlines", # dm key -> layer name mapping
         divides   = "divides",
         pois      = "pois",
         network   = "network",
@@ -322,7 +340,7 @@ write_hydrofabric <- function(network_list,
     }
 
     con <- DBI::dbConnect(RSQLite::SQLite(), tmpfile)
-    on.exit(try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
+    on.exit(suppressWarnings(try(DBI::dbDisconnect(con), silent = TRUE)), add = TRUE)
 
     for (nm in names(tab_layers)) {
       obj <- tab_layers[[nm]]
@@ -357,9 +375,6 @@ write_hydrofabric <- function(network_list,
   say(cli::cli_alert_success, glue::glue("Wrote {length(network_list)} layer(s)/table(s) -> {outfile}"))
   invisible(normalizePath(outfile))
 }
-
-# small helper for `%||%`
-`%||%` <- function(a, b) if (is.null(a) || (is.character(a) && identical(a, ""))) b else a
 
 # Stamp the nested-set upstream index onto every flowpath-keyed layer in a
 # hydrofabric network_list. Schema-detected (finds the flowpath and nexus layers

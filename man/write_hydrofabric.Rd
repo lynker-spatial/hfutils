@@ -22,7 +22,22 @@ caller (e.g. the `hydrofabric` build package) provides `hf_dm`.}
 `outfile` (invisibly)
 }
 \description{
-Write a hydrofabric GeoPackage (mixed sf + non-sf)
+Writes a named list of layers to a single GeoPackage, mixing `sf` layers and
+plain attribute tables. The write is atomic: layers are staged in a temporary
+GeoPackage and only moved into place once every layer has been written.
+}
+\details{
+When the list carries a flowpath topology (a layer with `flowpath_id` and
+`flowpath_toid`), a nested-set upstream index is computed with
+[hf_upstream_index()] and stamped onto every flowpath-keyed layer as the
+integer columns `upstream_id` and `num_upstreams`, so the written GeoPackage
+supports O(1) upstream range queries. A nexus layer (`nexus_id` /
+`nexus_toid`), if present, is used to resolve `flowpath -> nexus -> flowpath`
+hops. The step is attribute-only and is skipped without failing the write
+when the topology is absent or not acyclic. Because the index is derived from
+whatever topology is in `network_list`, per-VPU, merged, and subset writes
+each get a correct index for their own scope; the values are build-specific
+and are not persistent keys.
 }
 \examples{
 \dontrun{
