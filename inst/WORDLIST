@@ -6,6 +6,7 @@ attr
 AUTH
 auth
 caveated
+centisecond
 CLI
 cli
 CLIs
@@ -56,6 +57,7 @@ funder
 gb
 GDAL
 gdal
+GDAL's
 gdalsrsinfo
 geo
 GeoJSON
@@ -78,6 +80,7 @@ Hydrosequence
 hydrosequence
 igraph
 invariants
+IsEmpty
 joshcu
 JSON
 json

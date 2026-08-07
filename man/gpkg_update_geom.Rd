@@ -24,3 +24,10 @@ the geometry column into `layer` via a keyed (indexed) SQL UPDATE, then drops
 the temp layer. Layer triggers are dropped/restored around the write (see
 [gpkg_update_col()]).
 }
+\details{
+Removing the temporary layer means removing everything GDAL created with it:
+the feature table, its four `rtree_*` index shadow tables and their triggers,
+and its rows in `gpkg_contents`, `gpkg_geometry_columns`, `gpkg_extensions`,
+and `gpkg_ogr_contents`. All of it happens inside the same transaction as the
+geometry swap, so a failure leaves the GeoPackage exactly as it was found.
+}

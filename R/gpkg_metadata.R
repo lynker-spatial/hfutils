@@ -203,6 +203,32 @@ gpkg_get_version <- function(gpkg) {
     if (!is.na(tsql) && nzchar(tsql)) DBI::dbExecute(con, tsql)
 }
 
+# Fully remove a layer written by sf/GDAL. Dropping the feature table alone is
+# not enough: a spatial layer also owns an R-tree index (four `rtree_<layer>_
+# <geom>*` shadow tables plus their triggers) and rows in the GeoPackage
+# catalog tables. Left behind, those accumulate in the file on every call.
+# GLOB rather than LIKE because `_` is a single-character wildcard in LIKE.
+.gpkg_drop_layer <- function(con, layer) {
+  trg <- DBI::dbGetQuery(con, sprintf(
+    "SELECT name FROM sqlite_master WHERE type='trigger'
+       AND (tbl_name = '%s' OR name GLOB 'rtree_%s_*')", layer, layer))$name
+  for (nm in trg) DBI::dbExecute(con, sprintf('DROP TRIGGER IF EXISTS "%s"', nm))
+
+  shadow <- DBI::dbGetQuery(con, sprintf(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name GLOB 'rtree_%s_*'",
+    layer))$name
+  for (nm in shadow) DBI::dbExecute(con, sprintf('DROP TABLE IF EXISTS "%s"', nm))
+
+  for (cat_tbl in c("gpkg_contents", "gpkg_geometry_columns",
+                    "gpkg_extensions", "gpkg_ogr_contents")) {
+    if (DBI::dbExistsTable(con, cat_tbl))
+      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE table_name = '%s'",
+        cat_tbl, layer))
+  }
+  DBI::dbExecute(con, sprintf('DROP TABLE IF EXISTS "%s"', layer))
+  invisible(NULL)
+}
+
 #' In-place update of a single non-geometry column in a GeoPackage layer
 #'
 #' Updates `col` for the rows whose `id_col` matches `id_vals`, via a temporary
@@ -254,6 +280,13 @@ gpkg_update_col <- function(gpkg, layer, id_col, id_vals, col, col_vals) {
 #' the temp layer. Layer triggers are dropped/restored around the write (see
 #' [gpkg_update_col()]).
 #'
+#' @details
+#' Removing the temporary layer means removing everything GDAL created with it:
+#' the feature table, its four `rtree_*` index shadow tables and their triggers,
+#' and its rows in `gpkg_contents`, `gpkg_geometry_columns`, `gpkg_extensions`,
+#' and `gpkg_ogr_contents`. All of it happens inside the same transaction as the
+#' geometry swap, so a failure leaves the GeoPackage exactly as it was found.
+#'
 #' @param gpkg Path to the GeoPackage.
 #' @param layer Target layer name.
 #' @param id_col Id column used to match changed rows.
@@ -261,7 +294,10 @@ gpkg_update_col <- function(gpkg, layer, id_col, id_vals, col, col_vals) {
 #' @return Invisibly `NULL`.
 #' @export
 gpkg_update_geom <- function(gpkg, layer, id_col, sf_changed) {
-  tmp_lyr <- paste0("geom_upd_", format(Sys.time(), "%H%M%S%OS2"))
+  # A clock-derived name collides when two calls land in the same centisecond,
+  # and %OS2 puts a "." in the identifier; tempfile() gives a unique, plain
+  # token without disturbing the caller's RNG state.
+  tmp_lyr <- paste0("geom_upd_", basename(tempfile("")))
   sf::st_write(sf_changed, gpkg, tmp_lyr, append = FALSE, quiet = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
@@ -284,9 +320,7 @@ gpkg_update_geom <- function(gpkg, layer, id_col, sf_changed) {
         layer, geom_main, geom_tmp, tmp_lyr, tmp_lyr, id_col, layer, id_col,
         id_col, id_col, tmp_lyr))
       .gpkg_restore_triggers(con, trigs)
-      DBI::dbExecute(con, sprintf("DELETE FROM gpkg_contents WHERE table_name = '%s'", tmp_lyr))
-      DBI::dbExecute(con, sprintf("DELETE FROM gpkg_geometry_columns WHERE table_name = '%s'", tmp_lyr))
-      DBI::dbExecute(con, sprintf('DROP TABLE "%s"', tmp_lyr))
+      .gpkg_drop_layer(con, tmp_lyr)
       DBI::dbCommit(con)
     },
     error = function(e) {
@@ -302,6 +336,16 @@ gpkg_update_geom <- function(gpkg, layer, id_col, sf_changed) {
 #' `list(table=, df=)` (written as a temporary table first), or a
 #' `list(drop_triggers_for=)` (drops that layer's triggers, restored at commit).
 #' All statements run in one transaction; any error rolls back.
+#'
+#' @section Updating a spatial layer:
+#' Any `UPDATE` against a layer that has a geometry column needs a
+#' `list(drop_triggers_for = <layer>)` ahead of it, including when the
+#' statement touches only attribute columns. GDAL's R-tree triggers call
+#' SpatiaLite functions such as `ST_IsEmpty()` that RSQLite does not provide,
+#' so the write fails with `no such function: ST_IsEmpty` and the transaction
+#' rolls back. A temporary table staged with `list(table=, df=)` must be
+#' referenced with a quoted identifier (`"._patch"`) if its name starts with a
+#' character SQLite would otherwise parse, such as a dot.
 #'
 #' @param gpkg Path to the GeoPackage.
 #' @param ... SQL strings and/or the list forms described above.

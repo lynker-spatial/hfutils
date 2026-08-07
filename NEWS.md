@@ -1,5 +1,19 @@
 # hfutils 0.4.2
 
+* `gpkg_update_geom()` no longer leaves its temporary layer's spatial index
+  behind. It dropped the temp feature table and its `gpkg_contents` /
+  `gpkg_geometry_columns` rows, but not the four `rtree_*` shadow tables GDAL
+  creates alongside a spatial layer, their triggers, or the `gpkg_extensions`
+  registration. Those accumulated in the GeoPackage on every call: ten geometry
+  updates left forty orphan tables in the file. Removal is now complete and
+  happens inside the same transaction as the geometry swap.
+* `gpkg_update_geom()` names its temporary layer from `tempfile()` rather than
+  the clock. The previous `%H%M%S%OS2` name collided when two calls landed in
+  the same centisecond and embedded a `.` in a SQL identifier.
+* First tests for `gpkg_update_col()`, `gpkg_update_geom()`, and `gpkg_exec()`,
+  covering targeted-row updates, numeric round-tripping, trigger restoration,
+  temp-layer cleanup, and transaction rollback. All three write destructively
+  in place and had no coverage.
 * `as_ogr()` now ignores the two tables QGIS writes into a GeoPackage when a
   style or a project is saved to it (`layer_styles`, `qgis_projects`). They are
   a QGIS extension rather than part of the GeoPackage spec, so they were being
