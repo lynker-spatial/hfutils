@@ -10,6 +10,12 @@ name: R-CMD-check.yaml
 
 permissions: read-all
 
+# Supersede an in-flight run when new commits land on the same ref, so a
+# push during a long R-devel build does not leave two runs competing.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
