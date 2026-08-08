@@ -1,29 +1,27 @@
 # hfutils 0.4.2
 
-* `gpkg_update_geom()` no longer leaves its temporary layer's spatial index
-  behind. It dropped the temp feature table and its `gpkg_contents` /
-  `gpkg_geometry_columns` rows, but not the four `rtree_*` shadow tables GDAL
-  creates alongside a spatial layer, their triggers, or the `gpkg_extensions`
-  registration. Those accumulated in the GeoPackage on every call: ten geometry
-  updates left forty orphan tables in the file. Removal is now complete and
-  happens inside the same transaction as the geometry swap.
-* `gpkg_update_geom()` names its temporary layer from `tempfile()` rather than
-  the clock. The previous `%H%M%S%OS2` name collided when two calls landed in
-  the same centisecond and embedded a `.` in a SQL identifier.
-* First tests for `gpkg_update_col()`, `gpkg_update_geom()`, and `gpkg_exec()`,
-  covering targeted-row updates, numeric round-tripping, trigger restoration,
-  temp-layer cleanup, and transaction rollback. All three write destructively
-  in place and had no coverage.
-* `as_ogr()` now ignores the two tables QGIS writes into a GeoPackage when a
-  style or a project is saved to it (`layer_styles`, `qgis_projects`). They are
-  a QGIS extension rather than part of the GeoPackage spec, so they were being
-  counted as user layers: a styled single-layer fabric stopped auto-resolving
-  and began erroring as ambiguous.
-* The `as_ogr()` `ignore_lyrs` pattern is now anchored (`^gpkg_`, `^rtree_`,
-  `^sqlite_`). Unanchored, it silently dropped any real layer whose name merely
-  contained one of those fragments, such as `flowpaths_gpkg_v2`. The default is
-  also defined once and shared by the generic and both methods, which
-  previously carried three separate copies of the literal.
+First release since 0.3.4. Completes the topological network-property family,
+adds a nested-set upstream index, and makes several in-place write paths exact.
+0.4.0 and 0.4.1 were development versions and were never released.
+
+* New `get_pathlength()`: distance along the network from each reach's outlet
+  to the terminal outlet (the NHDPlus `PathLength` attribute).
+* New `get_streamlevel()`: stream level, the number of level-path steps from a
+  reach to the network terminus (the NHDPlus `StreamLeve` attribute).
+* New `get_pfafstetter()`: hierarchical Pfafstetter basin codes, verified
+  against a full 746-reach reference basin.
+* These join `accumulate_downstream()`, `get_hydroseq()`, `get_streamorder()`,
+  and `get_levelpath()`; all are character-safe and return a vector aligned to
+  the input rows, and now cross-reference each other in their help pages.
+* New `upstream_index()`: a nested-set upstream index (`upstream_id` and
+  `num_upstreams`) over a rooted-tree network, so everything upstream of a node
+  is an O(1) integer range filter (`upstream_id` in `(u, u + k]`) with no
+  traversal. Reuses `accumulate_downstream()` for the count (inheriting its
+  acyclic check) and flags divergences or cycles rather than mis-indexing.
+* New `merge_groups()`: groups a network into contiguous same-order runs over
+  the `upstream_index()` pre-order. Each group is a contiguous `upstream_id`
+  range, so a size-budgeted tiler or partitioner can merge groups into balanced
+  chunks that are always complete sub-networks.
 * New `hf_upstream_index()`: applies the `upstream_index()` nested set at
   hydrofabric grain, resolving `flowpath -> nexus -> flowpath` hops into a
   direct flowpath graph before indexing. A `flowpath_toid` that is already a
@@ -55,32 +53,30 @@
   separately downstream.
 * `union_polygons()` repairs input geometry only where `sf::st_is_valid()`
   reports a problem, so valid input passes through untouched.
-
-# hfutils 0.4.1
-
-* New `upstream_index()`: a nested-set upstream index (`upstream_id` and
-  `num_upstreams`) over a rooted-tree network, so everything upstream of a node
-  is an O(1) integer range filter (`upstream_id` in `(u, u + k]`) with no
-  traversal. Reuses `accumulate_downstream()` for the count (inheriting its
-  acyclic check) and flags divergences or cycles rather than mis-indexing.
-* New `merge_groups()`: groups a network into contiguous same-order runs over
-  the `upstream_index()` pre-order. Each group is a contiguous `upstream_id`
-  range, so a size-budgeted tiler or partitioner can merge groups into balanced
-  chunks that are always complete sub-networks.
-
-# hfutils 0.4.0
-
-Completes the topological network-property family.
-
-* New `get_pathlength()`: distance along the network from each reach's outlet
-  to the terminal outlet (the NHDPlus `PathLength` attribute).
-* New `get_streamlevel()`: stream level, the number of level-path steps from a
-  reach to the network terminus (the NHDPlus `StreamLeve` attribute).
-* New `get_pfafstetter()`: hierarchical Pfafstetter basin codes, verified
-  against a full 746-reach reference basin.
-* These join `accumulate_downstream()`, `get_hydroseq()`, `get_streamorder()`,
-  and `get_levelpath()`; all are character-safe and return a vector aligned to
-  the input rows, and now cross-reference each other in their help pages.
+* `gpkg_update_geom()` no longer leaves its temporary layer's spatial index
+  behind. It dropped the temp feature table and its `gpkg_contents` /
+  `gpkg_geometry_columns` rows, but not the four `rtree_*` shadow tables GDAL
+  creates alongside a spatial layer, their triggers, or the `gpkg_extensions`
+  registration. Those accumulated in the GeoPackage on every call: ten geometry
+  updates left forty orphan tables in the file. Removal is now complete and
+  happens inside the same transaction as the geometry swap.
+* `gpkg_update_geom()` names its temporary layer from `tempfile()` rather than
+  the clock. The previous `%H%M%S%OS2` name collided when two calls landed in
+  the same centisecond and embedded a `.` in a SQL identifier.
+* `as_ogr()` now ignores the two tables QGIS writes into a GeoPackage when a
+  style or a project is saved to it (`layer_styles`, `qgis_projects`). They are
+  a QGIS extension rather than part of the GeoPackage spec, so they were being
+  counted as user layers: a styled single-layer fabric stopped auto-resolving
+  and began erroring as ambiguous.
+* The `as_ogr()` `ignore_lyrs` pattern is now anchored (`^gpkg_`, `^rtree_`,
+  `^sqlite_`). Unanchored, it silently dropped any real layer whose name merely
+  contained one of those fragments, such as `flowpaths_gpkg_v2`. The default is
+  also defined once and shared by the generic and both methods, which
+  previously carried three separate copies of the literal.
+* First tests for `gpkg_update_col()`, `gpkg_update_geom()`, and `gpkg_exec()`,
+  covering targeted-row updates, numeric round-tripping, trigger restoration,
+  temp-layer cleanup, and transaction rollback. All three write destructively
+  in place and had no coverage.
 
 # hfutils 0.3.4
 
