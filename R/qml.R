@@ -78,8 +78,9 @@ create_style_row <- function(gpkg_path, layer_name, style_name, style_qml) {
 #'
 #' @param gpkg_path Path to the GeoPackage to stamp.
 #' @param qml_dir Directory of `.qml` files. Defaults to the set shipped with
-#'   hfutils (`divides`, `flowlines`, `flowpaths`, `hydrolocations`, `lakes`,
-#'   `nexus`).
+#'   hfutils, covering every geometry-bearing layer in the hydrofabric data
+#'   model: `divides` and `WB` (polygon), `flowpaths` and `flowlines` (line),
+#'   and `hydrolocations`, `lakes` and `nexus` (point).
 #' @param layer_names Layers to style.
 #' @return `gpkg_path`, invisibly.
 #' @examples

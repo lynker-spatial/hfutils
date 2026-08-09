@@ -39,6 +39,27 @@ test_that("every shipped QML is well-formed and names a real layer style", {
   }
 })
 
+test_that("a QML ships for every geometry-bearing hydrofabric layer", {
+  have <- sub("[.]qml$", "",
+    basename(list.files(system.file("qml", package = "hfutils"), pattern = "[.]qml$")))
+  # the geometry-bearing tables of the hydrofabric data model; `network` and
+  # `flowpath_attributes` are attribute-only and take no style
+  expect_true(all(c("divides", "WB", "flowpaths", "flowlines",
+    "hydrolocations", "lakes", "nexus") %in% have))
+})
+
+test_that("each QML declares the geometry type its layer actually has", {
+  want <- c(divides = "2", WB = "2",            # polygon
+            flowpaths = "1", flowlines = "1",   # line
+            hydrolocations = "0", lakes = "0", nexus = "0")  # point
+  for (lyr in names(want)) {
+    f <- system.file("qml", paste0(lyr, ".qml"), package = "hfutils")
+    got <- sub(".*<layerGeometryType>([0-9]+)</layerGeometryType>.*", "\\1",
+      gsub("\n", "", read_qml(f)))
+    expect_equal(got, want[[lyr]], info = lyr)
+  }
+})
+
 test_that("append_style writes one layer_styles row per styled layer", {
   skip_if_not_installed("sf")
   f <- styled_gpkg()

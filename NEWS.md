@@ -6,10 +6,16 @@ makes several in-place write paths exact. 0.4.0 and 0.4.1 were development
 versions and were never released.
 
 * New `append_style()`, `read_qml()`, and `create_style_row()`, with QML
-  symbology for `divides`, `flowlines`, `flowpaths`, `hydrolocations`, `lakes`,
-  and `nexus`. `append_style()` stamps the styles into a GeoPackage's
-  `layer_styles` table so the file opens pre-styled in QGIS. These move here
-  from the `hydrofabric` package, alongside `write_hydrofabric()`.
+  symbology for every geometry-bearing layer in the hydrofabric data model:
+  `divides` and `WB` (polygon), `flowpaths` and `flowlines` (line), and
+  `hydrolocations`, `lakes` and `nexus` (point). `append_style()` stamps the
+  styles into a GeoPackage's `layer_styles` table so the file opens pre-styled
+  in QGIS. These move here from the `hydrofabric` package, alongside
+  `write_hydrofabric()`.
+* New `WB.qml`: waterbodies had no style at all. `WB` is a distinct layer from
+  `lakes`, sharing only `id` and `geometry`; `lakes` carries NWM reservoir
+  routing parameters (weir and orifice coefficients, dam length) and is styled
+  as points, while `WB` is waterbody polygons.
 * QML files are matched to layers by exact basename. The previous
   implementation paired a directory listing against the caller's layer order
   positionally, so `append_style(gpkg, layer_names = c("nexus", "divides"))`

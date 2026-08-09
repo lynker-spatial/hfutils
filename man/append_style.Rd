@@ -14,8 +14,9 @@ append_style(
 \item{gpkg_path}{Path to the GeoPackage to stamp.}
 
 \item{qml_dir}{Directory of `.qml` files. Defaults to the set shipped with
-hfutils (`divides`, `flowlines`, `flowpaths`, `hydrolocations`, `lakes`,
-`nexus`).}
+hfutils, covering every geometry-bearing layer in the hydrofabric data
+model: `divides` and `WB` (polygon), `flowpaths` and `flowlines` (line),
+and `hydrolocations`, `lakes` and `nexus` (point).}
 
 \item{layer_names}{Layers to style.}
 }
