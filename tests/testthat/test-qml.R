@@ -131,6 +131,52 @@ test_that("a styled GeoPackage still resolves through as_ogr", {
   expect_s3_class(as_ogr(f), "tbl_OGRSQLConnection")
 })
 
+test_that("write_hydrofabric does not stamp styles by default", {
+  skip_if_not_installed("sf")
+  f <- tempfile(fileext = ".gpkg")
+  withr::defer(unlink(f))
+  d <- nc_divides(3)
+  write_hydrofabric(list(divides = d), f, verbose = FALSE)
+
+  expect_false("layer_styles" %in% sf::st_layers(f)$name)
+})
+
+test_that("write_hydrofabric(styles = TRUE) stamps them", {
+  skip_if_not_installed("sf")
+  f <- tempfile(fileext = ".gpkg")
+  withr::defer(unlink(f))
+  d <- nc_divides(3)
+  write_hydrofabric(
+    list(divides = d, flowpaths = sf::st_cast(d, "MULTILINESTRING")),
+    f, verbose = FALSE, styles = TRUE)
+
+  expect_true("layer_styles" %in% sf::st_layers(f)$name)
+  s <- read_styles(f)
+  expect_setequal(s$f_table_name, c("divides", "flowpaths"))
+  # each layer still gets its own symbology through this path
+  for (lyr in c("divides", "flowpaths")) {
+    expect_identical(s$styleQML[s$f_table_name == lyr],
+      read_qml(system.file("qml", paste0(lyr, ".qml"), package = "hfutils")),
+      info = lyr)
+  }
+})
+
+test_that("styles = TRUE tolerates layers with no shipped QML", {
+  skip_if_not_installed("sf")
+  f <- tempfile(fileext = ".gpkg")
+  withr::defer(unlink(f))
+  d <- nc_divides(3)
+  # `network` is an attribute table; `widgets` has no QML at all
+  expect_no_error(write_hydrofabric(
+    list(divides = d, widgets = d,
+         network = data.frame(id = 1:2, toid = c(2L, 0L))),
+    f, verbose = FALSE, styles = TRUE))
+
+  expect_equal(read_styles(f)$f_table_name, "divides")
+  # the fabric itself is written regardless
+  expect_true(all(c("divides", "widgets", "network") %in% sf::st_layers(f)$name))
+})
+
 test_that("append_style errors on a missing GeoPackage", {
   expect_error(append_style(tempfile(fileext = ".gpkg"), layer_names = "divides"),
     "does not exist")

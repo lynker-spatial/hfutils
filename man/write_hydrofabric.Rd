@@ -4,7 +4,13 @@
 \alias{write_hydrofabric}
 \title{Write a hydrofabric GeoPackage (mixed sf + non-sf)}
 \usage{
-write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = FALSE)
+write_hydrofabric(
+  network_list,
+  outfile,
+  verbose = TRUE,
+  enforce_dm = FALSE,
+  styles = FALSE
+)
 }
 \arguments{
 \item{network_list}{named list of layers (may include `sf` and plain data.frames)}
@@ -17,6 +23,15 @@ write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = FALSE)
 validating each layer against an `hf_dm` object found in scope. Defaults to
 `FALSE`; `hf_dm` is not shipped with hfutils, so enable this only when a
 caller (e.g. the `hydrofabric` build package) provides `hf_dm`.}
+
+\item{styles}{logical, stamp the packaged QGIS symbology into the written
+GeoPackage with [append_style()], so it opens pre-styled. Defaults to
+`FALSE`: `layer_styles` is a QGIS extension rather than part of the
+GeoPackage specification, so it shows up as an extra layer to every reader
+(`sf::st_layers()`, `ogrinfo`, fiona) and adds a fixed cost of roughly
+70 KB, which is a large fraction of a small subset. Enable it for
+deliverables, leave it off for pipeline intermediates. Applied after the
+file is finalized, and a failure warns rather than failing the write.}
 }
 \value{
 `outfile` (invisibly)

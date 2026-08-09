@@ -12,6 +12,16 @@ versions and were never released.
   styles into a GeoPackage's `layer_styles` table so the file opens pre-styled
   in QGIS. These move here from the `hydrofabric` package, alongside
   `write_hydrofabric()`.
+* `write_hydrofabric()` gains `styles`, defaulting to `FALSE`. Set it to `TRUE`
+  to stamp the packaged symbology into the written GeoPackage. It is off by
+  default because `layer_styles` is a QGIS extension rather than part of the
+  GeoPackage specification: it appears as an extra layer to every reader
+  (`sf::st_layers()`, `ogrinfo`, fiona), not just to `as_ogr()`, and costs a
+  fixed ~70 KB, which is a large fraction of a small subset. Forgetting to
+  style a deliverable is visible immediately and fixable after the fact with
+  `append_style()`; styling a pipeline intermediate is silent and propagates.
+  Styling runs after the file is finalized, so a failure warns and leaves a
+  correctly written fabric rather than aborting one.
 * New `WB.qml`: waterbodies had no style at all. `WB` is a distinct layer from
   `lakes`, sharing only `id` and `geometry`; `lakes` carries NWM reservoir
   routing parameters (weir and orifice coefficients, dam length) and is styled

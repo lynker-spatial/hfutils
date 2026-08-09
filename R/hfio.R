@@ -216,6 +216,14 @@ read_hydrofabric <- function(gpkg = NULL,
 #' @param network_list named list of layers (may include `sf` and plain data.frames)
 #' @param outfile path to `.gpkg` (".gpkg" appended if missing)
 #' @param verbose logical, show progress via `cli`
+#' @param styles logical, stamp the packaged QGIS symbology into the written
+#'   GeoPackage with [append_style()], so it opens pre-styled. Defaults to
+#'   `FALSE`: `layer_styles` is a QGIS extension rather than part of the
+#'   GeoPackage specification, so it shows up as an extra layer to every reader
+#'   (`sf::st_layers()`, `ogrinfo`, fiona) and adds a fixed cost of roughly
+#'   70 KB, which is a large fraction of a small subset. Enable it for
+#'   deliverables, leave it off for pipeline intermediates. Applied after the
+#'   file is finalized, and a failure warns rather than failing the write.
 #' @param enforce_dm logical, enforce a data-model schema (column presence) by
 #'   validating each layer against an `hf_dm` object found in scope. Defaults to
 #'   `FALSE`; `hf_dm` is not shipped with hfutils, so enable this only when a
@@ -234,7 +242,8 @@ read_hydrofabric <- function(gpkg = NULL,
 write_hydrofabric <- function(network_list,
                               outfile,
                               verbose = TRUE,
-                              enforce_dm = FALSE) {
+                              enforce_dm = FALSE,
+                              styles = FALSE) {
   say <- function(fn, msg) if (isTRUE(verbose)) fn(msg)
 
   if (!is.list(network_list) || length(network_list) == 0)
@@ -370,6 +379,19 @@ write_hydrofabric <- function(network_list,
     ok <- file.copy(tmpfile, outfile, overwrite = TRUE)
     unlink(tmpfile)
     if (!ok) cli::cli_abort("Failed to finalize write to {.path {outfile}}.")
+  }
+
+  # Styling runs after the swap, on the finished file. It is cosmetic, so a
+  # failure here warns and leaves a correctly written fabric rather than
+  # aborting one.
+  if (isTRUE(styles)) {
+    tryCatch({
+      append_style(outfile, layer_names = unname(layer_names))
+      say(cli::cli_alert_info, "Stamped QGIS layer styles.")
+    }, error = function(e) {
+      say(cli::cli_alert_warning,
+        glue::glue("layer styles skipped: {conditionMessage(e)}"))
+    })
   }
 
   say(cli::cli_alert_success, glue::glue("Wrote {length(network_list)} layer(s)/table(s) -> {outfile}"))
