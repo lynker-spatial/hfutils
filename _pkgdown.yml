@@ -131,6 +131,14 @@ reference:
   - hf_break_cycles
   - hf_fmt_id
 
+- title: QGIS styling
+  desc: >
+    Stamp the packaged QGIS symbology into a GeoPackage so it opens pre-styled.
+  contents:
+  - append_style
+  - read_qml
+  - create_style_row
+
 - title: Versioning & quality assurance
   desc: >
     Stamp dataset versions and provenance into GeoPackages, and run staged

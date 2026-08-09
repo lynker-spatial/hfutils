@@ -74,6 +74,7 @@ https
 httr
 Hydrofabric
 hydrofabric
+hydrolocations
 hydrologic
 hydroseq
 Hydrosequence
@@ -92,6 +93,7 @@ linestring
 LINESTRINGS
 LINESTRINGs
 linestrings
+linework
 lon
 Lynker
 lynker
@@ -133,6 +135,7 @@ PathLength
 pathlength
 Pfafstetter
 pkgdown
+positionally
 PRAGMA
 pre
 precomputed
@@ -140,6 +143,8 @@ PROJ
 PRVI
 QGIS
 qgis
+QML
+qml
 readonly
 recursing
 Reproject
@@ -165,6 +170,7 @@ Strahler
 StreamLeve
 streamorder
 summarise
+symbology
 SYS
 tbl
 tempdir

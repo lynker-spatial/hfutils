@@ -1,8 +1,28 @@
 # hfutils 0.4.2
 
 First release since 0.3.4. Completes the topological network-property family,
-adds a nested-set upstream index, and makes several in-place write paths exact.
-0.4.0 and 0.4.1 were development versions and were never released.
+adds a nested-set upstream index, moves QGIS styling into the base layer, and
+makes several in-place write paths exact. 0.4.0 and 0.4.1 were development
+versions and were never released.
+
+* New `append_style()`, `read_qml()`, and `create_style_row()`, with QML
+  symbology for `divides`, `flowlines`, `flowpaths`, `hydrolocations`, `lakes`,
+  and `nexus`. `append_style()` stamps the styles into a GeoPackage's
+  `layer_styles` table so the file opens pre-styled in QGIS. These move here
+  from the `hydrofabric` package, alongside `write_hydrofabric()`.
+* QML files are matched to layers by exact basename. The previous
+  implementation paired a directory listing against the caller's layer order
+  positionally, so `append_style(gpkg, layer_names = c("nexus", "divides"))`
+  gave `nexus` the divides symbology and vice versa, with no error. Requested
+  layers with no shipped QML, and attribute tables with no geometry column such
+  as `network`, are now skipped rather than mismatched or errored on.
+* `flowpaths` line width is driven by `tot_drainage_areasqkm` rather than
+  `order`. Bound to `order` as a raw field, stream order was read directly as
+  millimeters, so an order-7 mainstem drew as a 7 mm line. Width is now
+  log-scaled from drainage area and capped, and features render in ascending
+  drainage-area order so mainstems sit on top at confluences.
+* New `flowlines.qml`: the reference linework styled thin and light blue,
+  driven by the same attribute over a narrower width range.
 
 * New `get_pathlength()`: distance along the network from each reach's outlet
   to the terminal outlet (the NHDPlus `PathLength` attribute).
