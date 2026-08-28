@@ -17,7 +17,7 @@ an untagged feature. Reusable across any domain merge."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,8 @@ an untagged feature. Reusable across any domain merge.</p>
 <span>  expected <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  area_tol <span class="op">=</span> <span class="fl">0.005</span>,</span>
 <span>  stage <span class="op">=</span> <span class="st">"merge"</span>,</span>
-<span>  strict <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  strict <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  gpkg <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,6 +97,13 @@ field is absent the corresponding check reports as info (skipped).</p></dd>
 
 <dt id="arg-strict">strict<a class="anchor" aria-label="anchor" href="#arg-strict"></a></dt>
 <dd><p>if TRUE, a failed check stops execution (else warns).</p></dd>
+
+
+<dt id="arg-gpkg">gpkg<a class="anchor" aria-label="anchor" href="#arg-gpkg"></a></dt>
+<dd><p>optional path to the written product. When supplied, the CRS check
+reads every spatial layer from the file rather than only the tables passed in
+`merged`; a product holds layers this function never sees, and a check that
+inspects a subset while reporting on the whole is worse than none.</p></dd>
 
 </dl></div>
     <div class="section level2">
