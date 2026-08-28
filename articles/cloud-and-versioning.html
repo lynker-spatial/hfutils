@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/cloud-and-versioning.html">Cloud access, versioning, and quality assurance</a></li>
-    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation and hydrosequence</a></li>
+    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation, ordering, and coding</a></li>
     <li><a class="dropdown-item" href="../articles/reading-and-writing.html">Reading and writing a hydrofabric</a></li>
   </ul>
 </li>
@@ -51,11 +51,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-stack" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Stack</button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack">
-<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish/articles/architecture.html">Architecture overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset — subset</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric — build</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish">hfpublish — publish</a></li>
+<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset: subset</a></li>
+    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric: build</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="external-link nav-link" href="https://www.lynker-spatial.com/">Lynker Spatial</a></li>
@@ -112,7 +109,7 @@ with DuckDB configured, the bearer token is attached as a secret.</p>
 <h2 id="dataset-versioning-provenance">Dataset versioning &amp; provenance<a class="anchor" aria-label="anchor" href="#dataset-versioning-provenance"></a>
 </h2>
 <p><code><a href="../reference/gpkg_set_version.html">gpkg_set_version()</a></code> stamps a dataset version into the
-standard GeoPackage metadata tables — distinct from the GeoPackage
+standard GeoPackage metadata tables, distinct from the GeoPackage
 <em>specification</em> version in <code>PRAGMA user_version</code>,
 which is left untouched. It records a machine-readable packed integer
 (<code>Mmmpp</code>), a human-readable semver string, an optional SPDX
@@ -152,10 +149,10 @@ comparison across releases.</p>
 stage of the build pipeline. Calling it <em>between</em> steps means a
 silent failure (a duplicate id, a dangling <code>toid</code>, an orphan
 divide, a raster ring artifact) halts the run at the step that created
-it — not 200 lines later during visual inspection.</p>
-<p>It supports four stages — <code>"refactored"</code>,
+it, not 200 lines later during visual inspection.</p>
+<p>It supports four stages, <code>"refactored"</code>,
 <code>"reconciled"</code>, <code>"aggregated"</code>, and
-<code>"ngen"</code> — each expecting stage-specific inputs. Here is the
+<code>"ngen"</code>, each expecting stage-specific inputs. Here is the
 topology half of a <code>refactored</code>-stage check on a clean toy
 network:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -193,7 +190,7 @@ that each flowpath lies within its assigned catchment.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>, <a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a>.</p>
+  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

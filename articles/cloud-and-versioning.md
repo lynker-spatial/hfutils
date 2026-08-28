@@ -38,7 +38,7 @@ tbl_http("https://lynker-spatial.s3.amazonaws.com/v20.1/flowpaths.parquet",
 ## Dataset versioning & provenance
 
 [`gpkg_set_version()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_set_version.md)
-stamps a dataset version into the standard GeoPackage metadata tables —
+stamps a dataset version into the standard GeoPackage metadata tables,
 distinct from the GeoPackage *specification* version in
 `PRAGMA user_version`, which is left untouched. It records a
 machine-readable packed integer (`Mmmpp`), a human-readable semver
@@ -81,12 +81,11 @@ releases.
 is the shared QA gate used at each stage of the build pipeline. Calling
 it *between* steps means a silent failure (a duplicate id, a dangling
 `toid`, an orphan divide, a raster ring artifact) halts the run at the
-step that created it — not 200 lines later during visual inspection.
+step that created it, not 200 lines later during visual inspection.
 
-It supports four stages — `"refactored"`, `"reconciled"`,
-`"aggregated"`, and `"ngen"` — each expecting stage-specific inputs.
-Here is the topology half of a `refactored`-stage check on a clean toy
-network:
+It supports four stages, `"refactored"`, `"reconciled"`, `"aggregated"`,
+and `"ngen"`, each expecting stage-specific inputs. Here is the topology
+half of a `refactored`-stage check on a clean toy network:
 
 ``` r
 

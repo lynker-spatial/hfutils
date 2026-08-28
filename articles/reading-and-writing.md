@@ -10,11 +10,11 @@ three complementary access patterns:
 
 1.  **[`read_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/read_hydrofabric.md)
     /
-    [`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)**
-    — eager, convenience round trips for the common `divides` +
+    [`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)**,
+    eager, convenience round trips for the common `divides` +
     `flowpaths` realization.
-2.  **[`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)**
-    — a lazy, dplyr-compatible view over *any* GDAL/OGR vector source
+2.  **[`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)**,
+    a lazy, dplyr-compatible view over *any* GDAL/OGR vector source
     (local or cloud), materialized only on
     [`collect()`](https://lynker-spatial.github.io/hfutils/reference/st_as_sf.md)
     /
@@ -22,8 +22,8 @@ three complementary access patterns:
 3.  **GeoParquet**
     ([`st_read_parquet()`](https://lynker-spatial.github.io/hfutils/reference/st_read_parquet.md)
     /
-    [`st_write_parquet()`](https://lynker-spatial.github.io/hfutils/reference/st_write_parquet.md))
-    — columnar, cloud-native storage with GeoPandas-compatible metadata.
+    [`st_write_parquet()`](https://lynker-spatial.github.io/hfutils/reference/st_write_parquet.md)),
+    columnar, cloud-native storage with GeoPandas-compatible metadata.
 
 ## A round trip
 
@@ -59,6 +59,15 @@ also accepts in-memory `sf` objects directly (skip the GeoPackage), a
 `realization` argument to read only `"divides"` or `"flowpaths"`, and a
 `crs` argument to transform outputs on the way out.
 
+When the layers you hand
+[`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)
+carry a flowpath topology, it also stamps a nested-set upstream index
+(`upstream_id` / `num_upstreams`) onto every flowpath-keyed layer, so
+the written file supports O(1) upstream range queries without a
+traversal. See
+[`vignette("network-properties")`](https://lynker-spatial.github.io/hfutils/articles/network-properties.md)
+for how to query it.
+
 ``` r
 
 fp_only <- read_hydrofabric(tmp, realization = "flowpaths", crs = 5070,
@@ -89,7 +98,7 @@ as_ogr("conus_nextgen.gpkg", "divides") |>
 ```
 
 Because GDAL backs the connection, the same call works against cloud
-objects via GDAL virtual file systems — see
+objects via GDAL virtual file systems, see
 [`vignette("cloud-and-versioning")`](https://lynker-spatial.github.io/hfutils/articles/cloud-and-versioning.md)
 for authenticated `/vsis3/` access.
 

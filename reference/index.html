@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,17 +18,14 @@
       <ul class="navbar-nav me-auto"><li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/cloud-and-versioning.html">Cloud access, versioning, and quality assurance</a></li>
-    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation and hydrosequence</a></li>
+    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation, ordering, and coding</a></li>
     <li><a class="dropdown-item" href="../articles/reading-and-writing.html">Reading and writing a hydrofabric</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-stack" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Stack</button>
-  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack"><li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish/articles/architecture.html">Architecture overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset — subset</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric — build</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish">hfpublish — publish</a></li>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack"><li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset: subset</a></li>
+    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric: build</a></li>
   </ul></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://www.lynker-spatial.com/">Lynker Spatial</a></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/lynker-spatial/hfutils/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -86,6 +83,27 @@
 
         </dt>
         <dd>OGRSQL OGRSQL driver, use to [dbConnect()] to a data source readable by sf</dd>
+
+        <dt>
+
+          <code><a href="gpkg_exec.html">gpkg_exec()</a></code>
+
+        </dt>
+        <dd>Run arbitrary SQL against a GeoPackage in a single transaction</dd>
+
+        <dt>
+
+          <code><a href="gpkg_update_col.html">gpkg_update_col()</a></code>
+
+        </dt>
+        <dd>In-place update of a single non-geometry column in a GeoPackage layer</dd>
+
+        <dt>
+
+          <code><a href="gpkg_update_geom.html">gpkg_update_geom()</a></code>
+
+        </dt>
+        <dd>In-place geometry update for specific rows of a GeoPackage layer</dd>
       </dl></div><div class="section level2">
       <h2 id="cloud-geoparquet">Cloud &amp; GeoParquet<a class="anchor" aria-label="anchor" href="#cloud-geoparquet"></a></h2>
 
@@ -187,7 +205,7 @@
           <code><a href="union_polygons.html">union_polygons()</a></code>
 
         </dt>
-        <dd>Fast polygon union by ID</dd>
+        <dd>Dissolve polygons by ID</dd>
 
         <dt>
 
@@ -235,6 +253,55 @@
 
         <dt>
 
+          <code><a href="get_levelpath.html">get_levelpath()</a></code>
+
+        </dt>
+        <dd>Compute mainstem level paths over a directed acyclic network</dd>
+
+        <dt>
+
+          <code><a href="get_pathlength.html">get_pathlength()</a></code>
+
+        </dt>
+        <dd>Compute downstream path length to the network outlet over a DAG</dd>
+
+        <dt>
+
+          <code><a href="get_streamlevel.html">get_streamlevel()</a></code>
+
+        </dt>
+        <dd>Compute stream level over a directed acyclic network</dd>
+
+        <dt>
+
+          <code><a href="get_pfafstetter.html">get_pfafstetter()</a></code>
+
+        </dt>
+        <dd>Compute Pfafstetter basin codes over a directed acyclic network</dd>
+
+        <dt>
+
+          <code><a href="upstream_index.html">upstream_index()</a></code>
+
+        </dt>
+        <dd>Nested-set upstream index over a rooted-tree network</dd>
+
+        <dt>
+
+          <code><a href="hf_upstream_index.html">hf_upstream_index()</a></code>
+
+        </dt>
+        <dd>Nested-set upstream index for a hydrofabric (flowpath + nexus grain)</dd>
+
+        <dt>
+
+          <code><a href="merge_groups.html">merge_groups()</a></code>
+
+        </dt>
+        <dd>Group a network into contiguous same-order runs for partitioning</dd>
+
+        <dt>
+
           <code><a href="add_measures.html">add_measures()</a></code>
 
         </dt>
@@ -274,6 +341,71 @@
 
         </dt>
         <dd>Rename geometry column of sf object</dd>
+
+        <dt>
+
+          <code><a href="hf_network_is_dag.html">hf_network_is_dag()</a></code>
+
+        </dt>
+        <dd>Is a flowpath network a directed acyclic graph?</dd>
+
+        <dt>
+
+          <code><a href="hf_assert_network_dag.html">hf_assert_network_dag()</a></code>
+
+        </dt>
+        <dd>Assert a flowpath network is a DAG, reporting any cycle nodes</dd>
+
+        <dt>
+
+          <code><a href="hf_recompute_hydroseq.html">hf_recompute_hydroseq()</a></code>
+
+        </dt>
+        <dd>Recompute hydrosequence for a flowpath network by topological sort</dd>
+
+        <dt>
+
+          <code><a href="hf_break_cycles.html">hf_break_cycles()</a></code>
+
+        </dt>
+        <dd>Break cycles in a flowpath network by severing one back-edge per SCC</dd>
+
+        <dt>
+
+          <code><a href="hf_fmt_id.html">hf_fmt_id()</a></code>
+
+        </dt>
+        <dd>Format numeric identifiers without scientific notation</dd>
+      </dl></div><div class="section level2">
+      <h2 id="qgis-styling">QGIS styling<a class="anchor" aria-label="anchor" href="#qgis-styling"></a></h2>
+
+      <div class="section-desc"><p>Stamp the packaged QGIS symbology into a GeoPackage so it opens pre-styled.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="append_style.html">append_style()</a></code>
+
+        </dt>
+        <dd>Write QGIS layer styles into a GeoPackage</dd>
+
+        <dt>
+
+          <code><a href="read_qml.html">read_qml()</a></code>
+
+        </dt>
+        <dd>Read a QML style file</dd>
+
+        <dt>
+
+          <code><a href="create_style_row.html">create_style_row()</a></code>
+
+        </dt>
+        <dd>Build one `layer_styles` row for a GeoPackage layer</dd>
       </dl></div><div class="section level2">
       <h2 id="versioning-quality-assurance">Versioning &amp; quality assurance<a class="anchor" aria-label="anchor" href="#versioning-quality-assurance"></a></h2>
 
@@ -375,7 +507,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>, <a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a>.</p>
+  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

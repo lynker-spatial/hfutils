@@ -15,7 +15,7 @@ read_hydrofabric(
   flowpaths = NULL,
   realization = c("all", "divides", "flowpaths"),
   crs = NULL,
-  verbose = Sys.getenv("hydrofab_verbose") != "false"
+  verbose = Sys.getenv("hfutils_verbose") != "false"
 )
 ```
 
@@ -51,7 +51,7 @@ read_hydrofabric(
 - verbose:
 
   Logical; print progress messages. Default uses the environment
-  variable \`hydrofab_verbose\` (anything other than literal \`"false"\`
+  variable \`hfutils_verbose\` (anything other than literal \`"false"\`
   is treated as verbose).
 
 ## Value

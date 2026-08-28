@@ -17,6 +17,13 @@ GDAL/OGR vector source with dplyr.
 - [`OGRSQL()`](https://lynker-spatial.github.io/hfutils/reference/OGRSQL.md)
   : OGRSQL OGRSQL driver, use to \[dbConnect()\] to a data source
   readable by sf
+- [`gpkg_exec()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_exec.md)
+  : Run arbitrary SQL against a GeoPackage in a single transaction
+- [`gpkg_update_col()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_col.md)
+  : In-place update of a single non-geometry column in a GeoPackage
+  layer
+- [`gpkg_update_geom()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_geom.md)
+  : In-place geometry update for specific rows of a GeoPackage layer
 
 ## Cloud & GeoParquet
 
@@ -65,7 +72,7 @@ ID.
   : Clean polygon topology in a GeoPackage layer using GDAL and
   Mapshaper
 - [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
-  : Fast polygon union by ID
+  : Dissolve polygons by ID
 - [`union_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/union_linestrings.md)
   : Fast linestring union by ID
 - [`flowpaths_to_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/flowpaths_to_linestrings.md)
@@ -81,6 +88,20 @@ Algorithms over the directed (DAG) flow network.
   : Compute and add the hydrosequence to a directed acyclic network
 - [`get_streamorder()`](https://lynker-spatial.github.io/hfutils/reference/get_streamorder.md)
   : Compute and add Strahler stream order to a directed acyclic network
+- [`get_levelpath()`](https://lynker-spatial.github.io/hfutils/reference/get_levelpath.md)
+  : Compute mainstem level paths over a directed acyclic network
+- [`get_pathlength()`](https://lynker-spatial.github.io/hfutils/reference/get_pathlength.md)
+  : Compute downstream path length to the network outlet over a DAG
+- [`get_streamlevel()`](https://lynker-spatial.github.io/hfutils/reference/get_streamlevel.md)
+  : Compute stream level over a directed acyclic network
+- [`get_pfafstetter()`](https://lynker-spatial.github.io/hfutils/reference/get_pfafstetter.md)
+  : Compute Pfafstetter basin codes over a directed acyclic network
+- [`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
+  : Nested-set upstream index over a rooted-tree network
+- [`hf_upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/hf_upstream_index.md)
+  : Nested-set upstream index for a hydrofabric (flowpath + nexus grain)
+- [`merge_groups()`](https://lynker-spatial.github.io/hfutils/reference/merge_groups.md)
+  : Group a network into contiguous same-order runs for partitioning
 - [`add_measures()`](https://lynker-spatial.github.io/hfutils/reference/add_measures.md)
   : Add length and area measures to flowpaths/divides
 - [`add_areasqkm()`](https://lynker-spatial.github.io/hfutils/reference/add_areasqkm.md)
@@ -93,6 +114,28 @@ Algorithms over the directed (DAG) flow network.
   : Node geometry from line endpoints
 - [`rename_geometry()`](https://lynker-spatial.github.io/hfutils/reference/rename_geometry.md)
   : Rename geometry column of sf object
+- [`hf_network_is_dag()`](https://lynker-spatial.github.io/hfutils/reference/hf_network_is_dag.md)
+  : Is a flowpath network a directed acyclic graph?
+- [`hf_assert_network_dag()`](https://lynker-spatial.github.io/hfutils/reference/hf_assert_network_dag.md)
+  : Assert a flowpath network is a DAG, reporting any cycle nodes
+- [`hf_recompute_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/hf_recompute_hydroseq.md)
+  : Recompute hydrosequence for a flowpath network by topological sort
+- [`hf_break_cycles()`](https://lynker-spatial.github.io/hfutils/reference/hf_break_cycles.md)
+  : Break cycles in a flowpath network by severing one back-edge per SCC
+- [`hf_fmt_id()`](https://lynker-spatial.github.io/hfutils/reference/hf_fmt_id.md)
+  : Format numeric identifiers without scientific notation
+
+## QGIS styling
+
+Stamp the packaged QGIS symbology into a GeoPackage so it opens
+pre-styled.
+
+- [`append_style()`](https://lynker-spatial.github.io/hfutils/reference/append_style.md)
+  : Write QGIS layer styles into a GeoPackage
+- [`read_qml()`](https://lynker-spatial.github.io/hfutils/reference/read_qml.md)
+  : Read a QML style file
+- [`create_style_row()`](https://lynker-spatial.github.io/hfutils/reference/create_style_row.md)
+  : Build one \`layer_styles\` row for a GeoPackage layer
 
 ## Versioning & quality assurance
 

@@ -1,11 +1,9 @@
 # Compute and add Strahler stream order to a directed acyclic network
 
-Native replacement for \`hydroloom::add_streamorder\` – same topological
-approach as \[get_hydroseq()\] (igraph topo-sort), with no external
-dependency and no non-dendritic/divergence handling required. Leaves are
-order 1; at each node the order is the max of its upstream contributors,
-incremented by 1 when that max is shared by two or more of them
-(Strahler).
+Same topological approach as \[get_hydroseq()\] (igraph topo-sort), with
+no non-dendritic/divergence handling required. Leaves are order 1; at
+each node the order is the max of its upstream contributors, incremented
+by 1 when that max is shared by two or more of them (Strahler).
 
 ## Usage
 
@@ -28,6 +26,19 @@ get_streamorder(x, id = "flowpath_id", toid = "flowpath_toid")
 ## Value
 
 Integer vector of stream orders aligned to the rows of \`x\`.
+
+## See also
+
+Other network properties:
+[`accumulate_downstream()`](https://lynker-spatial.github.io/hfutils/reference/accumulate_downstream.md),
+[`get_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.md),
+[`get_levelpath()`](https://lynker-spatial.github.io/hfutils/reference/get_levelpath.md),
+[`get_pathlength()`](https://lynker-spatial.github.io/hfutils/reference/get_pathlength.md),
+[`get_pfafstetter()`](https://lynker-spatial.github.io/hfutils/reference/get_pfafstetter.md),
+[`get_streamlevel()`](https://lynker-spatial.github.io/hfutils/reference/get_streamlevel.md),
+[`hf_upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/hf_upstream_index.md),
+[`merge_groups()`](https://lynker-spatial.github.io/hfutils/reference/merge_groups.md),
+[`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
 
 ## Examples
 

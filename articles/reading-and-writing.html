@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/cloud-and-versioning.html">Cloud access, versioning, and quality assurance</a></li>
-    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation and hydrosequence</a></li>
+    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation, ordering, and coding</a></li>
     <li><a class="dropdown-item" href="../articles/reading-and-writing.html">Reading and writing a hydrofabric</a></li>
   </ul>
 </li>
@@ -51,11 +51,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-stack" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Stack</button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack">
-<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish/articles/architecture.html">Architecture overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset — subset</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric — build</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish">hfpublish — publish</a></li>
+<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset: subset</a></li>
+    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric: build</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="external-link nav-link" href="https://www.lynker-spatial.com/">Lynker Spatial</a></li>
@@ -88,17 +85,17 @@ It offers three complementary access patterns:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong><code><a href="../reference/read_hydrofabric.html">read_hydrofabric()</a></code> /
-<code><a href="../reference/write_hydrofabric.html">write_hydrofabric()</a></code></strong> — eager, convenience round
+<code><a href="../reference/write_hydrofabric.html">write_hydrofabric()</a></code></strong>, eager, convenience round
 trips for the common <code>divides</code> + <code>flowpaths</code>
 realization.</li>
 <li>
-<strong><code><a href="../reference/as_ogr.html">as_ogr()</a></code></strong> — a lazy, dplyr-compatible
+<strong><code><a href="../reference/as_ogr.html">as_ogr()</a></code></strong>, a lazy, dplyr-compatible
 view over <em>any</em> GDAL/OGR vector source (local or cloud),
 materialized only on <code><a href="../reference/st_as_sf.html">collect()</a></code> /
 <code><a href="../reference/st_as_sf.html">st_as_sf()</a></code>.</li>
 <li>
 <strong>GeoParquet</strong> (<code><a href="../reference/st_read_parquet.html">st_read_parquet()</a></code> /
-<code><a href="../reference/st_write_parquet.html">st_write_parquet()</a></code>) — columnar, cloud-native storage with
+<code><a href="../reference/st_write_parquet.html">st_write_parquet()</a></code>), columnar, cloud-native storage with
 GeoPandas-compatible metadata.</li>
 </ol>
 <div class="section level2">
@@ -132,6 +129,12 @@ back:</p>
 <code>realization</code> argument to read only <code>"divides"</code> or
 <code>"flowpaths"</code>, and a <code>crs</code> argument to transform
 outputs on the way out.</p>
+<p>When the layers you hand <code><a href="../reference/write_hydrofabric.html">write_hydrofabric()</a></code> carry a
+flowpath topology, it also stamps a nested-set upstream index
+(<code>upstream_id</code> / <code>num_upstreams</code>) onto every
+flowpath-keyed layer, so the written file supports O(1) upstream range
+queries without a traversal. See
+<code><a href="../articles/network-properties.html">vignette("network-properties")</a></code> for how to query it.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fp_only</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_hydrofabric.html">read_hydrofabric</a></span><span class="op">(</span><span class="va">tmp</span>, realization <span class="op">=</span> <span class="st">"flowpaths"</span>, crs <span class="op">=</span> <span class="fl">5070</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -154,7 +157,7 @@ layer:</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">divide_id</span>, <span class="va">areasqkm</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Because GDAL backs the connection, the same call works against cloud
-objects via GDAL virtual file systems — see
+objects via GDAL virtual file systems, see
 <code><a href="../articles/cloud-and-versioning.html">vignette("cloud-and-versioning")</a></code> for authenticated
 <code>/vsis3/</code> access.</p>
 </div>
@@ -174,7 +177,7 @@ partitioned dataset:</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>, <a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a>.</p>
+  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

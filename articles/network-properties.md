@@ -1,4 +1,4 @@
-# Network properties: accumulation and hydrosequence
+# Network properties: accumulation, ordering, and coding
 
 ``` r
 
@@ -7,10 +7,11 @@ library(hfutils)
 
 A hydrofabric flow network is a **directed acyclic graph (DAG)**: every
 feature (`id`) points to exactly one downstream feature (`toid`), and
-terminal features point to `0` (or `NA`). `hfutils` provides two
-topology primitives that operate on this structure — both are
+terminal features point to `0` (or `NA`). `hfutils` provides a family of
+topology functions that operate on this structure, all are
 character-safe, so identifiers such as `"fp-123"` or scientific-notation
-strings round-trip cleanly.
+strings round-trip cleanly, and each returns a vector aligned to the
+input rows.
 
 ## Downstream accumulation
 
@@ -74,15 +75,138 @@ df[order(-df$hydroseq), c("flowpath_id", "flowpath_toid", "hydroseq")]
 #> 3           3             4        1
 ```
 
+## Derived network attributes
+
+The rest of the family builds the standard NHDPlus-style routing
+attributes on top of the same topological pass. Take a small basin, a
+mainstem `4 -> 3 -> 1` with a tributary `2 -> 1` draining to the outlet
+`1`:
+
+``` r
+
+net <- data.frame(
+  flowpath_id   = c("1", "2", "3", "4"),
+  flowpath_toid = c("0", "1", "1", "3"),
+  lengthkm      = c(4, 2, 3, 5)
+)
+
+net$arbolate  <- accumulate_downstream(net, attr = "lengthkm")   # arbolate sum
+net$order     <- get_streamorder(net)                            # Strahler order
+net$levelpath <- get_levelpath(net, weight = "arbolate")         # mainstem grouping
+net$pathlen   <- get_pathlength(net, length = "lengthkm")        # distance to outlet
+net$level     <- get_streamlevel(net, levelpath = "levelpath")   # stream level
+net
+#>   flowpath_id flowpath_toid lengthkm arbolate order levelpath pathlen level
+#> 1           1             0        4       14     2         4       0     1
+#> 2           2             1        2        2     1         1       4     2
+#> 3           3             1        3        8     1         4       4     1
+#> 4           4             3        5        5     1         4       7     1
+```
+
+- **[`get_streamorder()`](https://lynker-spatial.github.io/hfutils/reference/get_streamorder.md)**,
+  Strahler order: leaves are `1`, and order increases only where two
+  equal-order streams meet (so the confluence at `1` is order 2).
+- **[`get_levelpath()`](https://lynker-spatial.github.io/hfutils/reference/get_levelpath.md)**,
+  groups reaches into continuous mainstems, following the
+  largest-`weight` contributor at each confluence (here the arbolate
+  sum, so `1`, `3`, `4` share a level path and the tributary `2` is its
+  own).
+- **[`get_pathlength()`](https://lynker-spatial.github.io/hfutils/reference/get_pathlength.md)**,
+  distance along the network from each reach’s outlet to the network
+  terminus (`0` at the outlet, summing downstream lengths going up).
+- **[`get_streamlevel()`](https://lynker-spatial.github.io/hfutils/reference/get_streamlevel.md)**,
+  how many level-path steps a reach is from the terminus: the mainstem
+  is `1`, the tributary `2`.
+
+### Pfafstetter codes
+
+[`get_pfafstetter()`](https://lynker-spatial.github.io/hfutils/reference/get_pfafstetter.md)
+assigns hierarchical
+[Pfafstetter](https://en.wikipedia.org/wiki/Pfafstetter_Coding_System)
+basin codes. It needs total drainage area, a hydrosequence, and level
+paths precomputed, then subdivides each basin’s mainstem by its four
+largest tributaries, recursing `max_level` digits deep:
+
+``` r
+
+# on a real fabric this is accumulated catchment area; `arbolate` stands in here
+net$total_da_sqkm <- net$arbolate
+net$topo_sort     <- get_hydroseq(net)
+net$pfaf          <- get_pfafstetter(net, max_level = 2)
+```
+
+The result is most meaningful on a full basin, where each digit narrows
+the location within the drainage hierarchy. On a four-reach toy network
+there are no tributaries large enough to subdivide, so every code comes
+back `NA`.
+
+## Upstream queries and partitioning
+
+[`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
+assigns each feature a *nested set* pair, `upstream_id` (its depth-first
+pre-order position) and `num_upstreams` (how many features sit strictly
+above it). Together these turn “everything upstream of X” into an
+integer range test rather than a graph traversal:
+
+``` r
+
+idx <- upstream_index(net)
+cbind(net["flowpath_id"], idx)
+#>   flowpath_id upstream_id num_upstreams
+#> 1           1           1             3
+#> 2           2           4             0
+#> 3           3           2             1
+#> 4           4           3             0
+```
+
+Everything upstream of a feature with `upstream_id == u` and
+`num_upstreams == k` is exactly the half-open range `(u, u + k]`:
+
+``` r
+
+u <- idx$upstream_id[net$flowpath_id == "1"]
+k <- idx$num_upstreams[net$flowpath_id == "1"]
+net$flowpath_id[idx$upstream_id > u & idx$upstream_id <= u + k]
+#> [1] "2" "3" "4"
+```
+
+Because the walk expands the largest-upstream branch first, a mainstem
+stays contiguous. Note that `upstream_id` is build-specific: it changes
+whenever the topology changes, so it is an index, not a persistent key.
+
+For a hydrofabric whose flowpaths route through nexuses,
+[`hf_upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/hf_upstream_index.md)
+resolves the `flowpath -> nexus -> flowpath` hops first and then indexes
+the resulting flowpath graph.
+[`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)
+calls it for you, so a written GeoPackage carries the index already.
+
+[`merge_groups()`](https://lynker-spatial.github.io/hfutils/reference/merge_groups.md)
+builds on the same pre-order to cut the network into *contiguous* runs,
+breaking wherever a feature does not flow directly into its predecessor
+or (with `order`) wherever the given order column changes. Each group is
+a contiguous `upstream_id` range, so a size-budgeted partitioner can
+merge whole groups and always end up with complete sub-networks:
+
+``` r
+
+merge_groups(net, order = "levelpath")
+#> [1] 1 2 1 1
+```
+
+The mainstem `4 -> 3 -> 1` forms one group; the tributary `2` is its
+own.
+
 ## In practice
 
-Both functions accept a data frame, tibble, or `sf` object. A typical
-pattern reads a layer lazily, filters to a VPU, materializes it, and
-accumulates:
+Every function above accepts a data frame, tibble, or `sf` object. A
+typical pattern reads a layer lazily, filters to a VPU, materializes it,
+and accumulates:
 
 ``` r
 
 library(dplyr)
+library(sf)
 
 da <- as_ogr("conus_nextgen.gpkg", "flowpaths") |>
   filter(vpuid == "01") |>

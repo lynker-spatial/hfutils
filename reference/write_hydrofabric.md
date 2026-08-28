@@ -1,11 +1,20 @@
 # Write a hydrofabric GeoPackage (mixed sf + non-sf)
 
-Write a hydrofabric GeoPackage (mixed sf + non-sf)
+Writes a named list of layers to a single GeoPackage, mixing \`sf\`
+layers and plain attribute tables. The write is atomic: layers are
+staged in a temporary GeoPackage and only moved into place once every
+layer has been written.
 
 ## Usage
 
 ``` r
-write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = FALSE)
+write_hydrofabric(
+  network_list,
+  outfile,
+  verbose = TRUE,
+  enforce_dm = FALSE,
+  styles = FALSE
+)
 ```
 
 ## Arguments
@@ -30,9 +39,36 @@ write_hydrofabric(network_list, outfile, verbose = TRUE, enforce_dm = FALSE)
   when a caller (e.g. the \`hydrofabric\` build package) provides
   \`hf_dm\`.
 
+- styles:
+
+  logical, stamp the packaged QGIS symbology into the written GeoPackage
+  with \[append_style()\], so it opens pre-styled. Defaults to
+  \`FALSE\`: \`layer_styles\` is a QGIS extension rather than part of
+  the GeoPackage specification, so it shows up as an extra layer to
+  every reader (\`sf::st_layers()\`, \`ogrinfo\`, fiona) and adds a
+  fixed cost of roughly 70 KB, which is a large fraction of a small
+  subset. Enable it for deliverables, leave it off for pipeline
+  intermediates. Applied after the file is finalized, and a failure
+  warns rather than failing the write.
+
 ## Value
 
 \`outfile\` (invisibly)
+
+## Details
+
+When the list carries a flowpath topology (a layer with \`flowpath_id\`
+and \`flowpath_toid\`), a nested-set upstream index is computed with
+\[hf_upstream_index()\] and stamped onto every flowpath-keyed layer as
+the integer columns \`upstream_id\` and \`num_upstreams\`, so the
+written GeoPackage supports O(1) upstream range queries. A nexus layer
+(\`nexus_id\` / \`nexus_toid\`), if present, is used to resolve
+\`flowpath -\> nexus -\> flowpath\` hops. The step is attribute-only and
+is skipped without failing the write when the topology is absent or not
+acyclic. Because the index is derived from whatever topology is in
+\`network_list\`, per-VPU, merged, and subset writes each get a correct
+index for their own scope; the values are build-specific and are not
+persistent keys.
 
 ## Examples
 

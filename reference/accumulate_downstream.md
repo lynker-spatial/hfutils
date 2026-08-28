@@ -60,6 +60,19 @@ Only a single neighbor-independent edge pass is made after topo sort,
 and computations are done on integer indices. This avoids per-vertex
 neighbor lookups and scales well to large hydrologic networks.
 
+## See also
+
+Other network properties:
+[`get_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.md),
+[`get_levelpath()`](https://lynker-spatial.github.io/hfutils/reference/get_levelpath.md),
+[`get_pathlength()`](https://lynker-spatial.github.io/hfutils/reference/get_pathlength.md),
+[`get_pfafstetter()`](https://lynker-spatial.github.io/hfutils/reference/get_pfafstetter.md),
+[`get_streamlevel()`](https://lynker-spatial.github.io/hfutils/reference/get_streamlevel.md),
+[`get_streamorder()`](https://lynker-spatial.github.io/hfutils/reference/get_streamorder.md),
+[`hf_upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/hf_upstream_index.md),
+[`merge_groups()`](https://lynker-spatial.github.io/hfutils/reference/merge_groups.md),
+[`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
+
 ## Examples
 
 ``` r

@@ -20,6 +20,7 @@ remotes::install_github("lynker-spatial/hfutils")
 
 library(hfutils)
 library(dplyr)
+library(sf)
 ```
 
 ## Basic Use
@@ -30,93 +31,39 @@ library(dplyr)
 
 ``` r
 
-gpkg <- '/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'
+# point this at a hydrofabric GeoPackage (with flowpaths + divides layers)
+gpkg <- "reference_fabric.gpkg"
+
+# With a single user layer, that layer is selected automatically. A source
+# holding several layers is ambiguous, so as_ogr() lists them and asks you
+# to name one.
 hfutils::as_ogr(gpkg)
-#> [1] "divides"        "flowpaths"      "hydrolocations" "pois"          
-#> [5] "events"         "network"
-#> <OGRSQLConnection>
-#>  DSN: /Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg...
-#> tables: divides, flowpaths, hydrolocations, pois, events, network
+#> Error: Multiple layers found; please specify `layer` explicitly:
+#> > divides, flowpaths
 ```
 
 #### Basic connection: Layer
 
 ``` r
 
-hfutils::as_ogr(gpkg, "divides") 
-#> # Source:   table<"divides"> [?? x 6]
-#> # Database: OGRSQLConnection
-#>    divide_id vpuid areasqkm has_flowpath flowpath_id                        geom
-#>        <dbl> <chr>    <dbl> <lgl>              <dbl>          <MULTIPOLYGON [m]>
-#>  1 931090014 01     8.61    TRUE           931090014 (((2068815 2313015, 206890…
-#>  2 931080009 01     0.158   TRUE           931080009 (((1933035 2277735, 193315…
-#>  3 931080008 01     0.296   TRUE           931080008 (((1933035 2277735, 193300…
-#>  4 931080007 01     1.99    TRUE           931080007 (((1932855 2277345, 193285…
-#>  5 931080006 01     2.33    TRUE           931080006 (((1931025 2278695, 193102…
-#>  6 931070173 01     1.21    TRUE           931070173 (((1967025 2413755, 196702…
-#>  7 931070172 01     7.72    TRUE           931070172 (((1966455 2412855, 196651…
-#>  8 931060011 01     1.78    TRUE           931060011 (((2021925 2487855, 202204…
-#>  9 931060010 01     1.85    TRUE           931060010 (((2021925 2487855, 202174…
-#> 10 931060009 01     0.00765 TRUE           931060009 (((1990665 2513595, 199057…
-#> # ℹ more rows
+hfutils::as_ogr(gpkg, "divides")
 ```
 
 #### Lazy Eval
 
 ``` r
 
-hfutils::as_ogr(gpkg, "divides") |> 
-  select(divide_id, areasqkm) 
-#> # Source:   SQL [?? x 2]
-#> # Database: OGRSQLConnection
-#>    divide_id areasqkm
-#>        <dbl>    <dbl>
-#>  1 931090014  8.61   
-#>  2 931080009  0.158  
-#>  3 931080008  0.296  
-#>  4 931080007  1.99   
-#>  5 931080006  2.33   
-#>  6 931070173  1.21   
-#>  7 931070172  7.72   
-#>  8 931060011  1.78   
-#>  9 931060010  1.85   
-#> 10 931060009  0.00765
-#> # ℹ more rows
+hfutils::as_ogr(gpkg, "divides") |>
+  select(divide_id, areasqkm)
 ```
 
 #### sf extraction
 
 ``` r
 
-hfutils::as_ogr(gpkg, "divides")  |> 
-  filter(vpuid == "01") |> 
+hfutils::as_ogr(gpkg, "divides")  |>
+  filter(vpuid == "01") |>
   st_as_sf()
-#> Simple feature collection with 67880 features and 5 fields
-#> Geometry type: MULTIPOLYGON
-#> Dimension:     XY
-#> Bounding box:  xmin: 1824825 ymin: 2215935 xmax: 2255715 ymax: 3086925
-#> Projected CRS: NAD83 / Conus Albers
-#> # A tibble: 67,880 × 6
-#>    divide_id vpuid areasqkm has_flowpath flowpath_id                        geom
-#>        <dbl> <chr>    <dbl> <lgl>              <dbl>          <MULTIPOLYGON [m]>
-#>  1 931090014 01     8.61    TRUE           931090014 (((2068815 2313015, 206890…
-#>  2 931080009 01     0.158   TRUE           931080009 (((1933035 2277735, 193315…
-#>  3 931080008 01     0.296   TRUE           931080008 (((1933035 2277735, 193300…
-#>  4 931080007 01     1.99    TRUE           931080007 (((1932855 2277345, 193285…
-#>  5 931080006 01     2.33    TRUE           931080006 (((1931025 2278695, 193102…
-#>  6 931070173 01     1.21    TRUE           931070173 (((1967025 2413755, 196702…
-#>  7 931070172 01     7.72    TRUE           931070172 (((1966455 2412855, 196651…
-#>  8 931060011 01     1.78    TRUE           931060011 (((2021925 2487855, 202204…
-#>  9 931060010 01     1.85    TRUE           931060010 (((2021925 2487855, 202174…
-#> 10 931060009 01     0.00765 TRUE           931060009 (((1990665 2513595, 199057…
-#> # ℹ 67,870 more rows
-```
-
-#### Remote Access
-
-``` r
-
-# hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')
 ```
 
 ### Network Properties
@@ -125,29 +72,23 @@ hfutils::as_ogr(gpkg, "divides")  |>
 
 ## Accumulate Downstream
 system.time({
-  da <-  hfutils::as_ogr(gpkg, 'flowpaths')  |> 
-  filter(vpuid == "01") |> 
-  st_as_sf() |> 
-  accumulate_downstream(attr = "areasqkm")})
-#>    user  system elapsed 
-#>   0.911   0.491   1.550
+  da <-  hfutils::as_ogr(gpkg, "flowpaths")  |>
+    filter(vpuid == "01") |>
+    st_as_sf() |>
+    accumulate_downstream(attr = "areasqkm")
+})
 
 head(da)
-#> [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145
 
 ## Hydrosequence
 system.time({
-  hs <-  hfutils::as_ogr(gpkg, 
-                         'flowpaths')  |> 
-  filter(vpuid == "01") |> 
-  st_as_sf() |> 
-  get_hydroseq()
+  hs <-  hfutils::as_ogr(gpkg, "flowpaths")  |>
+    filter(vpuid == "01") |>
+    st_as_sf() |>
+    get_hydroseq()
 })
-#>    user  system elapsed 
-#>   0.900   0.488   1.398
 
 head(hs)
-#> [1]   806 22724 22726 22725 22727 28139
 ```
 
 ### Questions?
@@ -174,6 +115,13 @@ GDAL/OGR vector source with dplyr.
 - [`OGRSQL()`](https://lynker-spatial.github.io/hfutils/reference/OGRSQL.md)
   : OGRSQL OGRSQL driver, use to \[dbConnect()\] to a data source
   readable by sf
+- [`gpkg_exec()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_exec.md)
+  : Run arbitrary SQL against a GeoPackage in a single transaction
+- [`gpkg_update_col()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_col.md)
+  : In-place update of a single non-geometry column in a GeoPackage
+  layer
+- [`gpkg_update_geom()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_geom.md)
+  : In-place geometry update for specific rows of a GeoPackage layer
 
 ## Cloud & GeoParquet
 
@@ -222,7 +170,7 @@ ID.
   : Clean polygon topology in a GeoPackage layer using GDAL and
   Mapshaper
 - [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
-  : Fast polygon union by ID
+  : Dissolve polygons by ID
 - [`union_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/union_linestrings.md)
   : Fast linestring union by ID
 - [`flowpaths_to_linestrings()`](https://lynker-spatial.github.io/hfutils/reference/flowpaths_to_linestrings.md)
@@ -238,6 +186,20 @@ Algorithms over the directed (DAG) flow network.
   : Compute and add the hydrosequence to a directed acyclic network
 - [`get_streamorder()`](https://lynker-spatial.github.io/hfutils/reference/get_streamorder.md)
   : Compute and add Strahler stream order to a directed acyclic network
+- [`get_levelpath()`](https://lynker-spatial.github.io/hfutils/reference/get_levelpath.md)
+  : Compute mainstem level paths over a directed acyclic network
+- [`get_pathlength()`](https://lynker-spatial.github.io/hfutils/reference/get_pathlength.md)
+  : Compute downstream path length to the network outlet over a DAG
+- [`get_streamlevel()`](https://lynker-spatial.github.io/hfutils/reference/get_streamlevel.md)
+  : Compute stream level over a directed acyclic network
+- [`get_pfafstetter()`](https://lynker-spatial.github.io/hfutils/reference/get_pfafstetter.md)
+  : Compute Pfafstetter basin codes over a directed acyclic network
+- [`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
+  : Nested-set upstream index over a rooted-tree network
+- [`hf_upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/hf_upstream_index.md)
+  : Nested-set upstream index for a hydrofabric (flowpath + nexus grain)
+- [`merge_groups()`](https://lynker-spatial.github.io/hfutils/reference/merge_groups.md)
+  : Group a network into contiguous same-order runs for partitioning
 - [`add_measures()`](https://lynker-spatial.github.io/hfutils/reference/add_measures.md)
   : Add length and area measures to flowpaths/divides
 - [`add_areasqkm()`](https://lynker-spatial.github.io/hfutils/reference/add_areasqkm.md)
@@ -250,6 +212,28 @@ Algorithms over the directed (DAG) flow network.
   : Node geometry from line endpoints
 - [`rename_geometry()`](https://lynker-spatial.github.io/hfutils/reference/rename_geometry.md)
   : Rename geometry column of sf object
+- [`hf_network_is_dag()`](https://lynker-spatial.github.io/hfutils/reference/hf_network_is_dag.md)
+  : Is a flowpath network a directed acyclic graph?
+- [`hf_assert_network_dag()`](https://lynker-spatial.github.io/hfutils/reference/hf_assert_network_dag.md)
+  : Assert a flowpath network is a DAG, reporting any cycle nodes
+- [`hf_recompute_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/hf_recompute_hydroseq.md)
+  : Recompute hydrosequence for a flowpath network by topological sort
+- [`hf_break_cycles()`](https://lynker-spatial.github.io/hfutils/reference/hf_break_cycles.md)
+  : Break cycles in a flowpath network by severing one back-edge per SCC
+- [`hf_fmt_id()`](https://lynker-spatial.github.io/hfutils/reference/hf_fmt_id.md)
+  : Format numeric identifiers without scientific notation
+
+## QGIS styling
+
+Stamp the packaged QGIS symbology into a GeoPackage so it opens
+pre-styled.
+
+- [`append_style()`](https://lynker-spatial.github.io/hfutils/reference/append_style.md)
+  : Write QGIS layer styles into a GeoPackage
+- [`read_qml()`](https://lynker-spatial.github.io/hfutils/reference/read_qml.md)
+  : Read a QML style file
+- [`create_style_row()`](https://lynker-spatial.github.io/hfutils/reference/create_style_row.md)
+  : Build one \`layer_styles\` row for a GeoPackage layer
 
 ## Versioning & quality assurance
 
@@ -304,7 +288,7 @@ interface.
 
 - [Cloud access, versioning, and quality
   assurance](https://lynker-spatial.github.io/hfutils/articles/cloud-and-versioning.md):
-- [Network properties: accumulation and
-  hydrosequence](https://lynker-spatial.github.io/hfutils/articles/network-properties.md):
+- [Network properties: accumulation, ordering, and
+  coding](https://lynker-spatial.github.io/hfutils/articles/network-properties.md):
 - [Reading and writing a
   hydrofabric](https://lynker-spatial.github.io/hfutils/articles/reading-and-writing.md):

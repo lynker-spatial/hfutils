@@ -6,13 +6,13 @@ and designed to work with dplyr.
 ## Usage
 
 ``` r
-as_ogr(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+as_ogr(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs)
 
 # S3 method for class 'character'
-as_ogr(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+as_ogr(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs)
 
 # S3 method for class 'OGRSQLConnection'
-as_ogr(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+as_ogr(x, layer, ..., query = NA, ignore_lyrs = .hf_ignore_lyrs)
 ```
 
 ## Arguments
@@ -43,7 +43,13 @@ as_ogr(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
 
 - ignore_lyrs:
 
-  pattern for layers to be ignored description
+  Regular expression matching tables that are data-source plumbing
+  rather than user layers, excluded when \`layer\` is not given. The
+  default drops GeoPackage spec tables (\`^gpkg\_\`), spatial indexes
+  (\`^rtree\_\`), SQLite internals (\`^sqlite\_\`), and the two tables
+  QGIS writes into a GeoPackage when you save a style or a project to it
+  (\`layer_styles\`, \`qgis_projects\`). Patterns are anchored, so a
+  layer whose name merely contains one of these is not dropped.
 
 ## Value
 

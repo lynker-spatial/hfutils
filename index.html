@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>hfutils — core utilities for the hydrofabric stack • hfutils</title>
+<title>hfutils: core utilities for the hydrofabric stack • hfutils</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <link href="deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="hfutils — core utilities for the hydrofabric stack">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="hfutils: core utilities for the hydrofabric stack">
 <meta name="description" content="Base-layer access, cleaning, network/topology, versioning, and quality checks for the Lynker Spatial hydrofabric.
 ">
 <meta property="og:description" content="Base-layer access, cleaning, network/topology, versioning, and quality checks for the Lynker Spatial hydrofabric.
@@ -33,7 +33,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/cloud-and-versioning.html">Cloud access, versioning, and quality assurance</a></li>
-    <li><a class="dropdown-item" href="articles/network-properties.html">Network properties: accumulation and hydrosequence</a></li>
+    <li><a class="dropdown-item" href="articles/network-properties.html">Network properties: accumulation, ordering, and coding</a></li>
     <li><a class="dropdown-item" href="articles/reading-and-writing.html">Reading and writing a hydrofabric</a></li>
   </ul>
 </li>
@@ -56,11 +56,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-stack" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Stack</button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack">
-<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish/articles/architecture.html">Architecture overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset — subset</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric — build</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish">hfpublish — publish</a></li>
+<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset: subset</a></li>
+    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric: build</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="external-link nav-link" href="https://www.lynker-spatial.com/">Lynker Spatial</a></li>
@@ -88,7 +85,8 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"lynker-spatial/hfutils"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lynker-spatial/hfutils" class="external-link">hfutils</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="basic-use">Basic Use<a class="anchor" aria-label="anchor" href="#basic-use"></a>
@@ -100,120 +98,61 @@
 <h4 id="basic-connection-dataset">Basic connection: Dataset<a class="anchor" aria-label="anchor" href="#basic-connection-dataset"></a>
 </h4>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">'/Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg'</span></span>
+<code class="sourceCode R"><span><span class="co"># point this at a hydrofabric GeoPackage (with flowpaths + divides layers)</span></span>
+<span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">"reference_fabric.gpkg"</span></span>
+<span></span>
+<span><span class="co"># With a single user layer, that layer is selected automatically. A source</span></span>
+<span><span class="co"># holding several layers is ambiguous, so as_ogr() lists them and asks you</span></span>
+<span><span class="co"># to name one.</span></span>
 <span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "divides"        "flowpaths"      "hydrolocations" "pois"          </span></span>
-<span><span class="co">#&gt; [5] "events"         "network"</span></span>
-<span><span class="co">#&gt; &lt;OGRSQLConnection&gt;</span></span>
-<span><span class="co">#&gt;  DSN: /Users/mikejohnson/hydrofabric/v3.0/reference_fabric.gpkg...</span></span>
-<span><span class="co">#&gt; tables: divides, flowpaths, hydrolocations, pois, events, network</span></span></code></pre></div>
+<span><span class="co">#&gt; Error: Multiple layers found; please specify `layer` explicitly:</span></span>
+<span><span class="co">#&gt; &gt; divides, flowpaths</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="basic-connection-layer">Basic connection: Layer<a class="anchor" aria-label="anchor" href="#basic-connection-layer"></a>
 </h4>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> </span>
-<span><span class="co">#&gt; # Source:   table&lt;"divides"&gt; [?? x 6]</span></span>
-<span><span class="co">#&gt; # Database: OGRSQLConnection</span></span>
-<span><span class="co">#&gt;    divide_id vpuid areasqkm has_flowpath flowpath_id                        geom</span></span>
-<span><span class="co">#&gt;        &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;lgl&gt;              &lt;dbl&gt;          &lt;MULTIPOLYGON [m]&gt;</span></span>
-<span><span class="co">#&gt;  1 931090014 01     8.61    TRUE           931090014 (((2068815 2313015, 206890…</span></span>
-<span><span class="co">#&gt;  2 931080009 01     0.158   TRUE           931080009 (((1933035 2277735, 193315…</span></span>
-<span><span class="co">#&gt;  3 931080008 01     0.296   TRUE           931080008 (((1933035 2277735, 193300…</span></span>
-<span><span class="co">#&gt;  4 931080007 01     1.99    TRUE           931080007 (((1932855 2277345, 193285…</span></span>
-<span><span class="co">#&gt;  5 931080006 01     2.33    TRUE           931080006 (((1931025 2278695, 193102…</span></span>
-<span><span class="co">#&gt;  6 931070173 01     1.21    TRUE           931070173 (((1967025 2413755, 196702…</span></span>
-<span><span class="co">#&gt;  7 931070172 01     7.72    TRUE           931070172 (((1966455 2412855, 196651…</span></span>
-<span><span class="co">#&gt;  8 931060011 01     1.78    TRUE           931060011 (((2021925 2487855, 202204…</span></span>
-<span><span class="co">#&gt;  9 931060010 01     1.85    TRUE           931060010 (((2021925 2487855, 202174…</span></span>
-<span><span class="co">#&gt; 10 931060009 01     0.00765 TRUE           931060009 (((1990665 2513595, 199057…</span></span>
-<span><span class="co">#&gt; # ℹ more rows</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="lazy-eval">Lazy Eval<a class="anchor" aria-label="anchor" href="#lazy-eval"></a>
 </h4>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">divide_id</span>, <span class="va">areasqkm</span><span class="op">)</span> </span>
-<span><span class="co">#&gt; # Source:   SQL [?? x 2]</span></span>
-<span><span class="co">#&gt; # Database: OGRSQLConnection</span></span>
-<span><span class="co">#&gt;    divide_id areasqkm</span></span>
-<span><span class="co">#&gt;        &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1 931090014  8.61   </span></span>
-<span><span class="co">#&gt;  2 931080009  0.158  </span></span>
-<span><span class="co">#&gt;  3 931080008  0.296  </span></span>
-<span><span class="co">#&gt;  4 931080007  1.99   </span></span>
-<span><span class="co">#&gt;  5 931080006  2.33   </span></span>
-<span><span class="co">#&gt;  6 931070173  1.21   </span></span>
-<span><span class="co">#&gt;  7 931070172  7.72   </span></span>
-<span><span class="co">#&gt;  8 931060011  1.78   </span></span>
-<span><span class="co">#&gt;  9 931060010  1.85   </span></span>
-<span><span class="co">#&gt; 10 931060009  0.00765</span></span>
-<span><span class="co">#&gt; # ℹ more rows</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">divide_id</span>, <span class="va">areasqkm</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="sf-extraction">sf extraction<a class="anchor" aria-label="anchor" href="#sf-extraction"></a>
 </h4>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Simple feature collection with 67880 features and 5 fields</span></span>
-<span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
-<span><span class="co">#&gt; Dimension:     XY</span></span>
-<span><span class="co">#&gt; Bounding box:  xmin: 1824825 ymin: 2215935 xmax: 2255715 ymax: 3086925</span></span>
-<span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
-<span><span class="co">#&gt; # A tibble: 67,880 × 6</span></span>
-<span><span class="co">#&gt;    divide_id vpuid areasqkm has_flowpath flowpath_id                        geom</span></span>
-<span><span class="co">#&gt;        &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;lgl&gt;              &lt;dbl&gt;          &lt;MULTIPOLYGON [m]&gt;</span></span>
-<span><span class="co">#&gt;  1 931090014 01     8.61    TRUE           931090014 (((2068815 2313015, 206890…</span></span>
-<span><span class="co">#&gt;  2 931080009 01     0.158   TRUE           931080009 (((1933035 2277735, 193315…</span></span>
-<span><span class="co">#&gt;  3 931080008 01     0.296   TRUE           931080008 (((1933035 2277735, 193300…</span></span>
-<span><span class="co">#&gt;  4 931080007 01     1.99    TRUE           931080007 (((1932855 2277345, 193285…</span></span>
-<span><span class="co">#&gt;  5 931080006 01     2.33    TRUE           931080006 (((1931025 2278695, 193102…</span></span>
-<span><span class="co">#&gt;  6 931070173 01     1.21    TRUE           931070173 (((1967025 2413755, 196702…</span></span>
-<span><span class="co">#&gt;  7 931070172 01     7.72    TRUE           931070172 (((1966455 2412855, 196651…</span></span>
-<span><span class="co">#&gt;  8 931060011 01     1.78    TRUE           931060011 (((2021925 2487855, 202204…</span></span>
-<span><span class="co">#&gt;  9 931060010 01     1.85    TRUE           931060010 (((2021925 2487855, 202174…</span></span>
-<span><span class="co">#&gt; 10 931060009 01     0.00765 TRUE           931060009 (((1990665 2513595, 199057…</span></span>
-<span><span class="co">#&gt; # ℹ 67,870 more rows</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="remote-access">Remote Access<a class="anchor" aria-label="anchor" href="#remote-access"></a>
-</h4>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># hfutils::as_ogr('/vsis3/lynker-spatial/hydrofabric/v2.2/conus/conus_nextgen.gpkg')</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span>  <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
 <h3 id="network-properties">Network Properties<a class="anchor" aria-label="anchor" href="#network-properties"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Accumulate Downstream</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/accumulate_downstream.html">accumulate_downstream</a></span><span class="op">(</span>attr <span class="op">=</span> <span class="st">"areasqkm"</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.911   0.491   1.550</span></span>
+<span>  <span class="va">da</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"flowpaths"</span><span class="op">)</span>  <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/accumulate_downstream.html">accumulate_downstream</a></span><span class="op">(</span>attr <span class="op">=</span> <span class="st">"areasqkm"</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">da</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  15.66720  11.12805   4.44600   6.52365   4.53420 335.51145</span></span>
 <span></span>
 <span><span class="co">## Hydrosequence</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="va">hs</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, </span>
-<span>                         <span class="st">'flowpaths'</span><span class="op">)</span>  <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/get_hydroseq.html">get_hydroseq</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">hs</span> <span class="op">&lt;-</span>  <span class="fu">hfutils</span><span class="fu">::</span><span class="fu"><a href="reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"flowpaths"</span><span class="op">)</span>  <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/get_hydroseq.html">get_hydroseq</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.900   0.488   1.398</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]   806 22724 22726 22725 22727 28139</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="questions">Questions?<a class="anchor" aria-label="anchor" href="#questions"></a>
@@ -234,7 +173,8 @@
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li>Apache License (&gt;= 2)</li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small>Apache License (&gt;= 2)</small></li>
 </ul>
 </div>
 
@@ -259,7 +199,8 @@
 <li>
 <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a> <br><small class="roles"> Author, maintainer </small>   </li>
 <li>
-<a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a> <br><small class="roles"> Author </small>   </li>
+<a href="https://www.lynker-spatial.com/" class="external-link">Lynker Spatial</a> <br><small class="roles"> Copyright holder, funder </small>   </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
@@ -270,7 +211,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>, <a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a>.</p>
+  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

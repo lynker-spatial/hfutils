@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Network properties: accumulation and hydrosequence • hfutils</title>
+<title>Network properties: accumulation, ordering, and coding • hfutils</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Network properties: accumulation and hydrosequence">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Network properties: accumulation, ordering, and coding">
 <meta name="theme-color" content="#1EB5FF">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/cloud-and-versioning.html">Cloud access, versioning, and quality assurance</a></li>
-    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation and hydrosequence</a></li>
+    <li><a class="dropdown-item" href="../articles/network-properties.html">Network properties: accumulation, ordering, and coding</a></li>
     <li><a class="dropdown-item" href="../articles/reading-and-writing.html">Reading and writing a hydrofabric</a></li>
   </ul>
 </li>
@@ -51,11 +51,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-stack" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Stack</button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack">
-<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish/articles/architecture.html">Architecture overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset — subset</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric — build</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish">hfpublish — publish</a></li>
+<li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset: subset</a></li>
+    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric: build</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="external-link nav-link" href="https://www.lynker-spatial.com/">Lynker Spatial</a></li>
@@ -72,7 +69,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Network properties: accumulation and hydrosequence</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Network properties: accumulation, ordering, and coding</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/lynker-spatial/hfutils/blob/main/vignettes/network-properties.Rmd" class="external-link"><code>vignettes/network-properties.Rmd</code></a></small>
@@ -86,10 +83,11 @@
 <p>A hydrofabric flow network is a <strong>directed acyclic graph
 (DAG)</strong>: every feature (<code>id</code>) points to exactly one
 downstream feature (<code>toid</code>), and terminal features point to
-<code>0</code> (or <code>NA</code>). <code>hfutils</code> provides two
-topology primitives that operate on this structure — both are
+<code>0</code> (or <code>NA</code>). <code>hfutils</code> provides a
+family of topology functions that operate on this structure, all are
 character-safe, so identifiers such as <code>"fp-123"</code> or
-scientific-notation strings round-trip cleanly.</p>
+scientific-notation strings round-trip cleanly, and each returns a
+vector aligned to the input rows.</p>
 <div class="section level2">
 <h2 id="downstream-accumulation">Downstream accumulation<a class="anchor" aria-label="anchor" href="#downstream-accumulation"></a>
 </h2>
@@ -145,13 +143,123 @@ sort key for downstream traversal.</p>
 <span><span class="co">#&gt; 3           3             4        1</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="derived-network-attributes">Derived network attributes<a class="anchor" aria-label="anchor" href="#derived-network-attributes"></a>
+</h2>
+<p>The rest of the family builds the standard NHDPlus-style routing
+attributes on top of the same topological pass. Take a small basin, a
+mainstem <code>4 -&gt; 3 -&gt; 1</code> with a tributary
+<code>2 -&gt; 1</code> draining to the outlet <code>1</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">net</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  flowpath_id   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span><span class="op">)</span>,</span>
+<span>  flowpath_toid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">"1"</span>, <span class="st">"1"</span>, <span class="st">"3"</span><span class="op">)</span>,</span>
+<span>  lengthkm      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">arbolate</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/accumulate_downstream.html">accumulate_downstream</a></span><span class="op">(</span><span class="va">net</span>, attr <span class="op">=</span> <span class="st">"lengthkm"</span><span class="op">)</span>   <span class="co"># arbolate sum</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">order</span>     <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_streamorder.html">get_streamorder</a></span><span class="op">(</span><span class="va">net</span><span class="op">)</span>                            <span class="co"># Strahler order</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">levelpath</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_levelpath.html">get_levelpath</a></span><span class="op">(</span><span class="va">net</span>, weight <span class="op">=</span> <span class="st">"arbolate"</span><span class="op">)</span>         <span class="co"># mainstem grouping</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">pathlen</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_pathlength.html">get_pathlength</a></span><span class="op">(</span><span class="va">net</span>, length <span class="op">=</span> <span class="st">"lengthkm"</span><span class="op">)</span>        <span class="co"># distance to outlet</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">level</span>     <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_streamlevel.html">get_streamlevel</a></span><span class="op">(</span><span class="va">net</span>, levelpath <span class="op">=</span> <span class="st">"levelpath"</span><span class="op">)</span>   <span class="co"># stream level</span></span>
+<span><span class="va">net</span></span>
+<span><span class="co">#&gt;   flowpath_id flowpath_toid lengthkm arbolate order levelpath pathlen level</span></span>
+<span><span class="co">#&gt; 1           1             0        4       14     2         4       0     1</span></span>
+<span><span class="co">#&gt; 2           2             1        2        2     1         1       4     2</span></span>
+<span><span class="co">#&gt; 3           3             1        3        8     1         4       4     1</span></span>
+<span><span class="co">#&gt; 4           4             3        5        5     1         4       7     1</span></span></code></pre></div>
+<ul>
+<li>
+<strong><code><a href="../reference/get_streamorder.html">get_streamorder()</a></code></strong>, Strahler order:
+leaves are <code>1</code>, and order increases only where two
+equal-order streams meet (so the confluence at <code>1</code> is order
+2).</li>
+<li>
+<strong><code><a href="../reference/get_levelpath.html">get_levelpath()</a></code></strong>, groups reaches into
+continuous mainstems, following the largest-<code>weight</code>
+contributor at each confluence (here the arbolate sum, so
+<code>1</code>, <code>3</code>, <code>4</code> share a level path and
+the tributary <code>2</code> is its own).</li>
+<li>
+<strong><code><a href="../reference/get_pathlength.html">get_pathlength()</a></code></strong>, distance along the
+network from each reach’s outlet to the network terminus (<code>0</code>
+at the outlet, summing downstream lengths going up).</li>
+<li>
+<strong><code><a href="../reference/get_streamlevel.html">get_streamlevel()</a></code></strong>, how many level-path
+steps a reach is from the terminus: the mainstem is <code>1</code>, the
+tributary <code>2</code>.</li>
+</ul>
+<div class="section level3">
+<h3 id="pfafstetter-codes">Pfafstetter codes<a class="anchor" aria-label="anchor" href="#pfafstetter-codes"></a>
+</h3>
+<p><code><a href="../reference/get_pfafstetter.html">get_pfafstetter()</a></code> assigns hierarchical <a href="https://en.wikipedia.org/wiki/Pfafstetter_Coding_System" class="external-link">Pfafstetter</a>
+basin codes. It needs total drainage area, a hydrosequence, and level
+paths precomputed, then subdivides each basin’s mainstem by its four
+largest tributaries, recursing <code>max_level</code> digits deep:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># on a real fabric this is accumulated catchment area; `arbolate` stands in here</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">total_da_sqkm</span> <span class="op">&lt;-</span> <span class="va">net</span><span class="op">$</span><span class="va">arbolate</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">topo_sort</span>     <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_hydroseq.html">get_hydroseq</a></span><span class="op">(</span><span class="va">net</span><span class="op">)</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">pfaf</span>          <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_pfafstetter.html">get_pfafstetter</a></span><span class="op">(</span><span class="va">net</span>, max_level <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<p>The result is most meaningful on a full basin, where each digit
+narrows the location within the drainage hierarchy. On a four-reach toy
+network there are no tributaries large enough to subdivide, so every
+code comes back <code>NA</code>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="upstream-queries-and-partitioning">Upstream queries and partitioning<a class="anchor" aria-label="anchor" href="#upstream-queries-and-partitioning"></a>
+</h2>
+<p><code><a href="../reference/upstream_index.html">upstream_index()</a></code> assigns each feature a <em>nested
+set</em> pair, <code>upstream_id</code> (its depth-first pre-order
+position) and <code>num_upstreams</code> (how many features sit strictly
+above it). Together these turn “everything upstream of X” into an
+integer range test rather than a graph traversal:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/upstream_index.html">upstream_index</a></span><span class="op">(</span><span class="va">net</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">net</span><span class="op">[</span><span class="st">"flowpath_id"</span><span class="op">]</span>, <span class="va">idx</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   flowpath_id upstream_id num_upstreams</span></span>
+<span><span class="co">#&gt; 1           1           1             3</span></span>
+<span><span class="co">#&gt; 2           2           4             0</span></span>
+<span><span class="co">#&gt; 3           3           2             1</span></span>
+<span><span class="co">#&gt; 4           4           3             0</span></span></code></pre></div>
+<p>Everything upstream of a feature with <code>upstream_id == u</code>
+and <code>num_upstreams == k</code> is exactly the half-open range
+<code>(u, u + k]</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="va">idx</span><span class="op">$</span><span class="va">upstream_id</span><span class="op">[</span><span class="va">net</span><span class="op">$</span><span class="va">flowpath_id</span> <span class="op">==</span> <span class="st">"1"</span><span class="op">]</span></span>
+<span><span class="va">k</span> <span class="op">&lt;-</span> <span class="va">idx</span><span class="op">$</span><span class="va">num_upstreams</span><span class="op">[</span><span class="va">net</span><span class="op">$</span><span class="va">flowpath_id</span> <span class="op">==</span> <span class="st">"1"</span><span class="op">]</span></span>
+<span><span class="va">net</span><span class="op">$</span><span class="va">flowpath_id</span><span class="op">[</span><span class="va">idx</span><span class="op">$</span><span class="va">upstream_id</span> <span class="op">&gt;</span> <span class="va">u</span> <span class="op">&amp;</span> <span class="va">idx</span><span class="op">$</span><span class="va">upstream_id</span> <span class="op">&lt;=</span> <span class="va">u</span> <span class="op">+</span> <span class="va">k</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] "2" "3" "4"</span></span></code></pre></div>
+<p>Because the walk expands the largest-upstream branch first, a
+mainstem stays contiguous. Note that <code>upstream_id</code> is
+build-specific: it changes whenever the topology changes, so it is an
+index, not a persistent key.</p>
+<p>For a hydrofabric whose flowpaths route through nexuses,
+<code><a href="../reference/hf_upstream_index.html">hf_upstream_index()</a></code> resolves the
+<code>flowpath -&gt; nexus -&gt; flowpath</code> hops first and then
+indexes the resulting flowpath graph. <code><a href="../reference/write_hydrofabric.html">write_hydrofabric()</a></code>
+calls it for you, so a written GeoPackage carries the index already.</p>
+<p><code><a href="../reference/merge_groups.html">merge_groups()</a></code> builds on the same pre-order to cut the
+network into <em>contiguous</em> runs, breaking wherever a feature does
+not flow directly into its predecessor or (with <code>order</code>)
+wherever the given order column changes. Each group is a contiguous
+<code>upstream_id</code> range, so a size-budgeted partitioner can merge
+whole groups and always end up with complete sub-networks:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/merge_groups.html">merge_groups</a></span><span class="op">(</span><span class="va">net</span>, order <span class="op">=</span> <span class="st">"levelpath"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 1 2 1 1</span></span></code></pre></div>
+<p>The mainstem <code>4 -&gt; 3 -&gt; 1</code> forms one group; the
+tributary <code>2</code> is its own.</p>
+</div>
+<div class="section level2">
 <h2 id="in-practice">In practice<a class="anchor" aria-label="anchor" href="#in-practice"></a>
 </h2>
-<p>Both functions accept a data frame, tibble, or <code>sf</code>
+<p>Every function above accepts a data frame, tibble, or <code>sf</code>
 object. A typical pattern reads a layer lazily, filters to a VPU,
 materializes it, and accumulates:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">da</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_ogr.html">as_ogr</a></span><span class="op">(</span><span class="st">"conus_nextgen.gpkg"</span>, <span class="st">"flowpaths"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">vpuid</span> <span class="op">==</span> <span class="st">"01"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -167,7 +275,7 @@ that pipeline.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>, <a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a>.</p>
+  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

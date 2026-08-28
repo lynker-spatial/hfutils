@@ -22,6 +22,8 @@ Useful links:
 
 **Maintainer**: Mike Johnson <mjohnson@lynker.com>
 
-Authors:
+Other contributors:
 
-- Justin Singh-Mohudpur
+- Justin Singh-Mohudpur \[contributor\]
+
+- Lynker Spatial \[copyright holder, funder\]

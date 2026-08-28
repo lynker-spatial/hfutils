@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">hfutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,17 +18,14 @@
       <ul class="navbar-nav me-auto"><li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/cloud-and-versioning.html">Cloud access, versioning, and quality assurance</a></li>
-    <li><a class="dropdown-item" href="articles/network-properties.html">Network properties: accumulation and hydrosequence</a></li>
+    <li><a class="dropdown-item" href="articles/network-properties.html">Network properties: accumulation, ordering, and coding</a></li>
     <li><a class="dropdown-item" href="articles/reading-and-writing.html">Reading and writing a hydrofabric</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-stack" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Stack</button>
-  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack"><li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish/articles/architecture.html">Architecture overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset — subset</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric — build</a></li>
-    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfpublish">hfpublish — publish</a></li>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-stack"><li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hfsubset">hfsubset: subset</a></li>
+    <li><a class="external-link dropdown-item" href="https://lynker-spatial.github.io/hydrofabric">hydrofabric: build</a></li>
   </ul></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://www.lynker-spatial.com/">Lynker Spatial</a></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/lynker-spatial/hfutils/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -47,7 +44,7 @@
 
 <div class="section level2">
 <h2 id="testing--coverage">Testing &amp; coverage<a class="anchor" aria-label="anchor" href="#testing--coverage"></a></h2>
-<p>Tests use <a href="https://testthat.r-lib.org/" class="external-link">testthat</a> and run against small, self-contained fixtures (the <code><a href="https://r-spatial.github.io/sf/reference/nc.html" class="external-link">sf::nc</a></code> sample and synthetic flow networks built in <code>tests/testthat/helper-fixtures.R</code>) — no network access, cloud authentication, or external command-line tools are required.</p>
+<p>Tests use <a href="https://testthat.r-lib.org/" class="external-link">testthat</a> and run against small, self-contained fixtures (the <code><a href="https://r-spatial.github.io/sf/reference/nc.html" class="external-link">sf::nc</a></code> sample and synthetic flow networks built in <code>tests/testthat/helper-fixtures.R</code>), no network access, cloud authentication, or external command-line tools are required.</p>
 <p>Run the suite with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -65,8 +62,26 @@
 </tr><tr><td><code>R/auth.R</code></td>
 <td>
 <code>lynker_spatial_*()</code> drive an interactive OAuth2 browser flow.</td>
-</tr></tbody></table><p>These functions are validated through integration use rather than unit tests; their error-guard paths (e.g. malformed tokens) <em>are</em> unit-tested. Everything else — I/O, geometry cleaning, network/topology algorithms, versioning, and the staged invariant checks — is expected to stay well covered, so please add or extend tests alongside any change to those areas.</p>
+</tr></tbody></table><p>These functions are validated through integration use rather than unit tests; their error-guard paths (e.g. malformed tokens) <em>are</em> unit-tested. Everything else, I/O, geometry cleaning, network/topology algorithms, versioning, and the staged invariant checks, is expected to stay well covered, so please add or extend tests alongside any change to those areas.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="lint-and-spelling">Lint and spelling<a class="anchor" aria-label="anchor" href="#lint-and-spelling"></a></h2>
+<p>Both are enforced in CI, so it is worth running them before you push.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">lintr</span><span class="fu">::</span><span class="fu">lint_package</span><span class="op">(</span><span class="op">)</span>          <span class="co"># must report zero lints</span></span>
+<span><span class="fu">spelling</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/spelling//reference/spell_check_package.html" class="external-link">spell_check_package</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The <code>lint</code> workflow runs with <code>LINTR_ERROR_ON_LINT=true</code>, so a single style finding fails the build. The active linter set, and the exceptions the package takes deliberately, are documented inline in <code>.lintr</code>; <code>styler</code> is the formatter of record and owns indentation.</p>
+<p>CI installs the current lintr, so an older local copy can report zero lints on code CI rejects: new linters arrive in minor releases. Run <code>update.packages("lintr")</code> before trusting a clean local run.</p>
+<p>Spelling runs as part of the test suite and fails on an unrecognized word. Genuine technical terms (<code>arbolate</code>, <code>NHDPlus</code>, <code>Strahler</code>, and so on) belong in <code>inst/WORDLIST</code>; add them there rather than rewording the documentation. The package declares <code>Language: en-US</code>, so use US spellings in prose.</p>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a></h2>
+<p>Documentation is roxygen2-generated. After changing any roxygen block, run:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">roxygen2</span><span class="fu">::</span><span class="fu">roxygenise</span><span class="op">(</span><span class="op">)</span>   <span class="co"># regenerates man/ and NAMESPACE</span></span>
+<span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/check_pkgdown.html" class="external-link">check_pkgdown</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># every exported topic must appear in _pkgdown.yml</span></span></code></pre></div>
+<p>A newly exported function has to be added to the reference index in <code>_pkgdown.yml</code>, otherwise the website build fails. <code>README.md</code> is generated from <code>README.Rmd</code> via <code><a href="https://rdrr.io/pkg/knitr/man/knit.html" class="external-link">knitr::knit()</a></code>; edit the <code>.Rmd</code>.</p>
 <div class="section level3">
 <h3 id="conventions">Conventions<a class="anchor" aria-label="anchor" href="#conventions"></a></h3>
 <ul><li>Prefer behavioral assertions (outputs, invariants, error conditions) over asserting that a specific internal branch executed.</li>
@@ -81,7 +96,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>, <a href="https://github.com/program--" class="external-link">Justin Singh-Mohudpur</a>.</p>
+  <p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

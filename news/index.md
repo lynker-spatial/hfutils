@@ -1,11 +1,201 @@
 # Changelog
 
+## hfutils 0.4.2
+
+First release since 0.3.4. Completes the topological network-property
+family, adds a nested-set upstream index, moves QGIS styling into the
+base layer, and makes several in-place write paths exact. 0.4.0 and
+0.4.1 were development versions and were never released.
+
+- New
+  [`append_style()`](https://lynker-spatial.github.io/hfutils/reference/append_style.md),
+  [`read_qml()`](https://lynker-spatial.github.io/hfutils/reference/read_qml.md),
+  and
+  [`create_style_row()`](https://lynker-spatial.github.io/hfutils/reference/create_style_row.md),
+  with QML symbology for every geometry-bearing layer in the hydrofabric
+  data model: `divides` and `WB` (polygon), `flowpaths` and `flowlines`
+  (line), and `hydrolocations`, `lakes` and `nexus` (point).
+  [`append_style()`](https://lynker-spatial.github.io/hfutils/reference/append_style.md)
+  stamps the styles into a GeoPackage’s `layer_styles` table so the file
+  opens pre-styled in QGIS. These move here from the `hydrofabric`
+  package, alongside
+  [`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md).
+
+- [`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)
+  gains `styles`, defaulting to `FALSE`. Set it to `TRUE` to stamp the
+  packaged symbology into the written GeoPackage. It is off by default
+  because `layer_styles` is a QGIS extension rather than part of the
+  GeoPackage specification: it appears as an extra layer to every reader
+  ([`sf::st_layers()`](https://r-spatial.github.io/sf/reference/st_layers.html),
+  `ogrinfo`, fiona), not just to
+  [`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md),
+  and costs a fixed ~70 KB, which is a large fraction of a small subset.
+  Forgetting to style a deliverable is visible immediately and fixable
+  after the fact with
+  [`append_style()`](https://lynker-spatial.github.io/hfutils/reference/append_style.md);
+  styling a pipeline intermediate is silent and propagates. Styling runs
+  after the file is finalized, so a failure warns and leaves a correctly
+  written fabric rather than aborting one.
+
+- New `WB.qml`: waterbodies had no style at all. `WB` is a distinct
+  layer from `lakes`, sharing only `id` and `geometry`; `lakes` carries
+  NWM reservoir routing parameters (weir and orifice coefficients, dam
+  length) and is styled as points, while `WB` is waterbody polygons.
+
+- QML files are matched to layers by exact basename. The previous
+  implementation paired a directory listing against the caller’s layer
+  order positionally, so
+  `append_style(gpkg, layer_names = c("nexus", "divides"))` gave `nexus`
+  the divides symbology and vice versa, with no error. Requested layers
+  with no shipped QML, and attribute tables with no geometry column such
+  as `network`, are now skipped rather than mismatched or errored on.
+
+- `flowpaths` line width is driven by `tot_drainage_areasqkm` rather
+  than `order`. Bound to `order` as a raw field, stream order was read
+  directly as millimeters, so an order-7 mainstem drew as a 7 mm line.
+  Width is now log-scaled from drainage area and capped, and features
+  render in ascending drainage-area order so mainstems sit on top at
+  confluences.
+
+- New `flowlines.qml`: the reference linework styled thin and light
+  blue, driven by the same attribute over a narrower width range.
+
+- New
+  [`get_pathlength()`](https://lynker-spatial.github.io/hfutils/reference/get_pathlength.md):
+  distance along the network from each reach’s outlet to the terminal
+  outlet (the NHDPlus `PathLength` attribute).
+
+- New
+  [`get_streamlevel()`](https://lynker-spatial.github.io/hfutils/reference/get_streamlevel.md):
+  stream level, the number of level-path steps from a reach to the
+  network terminus (the NHDPlus `StreamLeve` attribute).
+
+- New
+  [`get_pfafstetter()`](https://lynker-spatial.github.io/hfutils/reference/get_pfafstetter.md):
+  hierarchical Pfafstetter basin codes, verified against a full
+  746-reach reference basin.
+
+- These join
+  [`accumulate_downstream()`](https://lynker-spatial.github.io/hfutils/reference/accumulate_downstream.md),
+  [`get_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.md),
+  [`get_streamorder()`](https://lynker-spatial.github.io/hfutils/reference/get_streamorder.md),
+  and
+  [`get_levelpath()`](https://lynker-spatial.github.io/hfutils/reference/get_levelpath.md);
+  all are character-safe and return a vector aligned to the input rows,
+  and now cross-reference each other in their help pages.
+
+- New
+  [`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md):
+  a nested-set upstream index (`upstream_id` and `num_upstreams`) over a
+  rooted-tree network, so everything upstream of a node is an O(1)
+  integer range filter (`upstream_id` in `(u, u + k]`) with no
+  traversal. Reuses
+  [`accumulate_downstream()`](https://lynker-spatial.github.io/hfutils/reference/accumulate_downstream.md)
+  for the count (inheriting its acyclic check) and flags divergences or
+  cycles rather than mis-indexing.
+
+- New
+  [`merge_groups()`](https://lynker-spatial.github.io/hfutils/reference/merge_groups.md):
+  groups a network into contiguous same-order runs over the
+  [`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
+  pre-order. Each group is a contiguous `upstream_id` range, so a
+  size-budgeted tiler or partitioner can merge groups into balanced
+  chunks that are always complete sub-networks.
+
+- New
+  [`hf_upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/hf_upstream_index.md):
+  applies the
+  [`upstream_index()`](https://lynker-spatial.github.io/hfutils/reference/upstream_index.md)
+  nested set at hydrofabric grain, resolving
+  `flowpath -> nexus -> flowpath` hops into a direct flowpath graph
+  before indexing. A `flowpath_toid` that is already a flowpath is
+  followed directly, so networks written without a nexus layer index
+  correctly rather than resolving every node to an isolated terminal. A
+  divergent nexus (two distinct downstreams) is counted in
+  `n_divergences` and warned, since the nested set cannot represent it.
+
+- [`write_hydrofabric()`](https://lynker-spatial.github.io/hfutils/reference/write_hydrofabric.md)
+  now stamps `upstream_id` and `num_upstreams` onto every flowpath-keyed
+  layer whenever the written list carries a flowpath topology, so a
+  written GeoPackage supports O(1) upstream range queries. The step is
+  attribute-only and is skipped without failing the write when the
+  topology is absent or not acyclic. The index is scoped to whatever
+  topology is written, so per-VPU, merged, and subset writes each get a
+  correct index; the values are build-specific and are not persistent
+  keys.
+
+- [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
+  is now an exact dissolve. It previously routed geometry through
+  `terra::makeValid() |> terra::aggregate()`, which perturbed shared
+  boundaries enough that neighboring groups came out overlapping: on one
+  CONUS VPU the summed area of the result exceeded the summed area of
+  its inputs by 20 km2, entirely overlap between adjacent groups.
+  Downstream cleanup then existed to remove that overlap. Grouped
+  [`sf::st_union()`](https://r-spatial.github.io/sf/reference/geos_combine.html)
+  over already-valid inputs preserves the input tiling exactly –
+  measured on 61,061 real divides in 23,910 groups: overlap 20 km2 -\>
+  0.000000 km2, area delta -0.0005 km2, and 21s instead of ~65s.
+
+- [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
+  no longer casts its result to `POLYGON` and keeps only the largest
+  part per group. A group whose members are genuinely disjoint is a
+  multipart catchment, not an error, and discarding the smaller parts
+  silently deleted ground. Output is `MULTIPOLYGON`. This path was
+  latent rather than active in current data, but it is the same defect
+  that had to be fixed separately downstream.
+
+- [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
+  repairs input geometry only where
+  [`sf::st_is_valid()`](https://r-spatial.github.io/sf/reference/valid.html)
+  reports a problem, so valid input passes through untouched.
+
+- [`gpkg_update_geom()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_geom.md)
+  no longer leaves its temporary layer’s spatial index behind. It
+  dropped the temp feature table and its `gpkg_contents` /
+  `gpkg_geometry_columns` rows, but not the four `rtree_*` shadow tables
+  GDAL creates alongside a spatial layer, their triggers, or the
+  `gpkg_extensions` registration. Those accumulated in the GeoPackage on
+  every call: ten geometry updates left forty orphan tables in the file.
+  Removal is now complete and happens inside the same transaction as the
+  geometry swap.
+
+- [`gpkg_update_geom()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_geom.md)
+  names its temporary layer from
+  [`tempfile()`](https://rdrr.io/r/base/tempfile.html) rather than the
+  clock. The previous `%H%M%S%OS2` name collided when two calls landed
+  in the same centisecond and embedded a `.` in a SQL identifier.
+
+- [`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)
+  now ignores the two tables QGIS writes into a GeoPackage when a style
+  or a project is saved to it (`layer_styles`, `qgis_projects`). They
+  are a QGIS extension rather than part of the GeoPackage spec, so they
+  were being counted as user layers: a styled single-layer fabric
+  stopped auto-resolving and began erroring as ambiguous.
+
+- The
+  [`as_ogr()`](https://lynker-spatial.github.io/hfutils/reference/as_ogr.md)
+  `ignore_lyrs` pattern is now anchored (`^gpkg_`, `^rtree_`,
+  `^sqlite_`). Unanchored, it silently dropped any real layer whose name
+  merely contained one of those fragments, such as `flowpaths_gpkg_v2`.
+  The default is also defined once and shared by the generic and both
+  methods, which previously carried three separate copies of the
+  literal.
+
+- First tests for
+  [`gpkg_update_col()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_col.md),
+  [`gpkg_update_geom()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_update_geom.md),
+  and
+  [`gpkg_exec()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_exec.md),
+  covering targeted-row updates, numeric round-tripping, trigger
+  restoration, temp-layer cleanup, and transaction rollback. All three
+  write destructively in place and had no coverage.
+
 ## hfutils 0.3.4
 
 Correctness and quality pass on the base layer.
 
 - [`tbl_http()`](https://lynker-spatial.github.io/hfutils/reference/tbl_http.md)
-  no longer errors on its default call — the malformed `read_func`
+  no longer errors on its default call; the malformed `read_func`
   default is fixed and validated with
   [`match.arg()`](https://rdrr.io/r/base/match.arg.html).
 - [`get_hydroseq()`](https://lynker-spatial.github.io/hfutils/reference/get_hydroseq.md)
@@ -19,7 +209,7 @@ Correctness and quality pass on the base layer.
 - Fixed
   [`union_polygons()`](https://lynker-spatial.github.io/hfutils/reference/union_polygons.md)
   erroring (`object '.' not found`) in its disjoint-MULTIPOLYGON dedup
-  branch — it used the magrittr `.` pronoun under a native `|>` pipe.
+  branch; it used the magrittr `.` pronoun under a native `|>` pipe.
   This path fires exactly when a group unions to disjoint parts; now
   regression-tested.
 - Removed divergent duplicate definitions of
@@ -75,7 +265,7 @@ Correctness and quality pass on the base layer.
   [`hf_check_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.md)
   (aggregated/ngen) now guard `mainstem_id_populated` and
   `hydroseq_valid` via shared `.hf_mainstem_check()` /
-  `.hf_hydroseq_check()` helpers — catching carried/recomputed columns
+  `.hf_hydroseq_check()` helpers, catching carried/recomputed columns
   that are silently dropped or mis-mapped (the class behind two Stage-4
   regressions in `hydrofabric`). Tests cover dropped / duplicate / clean
   at the per-stage and merge entry points.
@@ -85,12 +275,12 @@ Correctness and quality pass on the base layer.
   sibling package installed).
 - [`tbl_http()`](https://lynker-spatial.github.io/hfutils/reference/tbl_http.md)
   forwards named reader options through `...` to the DuckDB read
-  function (e.g. `union_by_name = TRUE` → `union_by_name=true`);
+  function (e.g. `union_by_name = TRUE` -\> `union_by_name=true`);
   previously `...` was accepted but silently dropped.
 - [`lynker_spatial_auth()`](https://lynker-spatial.github.io/hfutils/reference/lynker_spatial_auth.md)
-  documents per-library behavior and adds `"arrow"` as an opt-in target
-  — arrow authenticates lynker-spatial via the S3 credential chain (it
-  has no HTTP-header filesystem for the bearer token).
+  documents per-library behavior and adds `"arrow"` as an opt-in target;
+  arrow authenticates lynker-spatial via the S3 credential chain (it has
+  no HTTP-header filesystem for the bearer token).
 - `\dontrun{}` examples on every exported function; spell-check setup
   (`Language`, `inst/WORDLIST`, `tests/spelling.R`); `styler` + a
   documented `.lintr` policy (lint-clean) + a `lint` CI workflow.
@@ -100,16 +290,16 @@ Correctness and quality pass on the base layer.
 - Add
   [`gpkg_set_version()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_set_version.md)
   /
-  [`gpkg_get_version()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_get_version.md)
-  — stamp and read a dataset version (machine integer `Mmmpp` + human
+  [`gpkg_get_version()`](https://lynker-spatial.github.io/hfutils/reference/gpkg_get_version.md):
+  stamp and read a dataset version (machine integer `Mmmpp` + human
   semver) into the standard GeoPackage metadata extension tables, with
   an optional build-provenance JSON entry and an SPDX license.
   Idempotent; leaves the GeoPackage spec version (`user_version`)
   untouched.
 - Add
-  [`hf_check_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.md)
-  — shared staged pipeline invariant checks (`refactored` / `reconciled`
-  / `aggregated` / `ngen`) so every layer of the stack can use one
+  [`hf_check_invariants()`](https://lynker-spatial.github.io/hfutils/reference/hf_check_invariants.md):
+  shared staged pipeline invariant checks (`refactored` / `reconciled` /
+  `aggregated` / `ngen`) so every layer of the stack can use one
   implementation.
 - [`accumulate_downstream()`](https://lynker-spatial.github.io/hfutils/reference/accumulate_downstream.md)
   now builds its topological-sort graph via
