@@ -512,6 +512,10 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 #' @param area_tol fractional tolerance for divide-area conservation (default 0.005).
 #' @param stage message label (default "merge").
 #' @param strict if TRUE, a failed check stops execution (else warns).
+#' @param gpkg optional path to the written product. When supplied, the CRS check
+#'   reads every spatial layer from the file rather than only the tables passed in
+#'   `merged`; a product holds layers this function never sees, and a check that
+#'   inspects a subset while reporting on the whole is worse than none.
 #' @return invisibly `list(ok, stage, checks)`.
 #' @examples
 #' \dontrun{
@@ -526,7 +530,7 @@ hf_check_invariants <- function(stage, ..., strict = TRUE,
 #' @export
 hf_check_merge_invariants <- function(merged, expected = NULL,
                                       area_tol = 0.005, stage = "merge",
-                                      strict = FALSE) {
+                                      strict = FALSE, gpkg = NULL) {
   fp <- merged$flowpaths
   dv <- merged$divides
   nx <- merged$nexus
@@ -602,12 +606,41 @@ hf_check_merge_invariants <- function(merged, expected = NULL,
   # hydroseq routing order must be complete + unique after the global recompute.
   checks$hydroseq_valid <- .hf_hydroseq_check(fp)
 
-  # single CRS across all merged layers
-  crs_of <- function(x) if (inherits(x, "sf")) sf::st_crs(x)$epsg else NA
-  crs <- unique(stats::na.omit(c(crs_of(fp), crs_of(dv), crs_of(nx))))
+  # A single CRS across EVERY spatial layer in the product.
+  #
+  # Read from the file when one is given: the tables handed to this function are a
+  # subset, and checking them alone reported "single CRS" for a product whose pois
+  # and hydrolocations sat in a different projection from its network layers. The
+  # in-memory fallback resolves the code through the WKT too, because st_crs()$epsg
+  # is NA for a CRS carrying no authority tag and the check then named it EPSG:NA.
+  lyr_crs <- NULL
+  if (!is.null(gpkg) && file.exists(gpkg)) {
+    lyr_crs <- tryCatch({
+      con <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
+      on.exit(DBI::dbDisconnect(con), add = TRUE)
+      g <- DBI::dbGetQuery(con,
+        "SELECT table_name, srs_id FROM gpkg_geometry_columns")
+      stats::setNames(as.character(g$srs_id), g$table_name)
+    }, error = function(e) NULL)
+  }
+  if (is.null(lyr_crs) || !length(lyr_crs)) {
+    crs_of <- function(x) {
+      if (!inherits(x, "sf")) return(NA_character_)
+      cr <- sf::st_crs(x)
+      if (!is.na(cr$epsg)) as.character(cr$epsg) else as.character(cr$input)
+    }
+    lyr_crs <- c(flowpaths = crs_of(fp), divides = crs_of(dv), nexus = crs_of(nx))
+    lyr_crs <- lyr_crs[!is.na(lyr_crs)]
+  }
+  crs <- unique(unname(lyr_crs))
   checks$crs_consistent <- .hf_ok(length(crs) <= 1L,
-    if (length(crs) <= 1L) sprintf("single CRS (EPSG:%s)", if (length(crs)) crs else "NA")
-    else sprintf("mixed CRS: %s", paste(crs, collapse = ", ")))
+    if (length(crs) <= 1L)
+      sprintf("single CRS (EPSG:%s) across %d spatial layer(s)",
+        if (length(crs)) crs else "none", length(lyr_crs))
+    else sprintf("mixed CRS across %d layer(s): %s", length(lyr_crs),
+      paste(vapply(split(names(lyr_crs), unname(lyr_crs)),
+        function(v) sprintf("EPSG:%s = {%s}", unname(lyr_crs[v[1]]),
+          paste(v, collapse = ",")), ""), collapse = "; ")))
 
   .hf_report_checks(checks, stage, strict)
 }

@@ -9,7 +9,8 @@ hf_check_merge_invariants(
   expected = NULL,
   area_tol = 0.005,
   stage = "merge",
-  strict = FALSE
+  strict = FALSE,
+  gpkg = NULL
 )
 }
 \arguments{
@@ -25,6 +26,11 @@ field is absent the corresponding check reports as info (skipped).}
 \item{stage}{message label (default "merge").}
 
 \item{strict}{if TRUE, a failed check stops execution (else warns).}
+
+\item{gpkg}{optional path to the written product. When supplied, the CRS check
+reads every spatial layer from the file rather than only the tables passed in
+`merged`; a product holds layers this function never sees, and a check that
+inspects a subset while reporting on the whole is worse than none.}
 }
 \value{
 invisibly `list(ok, stage, checks)`.
