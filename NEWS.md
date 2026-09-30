@@ -1,3 +1,8 @@
+# hfutils 0.4.4
+
+* Copyright is held by Lynker Corporation, in LICENSE, NOTICE,
+  THIRD_PARTY_NOTICES and DESCRIPTION. No code changes.
+
 # hfutils 0.4.2
 
 First release since 0.3.4. Completes the topological network-property family,

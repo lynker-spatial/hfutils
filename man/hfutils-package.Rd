@@ -25,7 +25,7 @@ Useful links:
 Other contributors:
 \itemize{
   \item Justin Singh-Mohudpur [contributor]
-  \item Lynker Spatial [copyright holder, funder]
+  \item Lynker Corporation [copyright holder, funder]
 }
 
 }

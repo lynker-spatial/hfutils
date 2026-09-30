@@ -7,7 +7,7 @@ Description: Base-layer utilities for accessing, cleaning, summarizing, and
     network and topology algorithms (downstream accumulation, hydrosequence),
     staged pipeline invariant checks, and GeoPackage dataset-version and
     provenance metadata helpers used across the hydrofabric package suite.
-Version: 0.4.3
+Version: 0.4.4
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -15,7 +15,7 @@ Authors@R:
              email = "mjohnson@lynker.com"),
              person(given = "Justin", family = "Singh-Mohudpur",
              role = c("ctb")),
-             person(given = "Lynker Spatial",
+             person(given = "Lynker Corporation",
              role = c("cph", "fnd")))
 Maintainer: Mike Johnson <mjohnson@lynker.com>
 BugReports: https://github.com/lynker-spatial/hfutils/issues
