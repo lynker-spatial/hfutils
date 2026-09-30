@@ -26,4 +26,4 @@ Other contributors:
 
 - Justin Singh-Mohudpur \[contributor\]
 
-- Lynker Spatial \[copyright holder, funder\]
+- Lynker Corporation \[copyright holder, funder\]

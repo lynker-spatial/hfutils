@@ -1,7 +1,7 @@
 # Third-party notices
 
-`hfutils` is licensed under **Apache-2.0** (© Lynker Spatial). That
-license applies to Lynker Spatial’s own code in this repository.
+`hfutils` is licensed under **Apache-2.0** (© Lynker Corporation). That
+license applies to Lynker Corporation’s own code in this repository.
 
 This package **depends on** third-party R packages that carry their own
 licenses. Those packages are **not redistributed** with this source;
@@ -12,7 +12,8 @@ independent of the Apache-2.0 grant here. Several are copyleft
 their terms.
 
 This notice is provided for transparency and to answer reuse questions;
-it adds no constraint to the Apache-2.0 grant on Lynker Spatial’s code.
+it adds no constraint to the Apache-2.0 grant on Lynker Corporation’s
+code.
 
 ## Direct dependencies
 
